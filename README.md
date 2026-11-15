@@ -29,6 +29,7 @@ Estrutura do projeto:
 | `15-usuarios.js` | Cadastro de usuários |
 | `16-vistoria.js` | Relatório Vistorial (visão do técnico) |
 | `17-vistoria-publica.js` | Página pública da loja (QR Code) |
+| `18-entrega-epi.js` | Entrega de EPIs (com assinatura do colaborador) e controle de estoque por loja |
 | `99-inicializacao.js` | Código que roda ao carregar a página (não mude a ordem interna dele) |
 
 **Importante:** não mude a ordem dos `<script>` no `index.html` — o arquivo `99-inicializacao.js` precisa ser sempre o último.

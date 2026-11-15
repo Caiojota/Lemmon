@@ -105,6 +105,8 @@ function mostrarSubFichaEpi(sub){
   document.querySelectorAll("#view-fichaEpi .insp-sub").forEach(s=>s.classList.remove("active"));
   document.getElementById("fichaEpi-sub-"+sub).classList.add("active");
   if(sub==="auditoria") initAuditoriaEpi();
+  if(sub==="entrega") initEntregaEpi();
+  if(sub==="estoque") initEstoqueEpi();
 }
 
 // Função do módulo: ajustar abas ficha epi

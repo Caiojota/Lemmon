@@ -1158,6 +1158,8 @@
           <button type="button" class="insp-tab" data-sub="novo" onclick="mostrarSubFichaEpi('novo')">Novo admitido (fora da base)</button>
           <button type="button" class="insp-tab" data-sub="admitidos" onclick="mostrarSubFichaEpi('admitidos')">Novos admitidos (planilha) <span class="fe-badge" id="fe-adm-badge" style="display:none;"></span></button>
           <button type="button" class="insp-tab" data-sub="auditoria" onclick="mostrarSubFichaEpi('auditoria')">Auditoria das fichas</button>
+          <button type="button" class="insp-tab" data-sub="entrega" onclick="mostrarSubFichaEpi('entrega')">Entrega de EPIs</button>
+          <button type="button" class="insp-tab" data-sub="estoque" onclick="mostrarSubFichaEpi('estoque')">Estoque</button>
         </div>
 
         <div class="card" id="fe-aviso-base" style="display:none; margin-bottom:14px; border-left:4px solid var(--terracota); color:var(--terracota); font-weight:600;"></div>
@@ -1334,6 +1336,77 @@
             </table>
           </div>
         </div>
+        </div>
+
+        <!-- ENTREGA DE EPIs -->
+        <div class="insp-sub" id="fichaEpi-sub-entrega">
+          <div class="card" id="ent-busca">
+            <h3>Entrega de EPIs</h3>
+            <span class="sub">Digite a matrícula do colaborador para ver os EPIs da função dele e registrar a entrega.</span>
+            <div style="display:flex; gap:10px; align-items:flex-end; margin-top:12px; flex-wrap:wrap;">
+              <div class="field" style="flex:1; min-width:180px; max-width:320px; margin-bottom:0;"><label>Matrícula</label><input type="text" id="ent-matricula" placeholder="ex.: 20008567" onkeydown="if(event.key==='Enter'){event.preventDefault();entBuscarColaborador();}"></div>
+              <button type="button" class="btn-primary inline" onclick="entBuscarColaborador()">Buscar</button>
+            </div>
+            <span class="sub" id="ent-status" style="display:block; margin-top:10px; font-weight:600;"></span>
+          </div>
+
+          <div class="card" id="ent-itens" style="display:none;">
+            <span class="sub" id="ent-colab-info"></span>
+            <span class="sub">Marque os itens entregues agora, ajuste a quantidade e o motivo. Itens sem estoque suficiente ficam destacados, mas ainda podem ser entregues.</span>
+            <div class="table-wrap" style="margin-top:12px;">
+              <table>
+                <thead><tr><th style="width:60px;">Entregar</th><th>Descrição do EPI</th><th style="width:110px;">C.A</th><th style="width:90px;">Qtd.</th><th style="width:190px;">Motivo</th><th style="width:110px;">Estoque na loja</th></tr></thead>
+                <tbody id="ent-itens-tbody"></tbody>
+              </table>
+            </div>
+            <div style="display:flex; gap:10px; margin-top:14px;">
+              <button type="button" class="btn-primary inline" onclick="entAbrirAssinatura()">Confirmar entrega (colher assinatura)</button>
+              <button type="button" class="btn-secondary" onclick="entNovaBusca()">‹ Buscar outra matrícula</button>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3>Últimas entregas</h3>
+            <div class="filters" style="box-shadow:none; border:none; padding:0;">
+              <div class="f-group"><label>Loja</label><select id="ent-hist-loja" onchange="entRenderHistorico()"><option value="">Todas</option></select></div>
+              <div class="f-group"><label>Buscar</label><input type="text" id="ent-hist-busca" placeholder="Colaborador ou matrícula" oninput="entRenderHistorico()"></div>
+            </div>
+            <div class="table-wrap" style="margin-top:10px;">
+              <table>
+                <thead><tr><th>Data</th><th>Colaborador</th><th>Loja</th><th>Itens</th><th>Confirmação</th></tr></thead>
+                <tbody id="ent-hist-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- ESTOQUE DE EPIs -->
+        <div class="insp-sub" id="fichaEpi-sub-estoque">
+          <div class="card">
+            <h3>Entrada de estoque</h3>
+            <span class="sub">Registre a chegada de EPIs na loja para manter o saldo correto.</span>
+            <div class="filters" style="box-shadow:none; border:none; padding:0; margin-top:10px;">
+              <div class="f-group"><label>Loja</label><select id="est-loja"><option value="">Selecione a loja...</option></select></div>
+              <div class="f-group"><label>Descrição do EPI</label><input type="text" id="est-descricao" placeholder="ex.: Luva de raspa"></div>
+              <div class="f-group" style="max-width:120px;"><label>C.A</label><input type="text" id="est-ca" placeholder="ex.: 12345"></div>
+              <div class="f-group" style="max-width:120px;"><label>Quantidade</label><input type="number" id="est-qtd" min="1" value="1"></div>
+              <div class="f-group"><label>Motivo</label><input type="text" id="est-motivo" placeholder="ex.: Compra mensal"></div>
+            </div>
+            <button type="button" class="btn-primary inline" style="margin-top:12px;" onclick="estRegistrarEntrada()">Registrar entrada</button>
+            <span class="sub" id="est-status" style="display:block; margin-top:10px; font-weight:600;"></span>
+          </div>
+          <div class="card">
+            <h3>Saldo atual</h3>
+            <div class="filters" style="box-shadow:none; border:none; padding:0;">
+              <div class="f-group"><label>Loja</label><select id="est-f-loja" onchange="estRenderSaldo()"><option value="">Todas</option></select></div>
+            </div>
+            <div class="table-wrap" style="margin-top:10px;">
+              <table>
+                <thead><tr><th>Loja</th><th>Descrição</th><th>C.A</th><th>Quantidade atual</th></tr></thead>
+                <tbody id="est-saldo-tbody"></tbody>
+              </table>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -1758,6 +1831,23 @@
 </div>
 
 <!-- ============ MODAL: NOVO/EDITAR USUÁRIO ============ -->
+<div class="modal-bg" id="modal-epi-assinatura">
+  <div class="modal" style="max-width:640px;">
+    <h3>Confirmação do colaborador</h3>
+    <span class="sub" id="ent-ass-info" style="display:block; margin-bottom:10px;"></span>
+    <div style="border:2px dashed var(--areia-esc);border-radius:14px;background:#fff;position:relative;">
+      <canvas id="ent-ass-cv" width="640" height="220" style="width:100%;height:auto;display:block;touch-action:none;border-radius:12px;"></canvas>
+      <div style="position:absolute;left:6%;right:6%;bottom:22%;border-top:1.5px solid #bbb;pointer-events:none"></div>
+    </div>
+    <div class="field" style="margin-top:10px;"><label>Matrícula (confirmação)</label><input type="text" id="ent-ass-matricula" placeholder="Repita a matrícula para confirmar"></div>
+    <div style="display:flex; gap:10px; margin-top:14px;">
+      <button type="button" class="btn-secondary" onclick="document.getElementById('ent-ass-cv').dispatchEvent(new Event('limpar'))">Limpar assinatura</button>
+      <button type="button" class="btn-secondary" onclick="document.getElementById('modal-epi-assinatura').style.display='none'">Cancelar</button>
+      <button type="button" class="btn-primary inline" id="ent-ass-confirmar" onclick="entConfirmarEntrega()">Confirmar entrega</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-bg" id="modal-usuario">
   <div class="modal">
     <h3 id="modal-title">Novo usuário</h3>
@@ -2405,6 +2495,7 @@
 <script src="js/15-usuarios.js"></script>
 <script src="js/16-vistoria.js"></script>
 <script src="js/17-vistoria-publica.js"></script>
+<script src="js/18-entrega-epi.js"></script>
 <script src="js/99-inicializacao.js"></script>
 </body>
 </html>
