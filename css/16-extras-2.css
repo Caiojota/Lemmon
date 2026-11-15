@@ -1,0 +1,9 @@
+.vt-loja{background:var(--branco); border:1px solid var(--areia-cla); border-radius:16px; padding:15px 16px; cursor:pointer; box-shadow:var(--sombra); border-left:5px solid var(--verde-esc); display:flex; flex-direction:column; gap:12px;}
+.vt-loja-t b{display:block; font-size:17px; color:var(--marrom-esc);} .vt-loja-t small{color:var(--areia-esc); font-weight:600; font-size:12px;}
+.vt-loja-k{display:grid; grid-template-columns:repeat(3,1fr); gap:8px;}
+.vt-loja-k div{background:#faf6ee; border:1px solid var(--areia-cla); border-radius:12px; padding:8px 4px; text-align:center;}
+.vt-loja-k b{display:block; font-size:21px; color:var(--marrom-esc);} .vt-loja-k span{font-size:9.5px; font-weight:800; text-transform:uppercase; color:var(--areia-esc);}
+.vt-loja-k .ok b{color:#15803d;} .vt-loja-k .md b{color:#b45309;} .vt-loja-k .al b{color:#b91c1c;}
+.vt-pn-top{display:flex; align-items:center; gap:10px; margin-bottom:12px; flex-wrap:wrap;}
+.vt-pn-top b{flex:1; font-size:18px; color:var(--marrom-esc); min-width:120px;}
+.vt-btn-novo{background:var(--verde-esc); color:#fff; border:none; border-radius:12px; padding:11px 16px; font-weight:800; font-size:14px; cursor:pointer; font-family:inherit;}

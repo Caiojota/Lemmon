@@ -1,0 +1,2408 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script>if(/[?&]v=1(&|$)/.test(location.search)) document.documentElement.classList.add("pub-mode");</script>
+<title>LEMMON | SESMT HNT</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB2aWV3Qm94PSI3MCA0MiAxNTAgMTI4IiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxkZWZzPjxjbGlwUGF0aCBpZD0ibGVtb25DbGlwRmF2Ij48ZWxsaXBzZSBjeD0iMTQ1IiBjeT0iMTE1IiByeD0iNjIiIHJ5PSI1MiIvPjwvY2xpcFBhdGg+PC9kZWZzPjxlbGxpcHNlIGN4PSIxNDUiIGN5PSIxMTUiIHJ4PSI2MiIgcnk9IjUyIiBmaWxsPSIjZmFhNjFhIi8+PGcgY2xpcC1wYXRoPSJ1cmwoI2xlbW9uQ2xpcEZhdikiIHN0cm9rZT0iI2U1ZDFhYiIgc3Ryb2tlLXdpZHRoPSIyIiBvcGFjaXR5PSIwLjUiPjxsaW5lIHgxPSI4MCIgeTE9IjgwIiB4Mj0iMjEwIiB5Mj0iOTUiLz48bGluZSB4MT0iODAiIHkxPSI5NSIgeDI9IjIxMCIgeTI9IjExMCIvPjxsaW5lIHgxPSI4MCIgeTE9IjExMCIgeDI9IjIxMCIgeTI9IjEyNSIvPjxsaW5lIHgxPSI4MCIgeTE9IjEyNSIgeDI9IjIxMCIgeTI9IjE0MCIvPjxsaW5lIHgxPSI4MCIgeTE9IjE0MCIgeDI9IjIxMCIgeTI9IjE1NSIvPjwvZz48ZWxsaXBzZSBjeD0iODAiIGN5PSIxMTUiIHJ4PSI3IiByeT0iMTAiIGZpbGw9IiNmYWE2MWEiLz48ZWxsaXBzZSBjeD0iMjEwIiBjeT0iMTE1IiByeD0iNyIgcnk9IjEwIiBmaWxsPSIjZmFhNjFhIi8+PHBhdGggZD0iTTE0NSA0NSBDIDE3MiA0OSwgMTg1IDY1LCAxODUgNjUgQyAxODUgOTIsIDE2OCAxMDgsIDE0NSAxMTQgQyAxMjIgMTA4LCAxMDUgOTIsIDEwNSA2NSBDIDEwNSA2NSwgMTE4IDQ5LCAxNDUgNDUgWiIgZmlsbD0iIzAwYjI2MiIvPjxyZWN0IHg9IjEzOSIgeT0iNzAiIHdpZHRoPSIxMiIgaGVpZ2h0PSIyOCIgcng9IjIiIGZpbGw9IiNlZmUxZDMiIG9wYWNpdHk9IjAuOSIvPjxyZWN0IHg9IjEzMSIgeT0iNzgiIHdpZHRoPSIyOCIgaGVpZ2h0PSIxMiIgcng9IjIiIGZpbGw9IiNlZmUxZDMiIG9wYWNpdHk9IjAuOSIvPjwvc3ZnPg==">
+
+<!-- Open Sans (fonte de apoio/leitura, disponível via Google Fonts) -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<!-- Chart.js e SheetJS (bibliotecas usadas pelos relatórios e pelo upload de Excel) -->
+<script src="lib/html2canvas.js"></script>
+<script src="lib/chartjs.js"></script>
+<script src="lib/xlsx.js"></script>
+<script src="lib/jspdf.js"></script>
+<script src="lib/supabase.js"></script>
+<script src="lib/jszip.js"></script>
+<script src="lib/pptxgenjs.js"></script>
+
+<link rel="stylesheet" href="css/08-base.css">
+<link rel="stylesheet" href="css/09-agenda-unificada.css">
+<link rel="stylesheet" href="css/10-visual-ios.css">
+<link rel="stylesheet" href="css/11-icones.css">
+<link rel="stylesheet" href="css/12-sons.css">
+<script src="lib/qrcode.js"></script>
+<link rel="stylesheet" href="css/14-vistorial.css">
+<link rel="stylesheet" href="css/15-extras-1.css">
+<link rel="stylesheet" href="css/16-extras-2.css">
+<link rel="stylesheet" href="css/17-inicio-v2.css">
+<link rel="stylesheet" href="css/18-modais-v2.css">
+<link rel="stylesheet" href="css/19-modais-v2b.css">
+</head>
+<body>
+
+<!-- =========================================================
+     TELA DE LOGIN
+========================================================= -->
+<div id="login-screen">
+  <div class="login-wrap">
+    <div class="login-side">
+      <div class="brand-mark">
+        <div class="brand-logo-lemon">
+          <svg class="login-lemon" viewBox="70 42 150 128" xmlns="http://www.w3.org/2000/svg"><defs><clipPath id="lemonClipLogin"><ellipse cx="145" cy="115" rx="62" ry="52"/></clipPath></defs><ellipse cx="145" cy="115" rx="62" ry="52" fill="#faa61a"/><g clip-path="url(#lemonClipLogin)" stroke="#e5d1ab" stroke-width="2" opacity="0.5"><line x1="80" y1="80" x2="210" y2="95"/><line x1="80" y1="95" x2="210" y2="110"/><line x1="80" y1="110" x2="210" y2="125"/><line x1="80" y1="125" x2="210" y2="140"/><line x1="80" y1="140" x2="210" y2="155"/></g><ellipse cx="80" cy="115" rx="7" ry="10" fill="#faa61a"/><ellipse cx="210" cy="115" rx="7" ry="10" fill="#faa61a"/><path d="M145 45 C 172 49, 185 65, 185 65 C 185 92, 168 108, 145 114 C 122 108, 105 92, 105 65 C 105 65, 118 49, 145 45 Z" fill="#00b262"/><rect x="139" y="70" width="12" height="28" rx="2" fill="#efe1d3" opacity="0.9"/><rect x="131" y="78" width="28" height="12" rx="2" fill="#efe1d3" opacity="0.9"/></svg>
+          <div class="login-nome">Lemmon</div>
+          <div class="login-sub">SESMT HNT</div>
+        </div>
+      </div>
+      <div class="bottom-block">
+        <div class="divider"></div>
+        
+        <img class="login-hf" data-hf alt="Hortifruti Natural da Terra" src="">
+        <div class="foot">SESMT - Hortifruti Natural da Terra</div>
+      </div>
+    </div>
+    <div class="login-form-area">
+      <h2>Acessar plataforma</h2>
+      <span class="sub">Entre com seu e-mail e senha corporativos.</span>
+      <div class="login-error" id="login-error">E-mail ou senha inválidos. Tente novamente.</div>
+      <form id="login-form" onsubmit="return doLogin(event)">
+        <div class="field">
+          <label>E-mail</label>
+          <input type="email" id="login-user" placeholder="ex.: admin@hortifruti.com.br" autocomplete="username" required>
+        </div>
+        <div class="field">
+          <label>Senha</label>
+          <input type="password" id="login-pass" placeholder="••••••••" autocomplete="current-password" required>
+        </div>
+        <button type="submit" class="btn-primary" id="btn-login">Entrar</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Contêiner usado só na impressão das fichas de EPI (fica oculto na tela) -->
+<div id="epi-print-root"></div>
+
+<!-- =========================================================
+     APLICAÇÃO
+========================================================= -->
+<div id="app">
+  <div class="shell">
+
+    <!-- CABEÇALHO -->
+    <header class="app-header">
+      <div class="brand-block">
+        <span class="ic-lemon" aria-hidden="true"><svg viewBox="70 42 150 128" xmlns="http://www.w3.org/2000/svg"><defs><clipPath id="lemonClipHdr"><ellipse cx="145" cy="115" rx="62" ry="52"/></clipPath></defs><ellipse cx="145" cy="115" rx="62" ry="52" fill="#faa61a"/><g clip-path="url(#lemonClipHdr)" stroke="#e5d1ab" stroke-width="2" opacity="0.5"><line x1="80" y1="80" x2="210" y2="95"/><line x1="80" y1="95" x2="210" y2="110"/><line x1="80" y1="110" x2="210" y2="125"/><line x1="80" y1="125" x2="210" y2="140"/><line x1="80" y1="140" x2="210" y2="155"/></g><ellipse cx="80" cy="115" rx="7" ry="10" fill="#faa61a"/><ellipse cx="210" cy="115" rx="7" ry="10" fill="#faa61a"/><path d="M145 45 C 172 49, 185 65, 185 65 C 185 92, 168 108, 145 114 C 122 108, 105 92, 105 65 C 105 65, 118 49, 145 45 Z" fill="#00b262"/><rect x="139" y="70" width="12" height="28" rx="2" fill="#efe1d3" opacity="0.9"/><rect x="131" y="78" width="28" height="12" rx="2" fill="#efe1d3" opacity="0.9"/></svg></span>
+        <div>
+          <h1>Lemmon</h1>
+          <span class="sub">SESMT HNT</span>
+        </div>
+        <span class="ic-hortifruti"><img data-hf alt="Hortifruti Natural da Terra" src=""></span>
+      </div>
+      <div class="header-actions">
+        <button type="button" class="notif-bell" id="btn-atualizar" onclick="atualizarDados('manual')" title="Atualizar dados agora (a plataforma também atualiza sozinha a cada 2 minutos)" aria-label="Atualizar dados">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;"><path d="M21 12a9 9 0 0 1-15.5 6.2M3 12A9 9 0 0 1 18.5 5.8M18.5 2v4h-4M5.5 22v-4h4"/></svg>
+        </button>
+        <div class="notif-wrap">
+          <button type="button" class="notif-bell" onclick="toggleNotificacoes()">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" style="vertical-align:-3px;"><path d="M12 2a1 1 0 0 1 1 1v.06A7 7 0 0 1 19 10v5.2l1.6 2.1a1 1 0 0 1-.8 1.7H4.2a1 1 0 0 1-.8-1.7L5 15.2V10a7 7 0 0 1 6-6.94V3a1 1 0 0 1 1-1Zm0 20a2.5 2.5 0 0 1-2.45-2h4.9A2.5 2.5 0 0 1 12 22Z"/></svg><span class="notif-badge" id="notif-badge" style="display:none;">0</span>
+          </button>
+          <div class="notif-dropdown" id="notif-dropdown" style="display:none;">
+            <div class="notif-dropdown-header">
+              <span>Notificações</span>
+              <button type="button" onclick="limparNotificacoes()">Limpar tudo</button>
+            </div>
+            <div class="notif-lista" id="notif-lista"></div>
+          </div>
+        </div>
+        <div class="user-menu" id="user-menu">
+          <button type="button" class="userbox" id="user-menu-btn" onclick="toggleMenuUsuario(event)" aria-haspopup="true" aria-expanded="false" title="Menu do usuário">
+            <div class="avatar" id="user-avatar">A</div>
+            <div>
+              <div class="un" id="user-name">—</div>
+              <div class="role" id="user-role">—</div>
+            </div>
+            <svg class="user-caret" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+          </button>
+          <div class="user-dropdown" id="user-dropdown" style="display:none;" role="menu">
+            <button type="button" class="ud-item" id="ud-gestao" role="menuitem" style="display:none;" onclick="document.getElementById('user-dropdown').style.display='none'; irParaView('gestao');">
+              <svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor"><path d="M19.4 13a7.7 7.7 0 0 0 0-2l2.1-1.6-2-3.5-2.5 1a7.6 7.6 0 0 0-1.7-1L15 3h-4l-.3 2.9a7.6 7.6 0 0 0-1.7 1l-2.5-1-2 3.5L6.6 11a7.7 7.7 0 0 0 0 2l-2.1 1.6 2 3.5 2.5-1c.5.4 1.1.75 1.7 1L11 21h4l.3-2.9c.6-.25 1.2-.6 1.7-1l2.5 1 2-3.5-2.1-1.6ZM13 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7Z"/></svg>
+              Gestão
+            </button>
+            <button type="button" class="ud-item sair" role="menuitem" onclick="doLogout()">
+              <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg>
+              Sair
+            </button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- ABAS -->
+    <nav class="app-tabs" id="nav-list">
+      <a href="#" class="nav-item" data-view="inicio"><span class="ic"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M12 3.2 2.5 11.4a1 1 0 0 0 .66 1.76H5V20a1 1 0 0 0 1 1h4v-5h4v5h4a1 1 0 0 0 1-1v-6.84h1.84a1 1 0 0 0 .66-1.76L12 3.2Z"/></svg></span>Início</a>
+      <a href="#" class="nav-item" data-view="calendario"><span class="ic"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M7 2a1 1 0 0 1 1 1v1h8V3a1 1 0 1 1 2 0v1h1a2 2 0 0 1 2 2v13a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h1V3a1 1 0 0 1 1-1Zm13 8H4v10a.5.5 0 0 0 .5.5h15a.5.5 0 0 0 .5-.5V10Z"/></svg></span> Agenda</a>
+      <a href="#" class="nav-item" data-view="demandas"><span class="ic"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M3 6a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6Z"/></svg></span> Demandas</a>
+      <a href="#" class="nav-item" data-view="reunioes"><span class="ic"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M16 11a3 3 0 1 0-3-3 3 3 0 0 0 3 3Zm-8 0a3 3 0 1 0-3-3 3 3 0 0 0 3 3Zm0 2c-2.3 0-7 1.2-7 3.5V19h14v-2.5C15 14.2 10.3 13 8 13Zm8 0c-.3 0-.6 0-1 .1 1.2.8 2 1.9 2 3.4V19h6v-2.5c0-2.3-4.7-3.5-7-3.5Z"/></svg></span> Reuniões</a>
+      <a href="#" class="nav-item" data-view="tarefas"><span class="ic"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3 8-8M20 12v6a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h9"/></svg></span> Tarefas</a>
+      <a href="#" class="nav-item" data-view="dashboards"><span class="ic"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg></span> Dashboards</a>
+    </nav>
+
+    <!-- CONTEÚDO -->
+    <main class="content">
+
+      <!-- ============ DASHBOARD ============ -->
+      <!-- ============ INÍCIO ============ -->
+      <section class="view active" id="view-inicio">
+        <div class="topbar">
+          <div><h2>Início</h2></div>
+        </div>
+        <div class="in-hero" id="inicio-hero"></div>
+        <div class="in-kpis" id="inicio-kpis"></div>
+
+        <div class="in-linha2">
+          <div class="in-col">
+          <div id="inicio-sessao" style="display:none;"></div>
+          <div class="in-ck-wrap">
+            <div class="section-title" style="margin-top:0;"><span>Check-in de hoje</span><div class="ln"></div></div>
+            <div id="checkin-hoje"></div>
+          </div>
+<div class="card in-card in-equipe-card">
+            <div class="in-card-topo"><h4>Onde está a equipe hoje</h4><button type="button" class="in-link" onclick="abrirModuloInicio('agenda','semanal')">Ver semana</button></div>
+            <div id="inicio-equipe"></div>
+          </div>
+          </div>
+          <div class="card in-card in-atencao">
+            <div class="in-card-topo"><h4>Unidades que precisam de atenção</h4></div>
+            <div id="inicio-atencao"></div>
+          </div>
+          <div class="card in-card in-planos in-livre">
+            <div class="in-card-topo"><h4>Planos de ação</h4><button type="button" class="in-link" onclick="irParaView('inspecoes')">Relatórios</button></div>
+            <div id="inicio-planos"></div>
+          </div>
+          <div class="card in-card in-prox-card">
+            <div class="in-card-topo"><h4>Próximas visitas</h4><button type="button" class="in-link" onclick="abrirModuloInicio('agenda','minha')">+ Agendar</button></div>
+            <div id="inicio-proximas"></div>
+          </div>
+          <div class="card in-card in-cal">
+            <div class="in-card-topo"><h4 id="in-cal-titulo">Calendário</h4>
+              <span class="in-cal-nav"><button type="button" onclick="inicioCalNavegar(-1)" aria-label="Mês anterior" title="Mês anterior">‹</button><button type="button" onclick="inicioCalHoje()">Hoje</button><button type="button" onclick="inicioCalNavegar(1)" aria-label="Próximo mês" title="Próximo mês">›</button></span></div>
+            <div id="inicio-cal"></div>
+          </div>
+        </div>
+
+        <div class="in-grid">
+          
+          <div class="card in-card">
+            <div class="in-card-topo"><h4>Minhas demandas</h4><button type="button" class="in-link" onclick="abrirModuloInicio('demandas')">Ver todas</button></div>
+            <div id="inicio-demandas"></div>
+          </div>
+          
+          <div class="card in-card in-avisos">
+            <div class="in-card-topo"><h4>Avisos</h4><span class="in-acoes-topo" id="inicio-avisos-acoes"></span></div>
+            <div id="inicio-avisos"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ DASHBOARD ============ -->
+      <section class="view" id="view-lancamento">
+        <div class="topbar">
+          <div><h2>Acidentes</h2></div>
+        </div>
+
+
+        <!-- SUB: INDICADORES -->
+        <div class="insp-sub" id="acidentes-sub-indicadores">
+<div class="topbar" style="margin-bottom:16px;">
+          <div><h2 style="font-size:19px;">Indicadores</h2></div>
+          <div style="display:flex; align-items:center; gap:10px;">
+            <div class="pill" id="pill-total">0 acidentes no período</div>
+            <button type="button" class="btn-secondary" onclick="abrirPainelConteiner('dashboards','acidentesLista')">Ver todos os acidentes</button>
+            <button type="button" class="btn-secondary" id="btn-exportar-ppt" onclick="exportarDashboardPPT()"><svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" style="vertical-align:-2px;"><path d="M4 20V10h3v10H4Zm6.5 0V4h3v16h-3ZM17 20v-7h3v7h-3Z"/></svg> Exportar em PPT</button>
+          </div>
+        </div>
+
+        <div id="aviso-libs-dashboard" style="display:none; background:#fdecea; border:1.5px solid var(--vermelho); color:#7a1f1f; padding:12px 16px; border-radius:10px; margin-bottom:16px; font-size:13px;"></div>
+
+        <div class="filters">
+          <div class="f-group">
+            <label>Unidade</label>
+            <select id="f-unidade"><option value="">Todas</option></select>
+          </div>
+          <div class="f-group">
+            <label>Regional <span style="font-weight:400; text-transform:none; color:var(--areia-esc);">(gerente)</span></label>
+            <select id="f-regional"><option value="">Todas</option></select>
+          </div>
+          <div class="f-group">
+            <label>Tipo de negócio</label>
+            <select id="f-negocio"><option value="">Todos</option></select>
+          </div>
+          <div class="f-group">
+            <label>Praça</label>
+            <select id="f-praca"><option value="">Todas</option></select>
+          </div>
+          <div class="f-group">
+            <label>Tipo de acidente</label>
+            <select id="f-tipo"><option value="">Todos</option></select>
+          </div>
+          <div class="f-group">
+            <label>De</label>
+            <input type="date" id="f-de">
+          </div>
+          <div class="f-group">
+            <label>Até</label>
+            <input type="date" id="f-ate">
+          </div>
+          <button class="btn-clear" onclick="clearFilters()">Limpar filtros</button>
+        </div>
+
+        <div class="kpi-row">
+          <div class="kpi k1"><div class="lbl">Total de acidentes</div><div class="val" id="kpi-total">0</div><span class="foot" id="kpi-dias-sem-acidente">—</span></div>
+          <div class="kpi k2"><div class="lbl">Dias de afastamento</div><div class="val" id="kpi-dias">0</div><span class="foot" id="kpi-dias-foot">—</span></div>
+          <div class="kpi k3"><div class="lbl">Típico x Trajeto</div><div class="val" id="kpi-tipico-trajeto">0 / 0</div><span class="foot">Quantidade por tipo de acidente</span></div>
+          <div class="kpi k4"><div class="lbl">% com afastamento</div><div class="val" id="kpi-pct">0%</div><span class="foot" id="kpi-pct-foot">—</span></div>
+          <div class="kpi k5"><div class="lbl">Óbitos</div><div class="val" id="kpi-obitos">0</div><span class="foot" id="kpi-obitos-foot">—</span></div>
+        </div>
+
+        <div class="thermo-card">
+          <h3>Termômetro de gravidade</h3>
+          <span class="desc">Distribuição proporcional dos acidentes do período, da menor para a maior gravidade.</span>
+          <div class="thermo-track" id="thermo-track"></div>
+          <div class="thermo-legend" id="thermo-legend"></div>
+        </div>
+
+        <div class="grid-3">
+          <div class="card">
+            <h3>Acidentes por tipo</h3>
+            <span class="sub">Trajeto x Típico</span>
+            <canvas id="chart-tipo"></canvas>
+          </div>
+          <div class="card">
+            <h3>Acidentes por tipo de negócio</h3>
+            <span class="sub">Loja · Logística · CP · Corporativo</span>
+            <canvas id="chart-negocio"></canvas>
+          </div>
+          <div class="card">
+            <h3>Acidentes por regional</h3>
+            <span class="sub">Gerente responsável pelo grupo de lojas</span>
+            <canvas id="chart-regional"></canvas>
+          </div>
+        </div>
+
+        <div class="card tall" style="margin-bottom:20px;">
+          <h3>Categoria de afastamento</h3>
+          <span class="sub">Sem, baixo impacto, com afastamento, previdenciário e óbito</span>
+          <canvas id="chart-gravidade"></canvas>
+        </div>
+
+        <div class="card tall" style="margin-bottom:20px;">
+          <h3>Unidades mais ofensoras</h3>
+          <span class="sub">Top 10 unidades por quantidade de acidentes</span>
+          <canvas id="chart-unidades"></canvas>
+        </div>
+
+        <div class="grid-2">
+          <div class="card tall">
+            <h3>Acidentes por setor</h3>
+            <span class="sub">Quantidade de ocorrências</span>
+            <canvas id="chart-setor"></canvas>
+          </div>
+          <div class="card tall">
+            <h3>Acidentes por função</h3>
+            <span class="sub">Quantidade de ocorrências</span>
+            <canvas id="chart-funcao"></canvas>
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div class="card tall">
+            <h3>Motivo do acidente</h3>
+            <span class="sub">Top 10 motivos mais frequentes</span>
+            <canvas id="chart-motivo"></canvas>
+          </div>
+          <div class="card tall">
+            <h3>Agente causador</h3>
+            <span class="sub">Classificação do agente envolvido</span>
+            <canvas id="chart-agente"></canvas>
+          </div>
+        </div>
+
+        <div class="card tall" style="margin-bottom:20px;">
+          <h3>Partes do corpo atingidas</h3>
+          <span class="sub">Quantidade por parte do corpo (eSocial)</span>
+          <canvas id="chart-partes"></canvas>
+        </div>
+
+        <div class="card" style="margin-bottom:20px;">
+          <h3>Mapa de calor — dias e horários</h3>
+          <span class="sub">Quantidade de acidentes por dia da semana e faixa de horário</span>
+          <div id="heatmap-dias-horas" style="margin-top:14px; overflow-x:auto;"></div>
+        </div>
+
+        <div class="section-title"><span>Indicadores de reincidência</span><div class="ln"></div></div>
+
+        <div class="grid-2">
+          <div class="card">
+            <h3>Reincidência de motivo na unidade</h3>
+            <span class="sub">Mesmo motivo de acidente repetido na mesma unidade</span>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Unidade</th><th>Motivo</th><th>Ocorrências</th></tr></thead>
+                <tbody id="tbl-reincidencia-motivo-loja"></tbody>
+              </table>
+            </div>
+          </div>
+          <div class="card">
+            <h3>Reincidência por colaborador</h3>
+            <span class="sub">Colaboradores com mais de um acidente registrado</span>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Colaborador</th><th>Unidade(s)</th><th>Ocorrências</th></tr></thead>
+                <tbody id="tbl-reincidencia-colaborador"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      
+        </div>
+
+        <!-- SUB: REGISTRO E ANÁLISE -->
+        <div class="insp-sub" id="acidentes-sub-registro">
+          <div class="topbar" style="margin-bottom:16px;">
+            <div></div>
+            <div style="display:flex; gap:10px; flex-wrap:wrap;">
+              <button type="button" class="btn-primary inline" onclick="toggleNovoRegistroPanel()">+ Nova Análise de Acidente</button>
+              <button type="button" class="btn-secondary" onclick="toggleFichaAnalisePanel()"><svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" style="vertical-align:-2px;"><path d="M9 2h6a1 1 0 0 1 1 1v1h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2V3a1 1 0 0 1 1-1Zm0 2v2h6V4H9ZM7 11h10v1.6H7V11Zm0 4h10v1.6H7V15Z"/></svg> Ficha de análise de acidente</button>
+            </div>
+          </div>
+
+<!-- PAINEL DE NOVO REGISTRO (oculto por padrão) -->
+        <div id="painel-novo-registro" style="display:none;">
+        <div class="form-card">
+          <h3 style="margin-bottom:16px;">Nova análise de acidente</h3>
+          <form id="form-acidente" onsubmit="return salvarAcidente(event)">
+            <input type="hidden" id="in-acidente-id">
+            <div class="form-grid">
+              <div class="field"><label>Data do acidente</label><input required type="date" id="in-data"></div>
+              <div class="field"><label>Hora do acidente</label><input required type="time" id="in-hora-acidente"></div>
+              <div class="field"><label>Hora do atendimento</label><input required type="time" id="in-hora-atendimento"></div>
+
+              <div class="field"><label>Tipo de acidente</label>
+                <select required id="in-tipo"><option value="Típico">Típico</option><option value="Trajeto">Trajeto</option></select>
+              </div>
+              <div class="field"><label>Praça</label>
+                <select required id="in-praca"><option>SP</option><option>MG</option><option>ES</option><option>RJ</option></select>
+              </div>
+              <div class="field"><label>Tipo de negócio</label>
+                <select required id="in-negocio"><option>Loja</option><option>Logística</option><option>CP</option><option>Corporativo</option></select>
+              </div>
+
+              <div class="field"><label>Loja / unidade</label><select required id="in-loja" onchange="atualizarRegionalDaUnidadeForm()"></select></div>
+              <div class="field"><label>Regional <span style="font-weight:400; text-transform:none; color:var(--areia-esc);">(automático)</span></label><input type="text" id="in-regional" disabled placeholder="Selecione a unidade"></div>
+              <div class="field"><label>Setor</label><select required id="in-setor"></select></div>
+              <div class="field"><label>Função</label><select required id="in-funcao"></select></div>
+
+              <div class="field"><label>Nome do colaborador</label><input required type="text" id="in-funcionario" placeholder="Nome completo"></div>
+              <div class="field"><label>Motivo do acidente</label><input required type="text" id="in-motivo" placeholder="ex.: Corte com faca, Queda em escada..."></div>
+              <div class="field"><label>Agente causador</label>
+                <select required id="in-agente-causador">
+                  <option>Superfícies, Pisos e Estruturas</option>
+                  <option>Ferramentas Manuais Cortantes/Perfurantes</option>
+                  <option>Embalagens, Mobiliário e Outros</option>
+                  <option>Máquinas e Equipamentos</option>
+                  <option>Veículos</option>
+                  <option>Outros</option>
+                </select>
+              </div>
+
+              <div class="field"><label>Local do acidente</label><input required type="text" id="in-local" placeholder="ex.: Doca de carga"></div>
+              <div class="field"><label>Partes do corpo atingidas</label><input type="text" id="in-partes" placeholder="ex.: Dedo, Mão (separe por vírgula)"></div>
+              <div class="field"><label>Gravidade</label>
+                <select required id="in-gravidade">
+                  <option>Sem afastamento</option>
+                  <option>Afastamento de baixo impacto</option>
+                  <option>Com afastamento</option>
+                  <option>Afastamento previdenciário</option>
+                  <option>Óbito</option>
+                </select>
+              </div>
+
+              <div class="field"><label>Dias de afastamento</label><input type="number" min="0" id="in-dias" placeholder="0" value="0"></div>
+              <div class="field full"><label>Observações</label><input type="text" id="in-obs" placeholder="Descrição breve do ocorrido (opcional)"></div>
+            </div>
+            <div class="form-actions">
+              <button type="submit" class="btn-primary inline" id="btn-salvar-acidente">Salvar registro</button>
+              <button type="reset" class="btn-secondary" onclick="cancelarEdicaoAcidente()">Limpar formulário</button>
+            </div>
+          </form>
+        </div>
+        </div>
+
+        
+<!-- PAINEL DA FICHA DE ANÁLISE DE ACIDENTE (oculto por padrão) -->
+        <div id="painel-ficha-analise" style="display:none;">
+          <div class="form-card">
+            <h3 style="margin-bottom:6px;">Ficha de acompanhamento da análise de acidente de trabalho</h3>
+            <span class="sub" style="display:block; margin-bottom:16px;">Registre a investigação de causas e o plano de ação de um acidente já lançado.</span>
+            <form id="form-ficha-analise" onsubmit="return salvarFichaAnalise(event)">
+              <div class="field"><label>Acidente relacionado</label><select required id="fa-acidente"><option value="">Selecione...</option></select></div>
+              <div class="insp-header-grid">
+                <div class="field"><label>Data da análise</label><input required type="date" id="fa-data"></div>
+                <div class="field"><label>Prazo para conclusão</label><input type="date" id="fa-prazo"></div>
+                <div class="field"><label>Status</label>
+                  <select id="fa-status"><option>Em andamento</option><option>Concluída</option></select>
+                </div>
+              </div>
+              <div class="field"><label>Descrição detalhada do acidente</label><textarea id="fa-descricao" rows="2" placeholder="Como o acidente aconteceu, em detalhes"></textarea></div>
+              <div class="field"><label>Causa imediata</label><textarea id="fa-causa-imediata" rows="2" placeholder="Ato inseguro / condição insegura observada"></textarea></div>
+              <div class="field"><label>Causa básica / raiz</label><textarea required id="fa-causa-raiz" rows="2" placeholder="Falha de processo, treinamento, gestão, etc."></textarea></div>
+              <div class="field"><label>Ações corretivas propostas</label><textarea required id="fa-acoes" rows="2" placeholder="O que será feito para evitar reincidência"></textarea></div>
+              <div class="tecnico-box" id="fa-responsavel-box">Responsável pela análise: —</div>
+              <div class="form-actions" style="margin-top:14px;">
+                <button type="submit" class="btn-primary inline">Salvar ficha</button>
+              </div>
+            </form>
+          </div>
+
+          <div class="section-title"><span>Fichas de análise registradas</span><div class="ln"></div></div>
+          <div class="card">
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Acidente</th><th>Data da análise</th><th>Responsável</th><th>Prazo</th><th>Status</th><th>Ações</th></tr></thead>
+                <tbody id="tbl-fichas-analise"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        
+<div class="section-title"><span>Últimos lançamentos das suas unidades</span><div class="ln"></div></div>
+        <span class="sub" style="display:block; margin-bottom:10px;">Mostra só os acidentes das unidades onde você é o técnico responsável cadastrado. Para ver e editar todos os acidentes da plataforma, use a aba "Todos os Acidentes".</span>
+        <div class="card">
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Data</th><th>Tipo</th><th>Praça</th><th>Regional</th><th>Negócio</th><th>Loja</th><th>Setor</th><th>Função</th><th>Colaborador</th><th>Motivo</th><th>Gravidade</th><th>Dias afast.</th></tr></thead>
+              <tbody id="tbl-lancamentos"></tbody>
+            </table>
+          </div>
+        </div>
+      
+        </div>
+
+        <!-- TODOS OS ACIDENTES -->
+        <div class="insp-sub active" id="acidentes-sub-todos">
+          <div style="margin-bottom:10px;"><button type="button" class="btn-secondary" onclick="abrirPainelConteiner('dashboards','acidentes')">← Voltar aos indicadores</button></div>
+          <div class="filters">
+            <div class="f-group" style="min-width:220px;"><label>Buscar</label><input type="text" id="todos-ac-busca" placeholder="Colaborador, motivo, loja..." oninput="renderTodosAcidentes()"></div>
+            <div class="f-group"><label>Unidade</label><select id="todos-ac-unidade" onchange="renderTodosAcidentes()"><option value="">Todas</option></select></div>
+            <div class="f-group"><label>Tipo</label><select id="todos-ac-tipo" onchange="renderTodosAcidentes()"><option value="">Todos</option><option>Típico</option><option>Trajeto</option></select></div>
+            <div class="f-group"><label>Gravidade</label><select id="todos-ac-gravidade" onchange="renderTodosAcidentes()"><option value="">Todas</option></select></div>
+            <div class="f-group"><label>De</label><input type="date" id="todos-ac-de" onchange="renderTodosAcidentes()"></div>
+            <div class="f-group"><label>Até</label><input type="date" id="todos-ac-ate" onchange="renderTodosAcidentes()"></div>
+            <button class="btn-clear" onclick="limparFiltrosTodosAcidentes()">Limpar filtros</button>
+          </div>
+          <span class="sub" id="todos-ac-contador" style="display:block; margin-bottom:10px;"></span>
+          <div class="card">
+            <div class="table-wrap tabela-demandas-wrap" style="max-height:calc(125vh - 360px);">
+              <table class="tabela-demandas">
+                <thead>
+                  <tr>
+                    <th class="col-sticky" style="min-width:100px; max-width:100px;" onclick="ordenarTodosAcidentes('data')">Data</th>
+                    <th onclick="ordenarTodosAcidentes('tipo')">Tipo</th>
+                    <th onclick="ordenarTodosAcidentes('praca')">Praça</th>
+                    <th onclick="ordenarTodosAcidentes('regional')">Regional</th>
+                    <th onclick="ordenarTodosAcidentes('negocio')">Negócio</th>
+                    <th onclick="ordenarTodosAcidentes('loja')">Loja</th>
+                    <th onclick="ordenarTodosAcidentes('setor')">Setor</th>
+                    <th onclick="ordenarTodosAcidentes('funcao')">Função</th>
+                    <th onclick="ordenarTodosAcidentes('funcionario')">Colaborador</th>
+                    <th onclick="ordenarTodosAcidentes('motivo')">Motivo</th>
+                    <th onclick="ordenarTodosAcidentes('agenteCausador')">Agente causador</th>
+                    <th onclick="ordenarTodosAcidentes('gravidade')">Gravidade</th>
+                    <th onclick="ordenarTodosAcidentes('dias')">Dias afast.</th>
+                    <th id="th-acoes-todos-acidentes" style="display:none;">Ações</th>
+                  </tr>
+                </thead>
+                <tbody id="tbl-todos-acidentes"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ INSPEÇÕES DE SEGURANÇA ============ -->
+      <section class="view" id="view-inspecoes">
+        <div class="vt-topo">
+          <span class="sub" style="font-size:13px;color:var(--areia-esc);font-weight:600;">Vistorias de segurança das unidades · toque em <b>+</b> para iniciar um novo relatório</span>
+          <button type="button" class="vt-mais" onclick="vistNovo()" title="Novo relatório vistorial" aria-label="Novo relatório vistorial">+</button>
+        </div>
+        <div class="vt-aviso-ck" id="vt-aviso-ck"></div>
+        <div class="vt-filtros">
+          <input type="search" class="vt-busca" placeholder="Buscar loja" oninput="vistBuscar(this.value)">
+          <span id="vt-chips" style="display:flex;gap:8px;flex-wrap:wrap;">
+            <button type="button" class="vt-chip on" data-f="todos" onclick="vistFiltro('todos')">Todos</button>
+            <button type="button" class="vt-chip" data-f="rasc" onclick="vistFiltro('rasc')">Não finalizados</button>
+            <button type="button" class="vt-chip" data-f="fin" onclick="vistFiltro('fin')">Finalizados</button>
+          </span>
+        </div>
+        <div class="vt-lista" id="vt-lista"></div>
+        <div id="vt-painel" style="display:none"></div>
+        <div id="insp-legacy" style="display:none !important;">
+
+        <div class="insp-subnav">
+          <button type="button" class="insp-tab active" data-sub="nova" onclick="mostrarSubInspecao('nova')">Nova inspeção</button>
+          <button type="button" class="insp-tab" data-sub="pendencias" onclick="mostrarSubInspecao('pendencias')">Pendências</button>
+          <button type="button" class="insp-tab" data-sub="historico" onclick="mostrarSubInspecao('historico')">Histórico</button>
+        </div>
+
+        <!-- NOVA INSPEÇÃO -->
+        <div class="insp-sub active" id="insp-sub-nova">
+
+          <!-- Passo 1: escolher a unidade antes de iniciar -->
+          <div class="card" id="insp-picker-unidade">
+            <h3>Iniciar nova inspeção</h3>
+            <span class="sub">Escolha a unidade que será inspecionada para começar.</span>
+            <div class="insp-header-grid" style="margin-top:14px;">
+              <div class="field"><label>Unidade</label>
+                <select id="insp-unidade-select"><option value="">Selecione...</option></select>
+              </div>
+              <div class="field"><label>Data do relatório</label><input type="date" id="insp-data-picker"></div>
+              <div class="field"><label>&nbsp;</label><button type="button" id="btn-iniciar-inspecao" class="btn-primary inline" style="width:100%;" onclick="iniciarNovaInspecao()">Iniciar nova inspeção</button></div>
+            </div>
+            <div id="insp-picker-geo-status" style="margin-top:12px; font-size:12.5px;"></div>
+          </div>
+
+          <!-- Formulário da inspeção em andamento -->
+          <div id="insp-form-ativo" style="display:none;">
+            <div class="form-card">
+              <div class="insp-header-grid">
+                <div class="field"><label>Unidade</label><input type="text" id="insp-unidade" disabled></div>
+                <div class="field"><label>Data do relatório</label><input type="date" id="insp-data" disabled></div>
+                <div class="field"><label>&nbsp;</label><button type="button" class="btn-secondary" style="width:100%;" onclick="cancelarInspecaoAtual()">Cancelar / trocar unidade</button></div>
+              </div>
+              <div class="tecnico-box">
+                <b>Responsável técnico:</b>
+                <span id="insp-tecnico-nome">—</span> ·
+                <span id="insp-tecnico-registro">—</span> ·
+                <span id="insp-tecnico-cargo">—</span>
+              </div>
+              <div class="tecnico-box" id="insp-geo-status" style="margin-top:8px;">📍 —</div>
+            </div>
+
+            <!-- PARTE 1 -->
+            <div class="section-title"><span>Parte 1 — Checklist geral da loja</span><div class="ln"></div></div>
+            <div id="insp-checklist-geral"></div>
+
+            <!-- PARTE 2 -->
+            <div class="section-title"><span>Parte 2 — Plano de ação (não conformidades)</span><div class="ln"></div></div>
+            <div style="margin-bottom:12px;">
+              <button type="button" class="btn-primary inline" style="width:auto;" onclick="abrirModalItemInspecao()">+ Adicionar item</button>
+            </div>
+            <div class="table-wrap">
+              <table class="tbl-itens-insp">
+                <thead><tr>
+                  <th>Nº</th><th>Categoria</th><th>Local</th><th>Risco / Desvio</th><th>Risco exposto</th><th>Solução proposta</th>
+                  <th>Prazo</th><th>Data limite</th><th>GUT</th><th>Evidência</th><th>Status</th><th></th>
+                </tr></thead>
+                <tbody id="tbl-itens-insp-atual"></tbody>
+              </table>
+            </div>
+
+            <!-- PARTE 3 -->
+            <div class="section-title"><span>Parte 3 — Registro de ocorrências</span><div class="ln"></div></div>
+            <div class="form-card">
+              <div class="insp-header-grid">
+                <div class="field"><label>Tipo de ocorrência</label><select id="oc-tipo"></select></div>
+                <div class="field"><label>Colaborador relacionado</label><input type="text" id="oc-colaborador" placeholder="Nome do colaborador (se aplicável)"></div>
+                <div class="field"><label>Ação realizada</label><input type="text" id="oc-acao" placeholder="ex.: Orientação verbal, advertência..."></div>
+              </div>
+              <div class="field"><label>Descrição da ocorrência</label><textarea id="nova-ocorrencia-texto" rows="2" placeholder="Descreva a ocorrência observada" onkeydown="if(event.key==='Enter' && event.ctrlKey){event.preventDefault(); adicionarOcorrencia();}"></textarea></div>
+              <button type="button" class="btn-secondary" onclick="adicionarOcorrencia()">+ Adicionar ocorrência</button>
+              <div id="lista-ocorrencias" style="margin-top:14px;"></div>
+            </div>
+
+            <div class="insp-actions">
+              <div class="assinatura-status" id="assinatura-status-box">Relatório ainda não assinado.</div>
+              <button type="button" class="btn-secondary" onclick="assinarRelatorio()">Assinar</button>
+              <button type="button" class="btn-primary inline" onclick="gerarRelatorioInspecao()">Gerar relatório (PDF)</button>
+            </div>
+            <span class="insp-hint">As fotos (evidências) entram no PDF e depois são descartadas — só o texto de cada item e o status ficam salvos, pra não pesar a plataforma.</span>
+          </div>
+        </div>
+
+        <!-- PENDÊNCIAS -->
+        <div class="insp-sub" id="insp-sub-pendencias">
+          <div class="card" style="margin-bottom:16px;">
+            <div class="insp-header-grid">
+              <div class="field"><label>Unidade</label>
+                <select id="pend-unidade-select" onchange="renderPendencias()"><option value="">Selecione uma unidade...</option></select>
+              </div>
+            </div>
+          </div>
+
+          <div id="pend-vazio" class="card">
+            <span class="sub">Selecione uma unidade acima para ver as pendências dela.</span>
+          </div>
+
+          <div id="pend-conteudo" style="display:none;">
+            <div class="pend-mini-dash" id="pend-mini-dash"></div>
+
+            <div class="topbar" style="margin:18px 0 14px 0;">
+              <span class="sub" id="pend-resumo-texto"></span>
+              <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                <button type="button" class="btn-secondary" onclick="baixarResumoCategoriaPDF()">Baixar resumo por categoria (PDF)</button>
+                <button type="button" class="btn-primary inline" onclick="baixarPendenciasPDF()">Baixar pendências (PDF)</button>
+              </div>
+            </div>
+            <div class="card">
+              <div class="table-wrap">
+                <table>
+                  <thead><tr><th>Nº</th><th>Categoria</th><th>Local</th><th>Risco / Desvio</th><th>Data limite</th><th>GUT</th><th>Status</th></tr></thead>
+                  <tbody id="tbl-pendencias"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- HISTÓRICO -->
+        <div class="insp-sub" id="insp-sub-historico">
+          <div class="card">
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Data</th><th>Unidade</th><th>Técnico</th><th>Itens</th><th>Pendentes</th><th>Ações</th></tr></thead>
+                <tbody id="tbl-inspecoes"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+              </div>
+      </section>
+
+      <!-- ============ AGENDA ============ -->
+      <section class="view" id="view-agenda">
+        <div class="topbar">
+          <div><h2>Agenda</h2></div>
+        </div>
+
+        <!-- INDICADORES (visível para Administrador/Coordenador) -->
+        <div class="insp-sub" id="agenda-sub-indicadores">
+          <div id="agenda-indicadores-sem-permissao" style="display:none; padding:30px; text-align:center; color:var(--areia-esc);">
+            Apenas Administradores ou Coordenadores podem ver os indicadores de visitas.
+          </div>
+          <div id="agenda-indicadores-conteudo">
+            <div class="filters">
+              <div class="f-group">
+                <label>De</label>
+                <input type="date" id="ag-ind-de">
+              </div>
+              <div class="f-group">
+                <label>Até</label>
+                <input type="date" id="ag-ind-ate">
+              </div>
+              <div class="f-group">
+                <label>Profissional</label>
+                <select id="ag-ind-profissional"><option value="">Todos</option></select>
+              </div>
+              <button class="btn-clear" onclick="limparFiltrosAgendaIndicadores()">Limpar filtros</button>
+            </div>
+
+            <div class="kpi-row">
+              <div class="kpi k1"><div class="lbl">Total de visitas</div><div class="val" id="agi-kpi-total">0</div><span class="foot" id="agi-kpi-total-foot">—</span></div>
+              <div class="kpi k2"><div class="lbl">Check-ins realizados</div><div class="val" id="agi-kpi-checkin">0</div><span class="foot">Visitas com check-in registrado</span></div>
+              <div class="kpi k4"><div class="lbl">Check-outs realizados</div><div class="val" id="agi-kpi-checkout">0</div><span class="foot">Visitas concluídas com check-out</span></div>
+              <div class="kpi k5"><div class="lbl">Relatórios de inspeção</div><div class="val" id="agi-kpi-relatorios">0</div><span class="foot" id="agi-kpi-relatorios-foot">—</span></div>
+            </div>
+
+            <div class="grid-2">
+              <div class="card tall">
+                <h3>Visitas por técnico</h3>
+                <span class="sub">Quantidade de visitas agendadas por profissional</span>
+                <canvas id="chart-agenda-tecnico"></canvas>
+              </div>
+              <div class="card tall">
+                <h3>Visitas por motivo</h3>
+                <span class="sub">Principais motivos de visita</span>
+                <canvas id="chart-agenda-motivo"></canvas>
+              </div>
+            </div>
+
+            <div class="card tall" style="margin-bottom:20px;">
+              <h3>Visitas por loja</h3>
+              <span class="sub">Unidades mais visitadas no período</span>
+              <canvas id="chart-agenda-loja"></canvas>
+            </div>
+
+            <div class="section-title"><span>Todas as visitas</span><div class="ln"></div></div>
+            <div class="card">
+              <span class="sub" style="display:block; margin-bottom:10px;">Geolocalização de check-in/check-out e cruzamento com relatórios de inspeção.</span>
+              <div class="table-wrap">
+                <table>
+                  <thead><tr><th>Data</th><th>Período</th><th>Profissional</th><th>Unidade</th><th>Motivo</th><th>Check-in</th><th>Check-out</th><th>Relatório de inspeção</th></tr></thead>
+                  <tbody id="tbl-agenda-todas-visitas"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ REUNIÕES ============ -->
+      <section class="view" id="view-reunioes">
+        <div class="dm-cab">
+          <div class="dm-cab-txt"><h2>Reuniões</h2><p>Reuniões por tipo, com pauta, ata e encaminhamentos — e a daily da equipe, todo dia.</p></div>
+          <button type="button" class="btn-primary inline" id="btn-nova-reuniao" onclick="abrirModalReuniao()">+ Nova reunião</button>
+        </div>
+
+        <div class="insp-subnav">
+          <button type="button" class="insp-tab active" data-sub="reunioes" onclick="mostrarSubReunioes('reunioes')">Reuniões</button>
+          <button type="button" class="insp-tab" data-sub="dailys" onclick="mostrarSubReunioes('dailys')">Dailys</button>
+        </div>
+
+        <!-- REUNIÕES -->
+        <div class="insp-sub active" id="reunioes-sub-reunioes">
+          <div class="rn-barra">
+            <div class="rn-seg" id="rn-seg">
+              <button type="button" class="active" data-q="proximas" onclick="filtrarReunioesQuando('proximas')">Próximas</button>
+              <button type="button" data-q="realizadas" onclick="filtrarReunioesQuando('realizadas')">Realizadas</button>
+              <button type="button" data-q="todas" onclick="filtrarReunioesQuando('todas')">Todas</button>
+            </div>
+            <select id="rn-f-tipo" onchange="renderReunioes()"><option value="">Todos os tipos</option></select>
+            <span class="rn-espaco"></span>
+            <button type="button" class="dm-btn-ghost" id="btn-gerenciar-tipos" onclick="abrirTiposReuniao()">Gerenciar tipos de reunião</button>
+          </div>
+          <div id="rn-lista"></div>
+        </div>
+
+        <!-- DAILYS -->
+        <div class="insp-sub" id="reunioes-sub-dailys">
+          <div class="dl-nav" id="dl-nav"></div>
+          <div class="dl-pres" id="dl-pres"></div>
+          <div class="dl-grid">
+            <div class="dl-card prio" id="dl-card-prioridade"></div>
+            <div class="dl-card ach" id="dl-card-achado"></div>
+            <div class="dl-card blq" id="dl-card-bloqueio"></div>
+            <div class="dl-card out" id="dl-card-outro"></div>
+          </div>
+          <div class="dl-rodape" id="dl-rodape"></div>
+        </div>
+      </section>
+
+      <!-- ============ DEMANDAS ============ -->
+      <!-- ============ CALENDÁRIO ============ -->
+      <section class="view" id="view-calendario">
+        <div class="topbar">
+          <div><h2>Agenda</h2></div>
+          <div style="display:flex; gap:10px; align-items:center;">
+            <button type="button" class="btn-secondary cal-convites-btn" id="cal-convites-btn" onclick="abrirConvites()" title="Convites de eventos e tarefas">✉ Convites <span class="n" id="cal-convites-n" style="display:none;">0</span></button>
+            <button type="button" class="btn-secondary cal-share" id="cal-btn-exportar" onclick="exportarImagemSemana()" title="Baixar imagem da semana" aria-label="Baixar imagem da semana"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11"/><path d="m7 11 5 5 5-5"/><path d="M5 20h14"/></svg></button>
+            <div class="cal-plus-wrap" id="cal-plus-wrap">
+              <button type="button" class="cal-plus" id="cal-plus" onclick="calToggleMenuMais(event)" aria-haspopup="true" aria-expanded="false" aria-label="Criar novo" title="Criar novo">+</button>
+              <div class="cal-menu" id="cal-menu-mais" role="menu">
+                <div class="cal-menu-tit">Criar um novo</div>
+                <button type="button" role="menuitem" onclick="calMenuAcao('evento')"><span class="mi" style="background:#3b7dd8;">◆</span>Evento</button>
+                <button type="button" role="menuitem" onclick="calMenuAcao('tarefa')"><span class="mi" style="background:#4a76b0;">▣</span>Tarefa <small>(abre uma demanda)</small></button>
+                <button type="button" role="menuitem" id="cal-menu-visita" onclick="calMenuAcao('visita')"><span class="mi" style="background:#00733f;">📍</span>Agendar Visita/Local de Trabalho</button>
+                <button type="button" role="menuitem" onclick="calMenuAcao('ausencia')"><span class="mi" style="background:#d6457a;">☾</span>Registrar ausência</button>
+                <hr>
+                <button type="button" role="menuitem" onclick="calMenuAcao('bloqueio')"><span class="mi" style="background:#5f6368;">⛔</span>Bloquear a agenda</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="cal-toolbar">
+          <div class="sem-nav">
+            <button type="button" class="btn-secondary sem-seta" onclick="calNavegar(-1)" aria-label="Anterior" title="Anterior">←</button>
+            <button type="button" class="btn-secondary" onclick="calHoje()">Hoje</button>
+            <button type="button" class="btn-secondary sem-seta" onclick="calNavegar(1)" aria-label="Próximo" title="Próximo">→</button>
+          </div>
+          <span class="cal-label" id="cal-label">—</span>
+          <div class="switch-aprovacao" id="cal-modo">
+            <button type="button" class="sw-btn ativo sw-aprovado" data-modo="semana" onclick="calMudarModo('semana')">Semana</button>
+            <button type="button" class="sw-btn" data-modo="mes" onclick="calMudarModo('mes')">Mês</button>
+          </div>
+          <div class="switch-aprovacao" id="cal-vista">
+            <button type="button" class="sw-btn ativo sw-aprovado" data-vista="tudo" onclick="calMudarVista('tudo')">Tudo</button>
+            <button type="button" class="sw-btn" data-vista="visitas" onclick="calMudarVista('visitas')">Visitas e locais</button>
+          </div>
+          <div class="cal-pessoas" id="cal-pessoas"></div>
+        </div>
+        <div class="ag-aprov" id="sem-aprovacao" style="display:none;"></div>
+        <div class="agm-legenda2" id="cal-legenda"></div>
+        <div class="card cal-card"><div id="cal-grade"></div></div>
+      </section>
+
+      <section class="view" id="view-demandas">
+        <div class="dm-cab">
+          <div class="dm-cab-txt"><h2>Demandas</h2><p id="dm-resumo">Acompanhe prazos, responsáveis e a conversa de cada demanda.</p></div>
+          <button type="button" class="btn-primary inline" id="btn-nova-demanda" onclick="abrirModalDemanda()">+ Nova demanda</button>
+        </div>
+
+        <div class="dm-kpis" id="dm-kpis"></div>
+
+        <div class="insp-subnav">
+          <button type="button" class="insp-tab active" data-sub="ativas" onclick="mostrarSubDemandas('ativas')">Ativas <span class="dm-n" id="dm-n-ativas">0</span></button>
+          <button type="button" class="insp-tab" data-sub="concluidas" onclick="mostrarSubDemandas('concluidas')">Concluídas <span class="dm-n" id="dm-n-concluidas">0</span></button>
+          <button type="button" class="insp-tab" data-sub="atraso" id="tab-dem-atraso" onclick="mostrarSubDemandas('atraso')" style="display:none;">Em atraso</button>
+        </div>
+
+        <!-- ATIVAS -->
+        <div class="insp-sub active" id="demandas-sub-ativas">
+          <div class="dm-barra" id="dm-barra">
+            <div class="dm-busca">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+              <input type="search" id="dem-f-busca" placeholder="Buscar demanda…" autocomplete="off">
+            </div>
+            <div class="f-group"><label>Status</label><select id="dem-f-etapa"><option value="">Todos</option></select></div>
+            <div class="f-group"><label>Prioridade</label><select id="dem-f-prioridade"><option value="">Todas</option><option>Alta</option><option>Normal</option><option>Baixa</option></select></div>
+            <div class="f-group"><label>Unidade</label><select id="dem-f-unidade"><option value="">Todas</option></select></div>
+            <div class="f-group"><label>Tipo de demanda</label><select id="dem-f-tipo"><option value="">Todos</option></select></div>
+            <div class="f-group"><label>Categoria</label><select id="dem-f-categoria"><option value="">Todas</option></select></div>
+            <div class="f-group"><label>Área</label><select id="dem-f-area"><option value="">Todas</option></select></div>
+            <div class="f-group"><label>Tipo de atividade</label><select id="dem-f-tipo-atividade"><option value="">Todos</option></select></div>
+            <button type="button" class="btn-clear" onclick="limparFiltrosDemandas()">Limpar</button>
+            <button type="button" class="dm-btn-ghost" id="btn-dem-colunas" onclick="alternarColunasDemandas()">Mostrar todas as colunas</button>
+            <div class="dm-resp-filtro" id="dem-f-resp-av" aria-label="Filtrar por responsável"></div>
+          </div>
+
+          <div id="lista-demandas-wrap">
+            <div class="dm-lote-bar" id="dm-lote-ativas" style="display:none;"></div>
+            <div class="lista-demandas-card">
+              <div class="table-wrap tabela-demandas-wrap">
+                <table class="tabela-demandas compacta" id="tabela-demandas-ativas">
+                  <thead><tr id="tr-cabecalho-demandas"></tr></thead>
+                  <tbody id="tbl-lista-demandas"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- CONCLUÍDAS -->
+        <div class="insp-sub" id="demandas-sub-concluidas">
+          <span class="sub" style="display:block; margin-bottom:12px;">Demandas cuja etapa atual é de conclusão. Elas saem da lista de ativas, mas continuam disponíveis aqui para consulta.</span>
+          <div class="dm-lote-bar" id="dm-lote-concluidas" style="display:none;"></div>
+          <div class="lista-demandas-card">
+            <div class="table-wrap tabela-demandas-wrap">
+              <table class="tabela-demandas compacta" id="tabela-demandas-concluidas">
+                <thead>
+                  <tr id="tr-cabecalho-demandas-concluidas"></tr>
+                </thead>
+                <tbody id="tbl-lista-demandas-concluidas"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- INDICADORES (somente admin/coordenador) -->
+        <div class="insp-sub" id="demandas-sub-atraso">
+          <span class="sub" style="display:block; margin-bottom:14px;">Demandas ativas que já passaram da data limite de entrega.</span>
+          <div class="kpi-row">
+            <div class="kpi k4"><div class="lbl">Total em atraso</div><div class="val" id="dka-total">0</div><span class="foot">Demandas ativas vencidas</span></div>
+            <div class="kpi k5"><div class="lbl">Média de dias em atraso</div><div class="val" id="dka-media-dias">0</div><span class="foot">Considerando todas as vencidas</span></div>
+            <div class="kpi k2"><div class="lbl">Mais crítica</div><div class="val" id="dka-maior-atraso" style="font-size:20px;">—</div><span class="foot">Maior número de dias vencidos</span></div>
+          </div>
+          <div class="card">
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Demanda</th><th>Categoria</th><th>Área</th><th>Responsável</th><th>Data limite</th><th>Dias de atraso</th></tr></thead>
+                <tbody id="tbl-dem-atraso"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div class="insp-sub" id="demandas-sub-indicadores">
+          <div class="kpi-row">
+            <div class="kpi k1"><div class="lbl">Demandas ativas</div><div class="val" id="dki-total-ativas">0</div><span class="foot">Em andamento no momento</span></div>
+            <div class="kpi k2"><div class="lbl">Concluídas</div><div class="val" id="dki-total-concluidas">0</div><span class="foot">No total já finalizadas</span></div>
+            <div class="kpi k4"><div class="lbl">Em atraso</div><div class="val" id="dki-em-atraso">0</div><span class="foot" style="cursor:pointer; text-decoration:underline;" onclick="mostrarSubDemandas('atraso')">Ver detalhes ›</span></div>
+            <div class="kpi k5"><div class="lbl">Aguardando qualidade</div><div class="val" id="dki-aguardando-qualidade">0</div><span class="foot">Em análise ou reprovadas</span></div>
+            <div class="kpi k2"><div class="lbl">Tempo médio de resolução</div><div class="val" id="dki-tempo-medio">0</div><span class="foot">Dias entre entrada e entrega</span></div>
+          </div>
+          <div class="grid-2">
+            <div class="card tall">
+              <h3>Demandas por responsável</h3>
+              <span class="sub">Distribuição da carga de trabalho ativa entre os usuários</span>
+              <canvas id="chart-dem-responsavel"></canvas>
+            </div>
+            <div class="card tall">
+              <h3>Demandas por categoria</h3>
+              <canvas id="chart-dem-categoria"></canvas>
+            </div>
+          </div>
+          <div class="grid-2">
+            <div class="card tall">
+              <h3>Demandas por área (SESMT)</h3>
+              <canvas id="chart-dem-area"></canvas>
+            </div>
+            <div class="card tall">
+              <h3>Demandas por tipo de atividade</h3>
+              <canvas id="chart-dem-tipo-atividade"></canvas>
+            </div>
+          </div>
+          <div class="grid-2">
+            <div class="card tall">
+              <h3>Demandas por prioridade</h3>
+              <canvas id="chart-dem-prioridade"></canvas>
+            </div>
+            <div class="card tall">
+              <h3>Demandas por status</h3>
+              <canvas id="chart-dem-status"></canvas>
+            </div>
+          </div>
+          <div class="card tall" style="margin-top:0;">
+            <h3>Criadas × Concluídas por mês</h3>
+            <span class="sub">Últimos 6 meses</span>
+            <canvas id="chart-dem-tendencia"></canvas>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ SAÚDE ============ -->
+      <section class="view" id="view-saude">
+        <div class="topbar">
+          <div><h2>Saúde</h2></div>
+        </div>
+
+        <div class="card" id="sd-card-importar" style="margin-bottom:16px; display:none;">
+          <h3>Importar base de atestados</h3>
+          <span class="sub">Envie o arquivo de backup (.xlsx) — aceita tanto a aba "Atestados" (painel completo) quanto a aba "BASE BOT" + "REGIONAIS" (levantamento semanal). Os registros são lidos aqui no seu navegador e enviados direto ao banco, sem limite de linhas.</span>
+          <div style="display:flex; gap:10px; align-items:center; margin-top:10px; flex-wrap:wrap;">
+            <input type="file" id="sd-import-file" accept=".xlsx,.xls">
+            <button type="button" class="btn-primary inline" onclick="importarBackupAtestados()">Importar arquivo</button>
+            <label style="display:flex; align-items:center; gap:6px; font-size:12.5px; color:var(--areia-esc); cursor:pointer;"><input type="checkbox" id="sd-import-substituir" style="width:auto;"> Substituir toda a base atual antes de importar</label>
+          </div>
+          <span class="sub" id="sd-import-status" style="display:block; margin-top:10px; font-weight:600;"></span>
+        </div>
+
+        <div class="insp-subnav">
+          <button type="button" class="insp-tab active" data-sub="visao" onclick="mostrarSubSaude('visao')">Visão Geral</button>
+          <button type="button" class="insp-tab" data-sub="registros" onclick="mostrarSubSaude('registros')">Todos os Registros</button>
+        </div>
+
+        <!-- VISÃO GERAL -->
+        <div class="insp-sub active" id="saude-sub-visao">
+          <div class="filters">
+            <div class="f-group"><label>Unidade</label><select id="sd-f-unidade" onchange="renderSaudeVisaoGeral()"><option value="">Todas</option></select></div>
+            <div class="f-group"><label>Regional</label><select id="sd-f-regional" onchange="renderSaudeVisaoGeral()"><option value="">Todas</option></select></div>
+            <div class="f-group"><label>Tipo</label><select id="sd-f-tipo" onchange="renderSaudeVisaoGeral()"><option value="">Todos</option></select></div>
+            <div class="f-group"><label>De</label><input type="date" id="sd-f-de" onchange="renderSaudeVisaoGeral()"></div>
+            <div class="f-group"><label>Até</label><input type="date" id="sd-f-ate" onchange="renderSaudeVisaoGeral()"></div>
+            <button class="btn-clear" onclick="limparFiltrosSaude()">Limpar filtros</button>
+          </div>
+
+          <div class="kpi-row">
+            <div class="kpi k1"><div class="lbl">Registros</div><div class="val" id="sd-kpi-total">0</div><span class="foot">No período filtrado</span></div>
+            <div class="kpi k2"><div class="lbl">Dias de afastamento</div><div class="val" id="sd-kpi-dias">0</div><span class="foot">Soma de todos os registros</span></div>
+            <div class="kpi k4"><div class="lbl">Colaboradores únicos</div><div class="val" id="sd-kpi-colaboradores">0</div><span class="foot">Matrículas distintas</span></div>
+            <div class="kpi k5"><div class="lbl">Duração média</div><div class="val" id="sd-kpi-media">0</div><span class="foot">Dias por registro</span></div>
+          </div>
+
+          <div class="grid-2">
+            <div class="card tall">
+              <h3>Registros por unidade</h3>
+              <span class="sub">Top 12 unidades com mais registros</span>
+              <canvas id="chart-saude-unidade"></canvas>
+            </div>
+            <div class="card tall">
+              <h3>Registros por regional</h3>
+              <canvas id="chart-saude-regional"></canvas>
+            </div>
+          </div>
+          <div class="grid-2">
+            <div class="card tall">
+              <h3>Top motivos</h3>
+              <canvas id="chart-saude-motivo"></canvas>
+            </div>
+            <div class="card tall">
+              <h3>Tipo de registro</h3>
+              <canvas id="chart-saude-tipo"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- TODOS OS REGISTROS -->
+        <div class="insp-sub" id="saude-sub-registros">
+          <span class="sub" style="display:block; margin-bottom:14px;">Todos os registros de saúde já cadastrados na plataforma.</span>
+          <div class="filters">
+            <div class="f-group" style="min-width:220px;"><label>Buscar</label><input type="text" id="sd-busca" placeholder="Colaborador, motivo, loja, CID..." oninput="renderSaudeRegistros()"></div>
+            <button class="btn-clear" onclick="document.getElementById('sd-busca').value=''; renderSaudeRegistros();">Limpar busca</button>
+          </div>
+          <span class="sub" id="sd-contador" style="display:block; margin-bottom:10px;"></span>
+          <div class="card">
+            <div class="table-wrap tabela-demandas-wrap" style="max-height:calc(125vh - 360px);">
+              <table class="tabela-demandas">
+                <thead>
+                  <tr>
+                    <th class="col-sticky" style="min-width:110px; max-width:110px;" onclick="ordenarSaudeRegistros('data_atestado')">Data</th>
+                    <th onclick="ordenarSaudeRegistros('loja')">Loja</th>
+                    <th onclick="ordenarSaudeRegistros('regional')">Regional</th>
+                    <th onclick="ordenarSaudeRegistros('nome')">Colaborador</th>
+                    <th onclick="ordenarSaudeRegistros('setor')">Setor</th>
+                    <th onclick="ordenarSaudeRegistros('funcao')">Função</th>
+                    <th onclick="ordenarSaudeRegistros('tipo_atestado')">Tipo</th>
+                    <th onclick="ordenarSaudeRegistros('motivo')">Motivo</th>
+                    <th onclick="ordenarSaudeRegistros('cid')">CID</th>
+                    <th onclick="ordenarSaudeRegistros('afastamento_inicio')">Início afastamento</th>
+                    <th onclick="ordenarSaudeRegistros('afastamento_fim')">Fim afastamento</th>
+                    <th onclick="ordenarSaudeRegistros('duracao_dias')">Dias</th>
+                  </tr>
+                </thead>
+                <tbody id="tbl-saude-registros"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ ABSENTEÍSMO ============ -->
+      <section class="view" id="view-absenteismo">
+        <div class="topbar">
+          <div><h2>Absenteísmo</h2></div>
+        </div>
+
+        <div class="insp-subnav">
+          <button type="button" class="insp-tab active" data-sub="visao" onclick="mostrarSubAbsenteismo('visao')">Visão Geral</button>
+          <button type="button" class="insp-tab" data-sub="mensal" onclick="mostrarSubAbsenteismo('mensal')">Evolução Mensal</button>
+          <button type="button" class="insp-tab" data-sub="detalhe" onclick="mostrarSubAbsenteismo('detalhe')">Detalhamento por Loja e Setor</button>
+        </div>
+
+        <div class="insp-sub active" id="absenteismo-sub-visao">
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+            <div class="switch-aprovacao" id="abs-categoria-pills" style="flex-wrap:wrap; height:auto; padding:4px;"></div>
+            <div class="switch-aprovacao" id="abs-metrica-pills" style="height:auto; padding:4px;"></div>
+          </div>
+
+          <div class="filters" style="margin-top:12px;">
+            <div class="f-group"><label>Loja</label><select id="abs-f-loja" onchange="renderAbsenteismoVisaoGeral()"><option value="">Todas</option></select></div>
+            <div class="f-group"><label>Setor</label><select id="abs-f-setor" onchange="renderAbsenteismoVisaoGeral()"><option value="">Todos</option></select></div>
+            <div class="f-group"><label>Regional</label><select id="abs-f-regional" onchange="renderAbsenteismoVisaoGeral()"><option value="">Todas</option></select></div>
+            <div class="f-group"><label>De</label><input type="date" id="abs-f-de" onchange="renderAbsenteismoVisaoGeral()"></div>
+            <div class="f-group"><label>Até</label><input type="date" id="abs-f-ate" onchange="renderAbsenteismoVisaoGeral()"></div>
+            <button class="btn-clear" onclick="limparFiltrosAbsenteismo()">Limpar filtros</button>
+          </div>
+
+          <div class="kpi-row" id="abs-kpi-row"></div>
+
+          <div class="grid-2">
+            <div class="card tall"><h3 id="abs-titulo-loja">Por loja</h3><canvas id="chart-abs-loja"></canvas></div>
+            <div class="card tall"><h3 id="abs-titulo-setor">Por setor</h3><canvas id="chart-abs-setor"></canvas></div>
+          </div>
+          <div class="grid-2">
+            <div class="card tall"><h3 id="abs-titulo-regional">Por regional</h3><canvas id="chart-abs-regional"></canvas></div>
+            <div class="card tall">
+              <h3>Ranking de lojas — total de dias</h3>
+              <span class="sub">Do menor para o maior volume de ausência em dias</span>
+              <div class="table-wrap" style="max-height:340px; overflow:auto;">
+                <table>
+                  <thead><tr><th>#</th><th>Loja</th><th>Registros</th><th>Total dias</th><th>Média dias/reg.</th></tr></thead>
+                  <tbody id="tbl-abs-ranking"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="insp-sub" id="absenteismo-sub-mensal">
+          <span class="sub" style="display:block; margin-bottom:14px;">Evolução mês a mês, Jan a Jun/2026, dos 5 indicadores oficiais.</span>
+          <div class="card tall">
+            <h3>Ausências por mês</h3>
+            <canvas id="chart-abs-mensal"></canvas>
+          </div>
+          <div class="card" style="margin-top:16px;">
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Mês</th><th>Abono dia</th><th>Faltas não justificadas</th><th>Acidente de trabalho</th><th>Licença médica</th><th>Licença médica contin.</th><th>Total</th></tr></thead>
+                <tbody id="tbl-abs-mensal"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div class="insp-sub" id="absenteismo-sub-detalhe">
+          <span class="sub" style="display:block; margin-bottom:14px;">Base detalhada por loja e setor, igual à planilha oficial "Setor Ofensor".</span>
+          <div class="filters">
+            <div class="f-group" style="min-width:220px;"><label>Buscar</label><input type="text" id="abs-busca" placeholder="Loja ou setor..." oninput="renderAbsenteismoDetalheTabela()"></div>
+            <button class="btn-clear" onclick="document.getElementById('abs-busca').value=''; renderAbsenteismoDetalheTabela();">Limpar busca</button>
+          </div>
+          <span class="sub" id="abs-reg-contador" style="display:block; margin-bottom:10px;"></span>
+          <div class="card">
+            <div class="table-wrap tabela-demandas-wrap" style="max-height:calc(125vh - 360px);">
+              <table class="tabela-demandas">
+                <thead>
+                  <tr>
+                    <th class="col-sticky" style="min-width:200px; max-width:260px;" onclick="ordenarAbsenteismoDetalhe('loja')">Loja</th>
+                    <th onclick="ordenarAbsenteismoDetalhe('setor')">Setor</th>
+                    <th onclick="ordenarAbsenteismoDetalhe('abonoDia')">Abono dia</th>
+                    <th onclick="ordenarAbsenteismoDetalhe('acidenteTrabalho')">Acidente trabalho</th>
+                    <th onclick="ordenarAbsenteismoDetalhe('faltasNaoJustificadas')">Faltas não justif.</th>
+                    <th onclick="ordenarAbsenteismoDetalhe('licencaMedica')">Licença médica</th>
+                    <th onclick="ordenarAbsenteismoDetalhe('licencaMedicaContin')">Licença méd. contin.</th>
+                    <th onclick="ordenarAbsenteismoDetalhe('totalAusencias')">Total ausências</th>
+                    <th onclick="ordenarAbsenteismoDetalhe('totalDias')">Total dias</th>
+                    <th onclick="ordenarAbsenteismoDetalhe('mediaDias')">Média dias</th>
+                  </tr>
+                </thead>
+                <tbody id="tbl-abs-detalhe"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ FICHA DE EPI ============ -->
+      <section class="view" id="view-fichaEpi">
+        <div class="topbar">
+          <div><h2>Ficha de EPI</h2></div>
+        </div>
+
+        <div class="insp-subnav">
+          <button type="button" class="insp-tab active" data-sub="individual" onclick="mostrarSubFichaEpi('individual')">Ficha individual</button>
+          <button type="button" class="insp-tab" data-sub="lote" onclick="mostrarSubFichaEpi('lote')">Impressão em lote</button>
+          <button type="button" class="insp-tab" data-sub="novo" onclick="mostrarSubFichaEpi('novo')">Novo admitido (fora da base)</button>
+          <button type="button" class="insp-tab" data-sub="admitidos" onclick="mostrarSubFichaEpi('admitidos')">Novos admitidos (planilha) <span class="fe-badge" id="fe-adm-badge" style="display:none;"></span></button>
+          <button type="button" class="insp-tab" data-sub="auditoria" onclick="mostrarSubFichaEpi('auditoria')">Auditoria das fichas</button>
+        </div>
+
+        <div class="card" id="fe-aviso-base" style="display:none; margin-bottom:14px; border-left:4px solid var(--terracota); color:var(--terracota); font-weight:600;"></div>
+
+        <!-- FICHA INDIVIDUAL -->
+        <div class="insp-sub active" id="fichaEpi-sub-individual">
+          <div class="card" id="fe-ind-busca">
+            <h3>Ficha individual</h3>
+            <span class="sub">Digite a matrícula do colaborador. Nome, loja, setor, função e admissão são preenchidos automaticamente, junto com os EPIs da função.</span>
+            <div style="display:flex; gap:10px; align-items:flex-end; margin-top:12px; flex-wrap:wrap;">
+              <div class="field" style="flex:1; min-width:180px; max-width:320px; margin-bottom:0;"><label>Matrícula</label><input type="text" id="fe-ind-matricula" placeholder="ex.: 20008567" onkeydown="if(event.key==='Enter'){event.preventDefault();buscarFichaEpi();}"></div>
+              <button type="button" class="btn-primary inline" onclick="buscarFichaEpi()">Buscar</button>
+            </div>
+            <span class="sub" id="fe-ind-status" style="display:block; margin-top:10px; font-weight:600;"></span>
+          </div>
+
+          <div class="card" id="fe-ind-marcacao" style="display:none;">
+            <h3>Antes de gerar: quais EPIs o colaborador já tem?</h3>
+            <span class="sub" id="fe-ind-colab-info"></span>
+            <span class="sub">Marque os itens que já foram entregues e informe a data. Os não marcados saem em branco na ficha, para entrega e assinatura na hora.</span>
+            <div class="table-wrap" style="margin-top:12px;">
+              <table>
+                <thead><tr><th style="width:60px;">Já tem</th><th>Descrição do EPI</th><th style="width:110px;">C.A</th><th style="width:170px;">Data da entrega</th></tr></thead>
+                <tbody id="fe-ind-marcacao-tbody"></tbody>
+              </table>
+            </div>
+            <div style="display:flex; gap:10px; margin-top:14px;">
+              <button type="button" class="btn-primary inline" onclick="gerarFichaIndividual()">Gerar ficha</button>
+              <button type="button" class="btn-secondary" onclick="novaBuscaFichaEpi()">‹ Voltar à busca</button>
+            </div>
+          </div>
+
+          <div id="fe-ind-previa" style="display:none;">
+            <div class="fe-barra-acoes">
+              <button type="button" class="btn-primary inline" onclick="imprimirPreviaEpi('fe-ind-folhas')">🖨 Imprimir (frente e verso)</button>
+              <button type="button" class="btn-secondary" onclick="voltarParaMarcacaoEpi()">‹ Ajustar EPIs já entregues</button>
+              <button type="button" class="btn-secondary" onclick="novaBuscaFichaEpi()">Buscar outra matrícula</button>
+            </div>
+            <span class="sub" style="display:block; margin-bottom:10px;">A ficha tem duas páginas (frente e verso). Imprima em frente e verso, com encadernação na borda longa.</span>
+            <div class="fe-previa" id="fe-ind-folhas"></div>
+          </div>
+        </div>
+
+        <!-- IMPRESSÃO EM LOTE -->
+        <div class="insp-sub" id="fichaEpi-sub-lote">
+          <div class="card" style="margin-bottom:16px;">
+            <h3>Impressão de fichas em lote</h3>
+            <span class="sub">Escolha a loja e, se quiser, um setor. As fichas de todos os colaboradores selecionados saem juntas em um único documento — na janela de impressão, escolha "Salvar como PDF" para ter um arquivo só.</span>
+            <div class="filters" style="box-shadow:none; border:none; padding:0; margin:12px 0 0;">
+              <div class="f-group"><label>Loja</label><select id="fe-lote-loja" onchange="aoTrocarLojaLoteEpi()"><option value="">Selecione a loja...</option></select></div>
+              <div class="f-group"><label>Setor</label><select id="fe-lote-setor" onchange="atualizarPreviaLoteEpi()"><option value="">Todos os setores (loja inteira)</option></select></div>
+            </div>
+            <div style="display:flex; flex-direction:column; gap:9px; margin-top:6px;">
+              <label class="fe-check"><input type="checkbox" id="fe-lote-incluir-sem" checked onchange="atualizarPreviaLoteEpi()"> Incluir colaboradores sem lista de EPI cadastrada (a ficha sai com as linhas em branco)</label>
+              <label class="fe-check"><input type="checkbox" id="fe-lote-registrar" checked> Registrar as fichas no histórico de auditoria</label>
+            </div>
+            <span class="sub" id="fe-lote-resumo" style="display:block; margin-top:14px; font-weight:700;">Selecione uma loja para ver quantas fichas serão geradas.</span>
+            <div style="margin-top:10px;">
+              <button type="button" class="btn-primary inline" id="fe-lote-btn" onclick="gerarLoteEpi()" disabled>🖨 Gerar fichas (imprimir / salvar PDF)</button>
+            </div>
+          </div>
+          <div class="card">
+            <h3>Colaboradores selecionados</h3>
+            <div class="table-wrap" style="max-height:360px;">
+              <table>
+                <thead><tr><th>Matrícula</th><th>Colaborador</th><th>Setor</th><th>Função</th><th>EPIs na ficha</th></tr></thead>
+                <tbody id="fe-lote-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- NOVO ADMITIDO -->
+        <div class="insp-sub" id="fichaEpi-sub-novo">
+          <div class="card" style="margin-bottom:16px;">
+            <h3>Ficha para novo admitido (fora da base)</h3>
+            <span class="sub">Para colaboradores que ainda não estão na base e não têm matrícula. Escolha loja, setor e função: a ficha sai com todos os EPIs da função e o campo de matrícula em aberto, para preenchimento à mão.</span>
+            <div class="insp-header-grid" style="margin-top:12px;">
+              <div class="field"><label>Loja</label><select id="fe-novo-loja" onchange="atualizarNovoEpi()"><option value="">Selecione...</option></select></div>
+              <div class="field"><label>Setor</label><select id="fe-novo-setor" onchange="aoTrocarSetorNovoEpi()"><option value="">Selecione...</option></select></div>
+              <div class="field"><label>Função</label><select id="fe-novo-funcao" onchange="atualizarNovoEpi()"><option value="">Selecione o setor primeiro</option></select></div>
+            </div>
+            <div id="fe-novo-dados" style="display:none; margin-top:6px;">
+              <span class="sub" id="fe-novo-epis-info" style="display:block; margin-bottom:10px;"></span>
+              <div class="insp-header-grid">
+                <div class="field"><label>Nome do colaborador</label><input type="text" id="fe-novo-nome" placeholder="Nome completo"></div>
+                <div class="field"><label>Data de admissão</label><input type="date" id="fe-novo-admissao"></div>
+              </div>
+              <div style="display:flex; gap:10px; margin-top:6px;">
+                <button type="button" class="btn-primary inline" onclick="gerarFichaNovoEpi()">Gerar ficha</button>
+                <button type="button" class="btn-secondary" onclick="limparNovoEpi()">Limpar</button>
+              </div>
+            </div>
+          </div>
+
+          <div id="fe-novo-previa" style="display:none;">
+            <div class="fe-barra-acoes">
+              <button type="button" class="btn-primary inline" onclick="imprimirPreviaEpi('fe-novo-folhas')">🖨 Imprimir (frente e verso)</button>
+              <button type="button" class="btn-secondary" onclick="limparNovoEpi()">Gerar outra ficha</button>
+            </div>
+            <span class="sub" style="display:block; margin-bottom:10px;">A matrícula fica em branco na ficha. Imprima em frente e verso, com encadernação na borda longa.</span>
+            <div class="fe-previa" id="fe-novo-folhas"></div>
+          </div>
+        </div>
+
+        <!-- NOVOS ADMITIDOS (planilha → fila por técnico) -->
+        <div class="insp-sub" id="fichaEpi-sub-admitidos">
+          <div class="card" id="fe-adm-upload" style="margin-bottom:14px; display:none;">
+            <h3>Importar planilha de novos admitidos</h3>
+            <span class="sub">Envie uma planilha (.xlsx, .xls ou .csv) com as colunas <b>Nome</b>, <b>Loja</b>, <b>Setor</b> e <b>Função</b>. As fichas ficam disponíveis para o técnico responsável de cada loja baixar e saem da lista sozinhas quando forem baixadas.</span>
+            <div style="display:flex; gap:10px; align-items:center; margin-top:12px; flex-wrap:wrap;">
+              <input type="file" id="fe-adm-arquivo" accept=".xlsx,.xls,.csv" onchange="lerPlanilhaAdmitidos()">
+              <button type="button" class="small-btn" onclick="baixarModeloAdmitidos()">Baixar modelo da planilha</button>
+            </div>
+            <span class="sub" id="fe-adm-status" style="display:block; margin-top:10px; font-weight:600;"></span>
+            <div id="fe-adm-previa" style="display:none; margin-top:10px;">
+              <div class="table-wrap" style="max-height:220px;">
+                <table><thead><tr><th>Nome</th><th>Loja</th><th>Setor</th><th>Função</th><th>Técnico</th><th>Situação</th></tr></thead><tbody id="fe-adm-previa-tbody"></tbody></table>
+              </div>
+              <div style="margin-top:10px; display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+                <button type="button" class="btn-primary inline" id="fe-adm-btn-enviar" onclick="enviarAdmitidos()">Enviar para os técnicos</button>
+                <button type="button" class="btn-secondary" onclick="limparPreviaAdmitidos()">Cancelar</button>
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <h3>Fichas disponíveis para baixar</h3>
+            <span class="sub" id="fe-adm-sub"></span>
+            <div class="fe-barra-acoes" id="fe-adm-acoes" style="margin:10px 0; display:none; align-items:center; gap:12px; flex-wrap:wrap;">
+              <button type="button" class="btn-primary inline" onclick="baixarAdmitidos()" id="fe-adm-btn-baixar">🖨 Baixar fichas selecionadas</button>
+              <span class="sub" id="fe-adm-selecao" style="font-weight:700;"></span>
+            </div>
+            <div class="table-wrap" style="max-height:340px;">
+              <table>
+                <thead><tr><th style="width:36px;"><input type="checkbox" id="fe-adm-todas" onchange="selecionarTodosAdmitidos(this.checked)" aria-label="Selecionar todas"></th><th>Colaborador</th><th>Loja</th><th>Setor</th><th>Função</th><th>Técnico</th><th>Importado em</th></tr></thead>
+                <tbody id="fe-adm-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- AUDITORIA DAS FICHAS -->
+        <div class="insp-sub" id="fichaEpi-sub-auditoria">
+        <span class="sub" style="display:block; margin-bottom:14px;">Sempre que uma ficha de EPI é impressa (na página pública, sem login), ela fica registrada aqui. Quando o técnico responsável for à loja, pode conferir as fichas impressas e habilitá-las, ou marcar divergência com uma observação.</span>
+
+        <div class="filters">
+          <div class="f-group"><label>Loja</label><select id="aud-f-loja" onchange="renderAuditoriaEpi()"><option value="">Todas</option></select></div>
+          <div class="f-group"><label>Status</label><select id="aud-f-status" onchange="renderAuditoriaEpi()"><option value="">Todos</option><option>Pendente</option><option>Habilitada</option><option>Divergência</option></select></div>
+          <div class="f-group"><label>Buscar</label><input type="text" id="aud-f-busca" placeholder="Colaborador ou matrícula" oninput="renderAuditoriaEpi()"></div>
+          <button class="btn-clear" onclick="limparFiltrosAuditoriaEpi()">Limpar filtros</button>
+        </div>
+
+        <div class="kpi-row">
+          <div class="kpi k1"><div class="lbl">Fichas impressas</div><div class="val" id="aud-kpi-total">0</div><span class="foot">No filtro atual</span></div>
+          <div class="kpi k5"><div class="lbl">Pendentes</div><div class="val" id="aud-kpi-pendentes">0</div><span class="foot">Aguardando auditoria</span></div>
+          <div class="kpi k2"><div class="lbl">Habilitadas</div><div class="val" id="aud-kpi-habilitadas">0</div><span class="foot">Conferidas OK</span></div>
+          <div class="kpi k4"><div class="lbl">Divergências</div><div class="val" id="aud-kpi-divergencias">0</div><span class="foot">Precisam de atenção</span></div>
+        </div>
+
+        <div style="display:flex; justify-content:flex-end; margin-bottom:12px;">
+          <button type="button" class="btn-primary inline" onclick="exportarRelatorioAuditoriaEpi()">📄 Gerar relatório de auditoria (PDF)</button>
+        </div>
+
+        <div class="card">
+          <div class="table-wrap tabela-demandas-wrap" style="max-height:calc(125vh - 420px);">
+            <table class="tabela-demandas">
+              <thead>
+                <tr>
+                  <th class="col-sticky" style="min-width:200px; max-width:260px;">Colaborador</th>
+                  <th>Matrícula</th><th>Loja</th><th>Setor</th><th>Itens</th><th>Impressa em</th><th>Status</th><th>Observação</th><th>Ações</th>
+                </tr>
+              </thead>
+              <tbody id="tbl-auditoria-epi"></tbody>
+            </table>
+          </div>
+        </div>
+        </div>
+      </section>
+
+      <!-- ============ GESTÃO ============ -->
+      <!-- ============ GESTÃO ============ -->
+      <!-- ============ TAREFAS ============ -->
+      <section class="view" id="view-tarefas">
+        <div class="topbar">
+          <div><h2>Tarefas</h2></div>
+        </div>
+        <div class="insp-subnav" id="tarefas-tabs"></div>
+        <div id="tarefas-paineis"></div>
+      </section>
+
+      <!-- ============ DASHBOARDS ============ -->
+      <section class="view" id="view-dashboards">
+        <div class="topbar">
+          <div><h2>Dashboards</h2></div>
+        </div>
+        <div class="insp-subnav" id="dashboards-tabs"></div>
+        <div id="dashboards-paineis"></div>
+      </section>
+
+      <section class="view" id="view-gestao">
+        <div class="topbar">
+          <div><h2>Gestão</h2></div>
+        </div>
+
+        <div class="gs-layout">
+          <aside class="gs-menu">
+            <div class="gs-grupo">Acesso e cadastros</div>
+            <button type="button" class="insp-tab active" data-sub="usuarios" onclick="mostrarSubGestao('usuarios')"><span class="gs-ic"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.2"/><path d="M3.5 19c.6-3.2 3-5 5.5-5s4.9 1.8 5.5 5"/><path d="M16 5.2a3 3 0 0 1 0 5.6M18 14.3c1.7.6 2.9 2.2 3.3 4.7"/></svg></span>Usuários</button>
+            <button type="button" class="insp-tab" data-sub="unidades" onclick="mostrarSubGestao('unidades')"><span class="gs-ic"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9.5 5.5 4h13L20 9.5"/><path d="M4 9.5a2.7 2.7 0 0 0 5.3 0 2.7 2.7 0 0 0 5.4 0 2.7 2.7 0 0 0 5.3 0"/><path d="M5.5 12.5V20h13v-7.5"/><path d="M10 20v-4.5h4V20"/></svg></span>Unidades</button>
+            <button type="button" class="insp-tab" data-sub="estrutura" onclick="mostrarSubGestao('estrutura')"><span class="gs-ic"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3 9 4.5-9 4.5-9-4.5z"/><path d="m3 12 9 4.5 9-4.5"/><path d="m3 16.5 9 4.5 9-4.5"/></svg></span>Estrutura Operacional</button>
+            <div class="gs-grupo">Módulos</div>
+            <button type="button" class="insp-tab" data-sub="agenda" onclick="mostrarSubGestao('agenda')"><span class="gs-ic"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg></span>Agenda</button>
+            <button type="button" class="insp-tab" data-sub="demandas" onclick="mostrarSubGestao('demandas')"><span class="gs-ic"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="4" width="17" height="16" rx="2.5"/><path d="M9 4v16M15 4v16"/></svg></span>Gestão de Demandas</button>
+            <button type="button" class="insp-tab" data-sub="checklist" onclick="mostrarSubGestao('checklist')"><span class="gs-ic"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m4 7 2 2 3.5-4"/><path d="m4 15 2 2 3.5-4"/><path d="M13 7.5h7.5M13 15.5h7.5"/></svg></span>Relatório Vistorial</button>
+            <button type="button" class="insp-tab" data-sub="epi" onclick="mostrarSubGestao('epi')"><span class="gs-ic"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 4.5 6v5.5c0 4.4 3 7.9 7.5 9.5 4.5-1.6 7.5-5.1 7.5-9.5V6z"/><path d="m9 12 2.2 2.2L15.5 10"/></svg></span>Ficha de EPI</button>
+            <button type="button" class="insp-tab" data-sub="epifuncao" onclick="mostrarSubGestao('epifuncao')"><span class="gs-ic"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h11M9 12h11M9 18h11"/><path d="m3.5 6 1.2 1.2L6.8 5M3.5 12l1.2 1.2L6.8 11M3.5 18l1.2 1.2L6.8 17"/></svg></span>EPI e C.A por função</button>
+            <button type="button" class="insp-tab" data-sub="absenteismo" onclick="mostrarSubGestao('absenteismo')"><span class="gs-ic"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg></span>Absenteísmo</button>
+            <button type="button" class="insp-tab" data-sub="disponibilidade" onclick="mostrarSubGestao('disponibilidade')"><span class="gs-ic"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 19a8 8 0 1 1 14 0"/><path d="m12 13 3.5-4"/></svg></span>Disponibilidade</button>
+            <div class="gs-grupo">Dados e controle</div>
+            <button type="button" class="insp-tab" data-sub="importar" onclick="mostrarSubGestao('importar')"><span class="gs-ic"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4m0 0L7.5 8.5M12 4l4.5 4.5"/><path d="M4 15v3.5A1.5 1.5 0 0 0 5.5 20h13a1.5 1.5 0 0 0 1.5-1.5V15"/></svg></span>Importar Dados</button>
+            <button type="button" class="insp-tab" data-sub="auditoria" onclick="mostrarSubGestao('auditoria')"><span class="gs-ic"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="10.5" cy="10.5" r="6"/><path d="m15 15 5 5"/></svg></span>Auditoria</button>
+          </aside>
+          <div class="gs-conteudo">
+
+        <!-- USUÁRIOS -->
+        <div class="insp-sub active" id="gestao-sub-usuarios">
+          <div class="gs-cab">
+            <span class="gs-cab-ic"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.2"/><path d="M3.5 19c.6-3.2 3-5 5.5-5s4.9 1.8 5.5 5"/><path d="M16 5.2a3 3 0 0 1 0 5.6M18 14.3c1.7.6 2.9 2.2 3.3 4.7"/></svg></span>
+            <div class="gs-cab-txt"><h3>Usuários</h3><p>Controle de acesso, perfis e módulos liberados para cada pessoa.</p></div>
+            <button class="btn-primary inline gs-cab-acao" onclick="abrirModalUsuario()">+ Novo usuário</button>
+          </div>
+          <div class="card">
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th></th><th>Nome</th><th>Usuário (login)</th><th>Perfil</th><th>Módulos liberados</th><th>Status</th><th>Ações</th></tr></thead>
+                <tbody id="tbl-usuarios"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- UNIDADES -->
+        <div class="insp-sub" id="gestao-sub-unidades">
+          <div class="gs-cab">
+            <span class="gs-cab-ic"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9.5 5.5 4h13L20 9.5"/><path d="M4 9.5a2.7 2.7 0 0 0 5.3 0 2.7 2.7 0 0 0 5.4 0 2.7 2.7 0 0 0 5.3 0"/><path d="M5.5 12.5V20h13v-7.5"/><path d="M10 20v-4.5h4V20"/></svg></span>
+            <div class="gs-cab-txt"><h3>Unidades</h3><p>Alimentam os filtros do Dashboard e o seletor de loja nas Inspeções. O técnico responsável define as lojas que aparecem para cada usuário.</p></div>
+            <button type="button" class="btn-primary inline gs-cab-acao" onclick="abrirModalUnidade()">+ Nova unidade</button>
+          </div>
+          <div class="card">
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Unidade</th><th>Praça</th><th>Regional</th><th>Gerente</th><th>Supervisor</th><th>Téc. responsável</th><th>Colaboradores</th><th>Ações</th></tr></thead>
+                <tbody id="tbl-unidades"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- ESTRUTURA OPERACIONAL -->
+        <div class="insp-sub" id="gestao-sub-estrutura">
+          <div class="gs-cab">
+            <span class="gs-cab-ic"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3 9 4.5-9 4.5-9-4.5z"/><path d="m3 12 9 4.5 9-4.5"/><path d="m3 16.5 9 4.5 9-4.5"/></svg></span>
+            <div class="gs-cab-txt"><h3>Estrutura Operacional</h3><p>Essas listas alimentam os campos de Setor, Função, BP e Gerente Regional no Lançamento de acidentes.</p></div>
+          </div>
+          <div class="grid-2">
+            <div class="card">
+              <h3>Funções</h3>
+              <div class="insp-add-item"><input type="text" id="novo-item-funcao" placeholder="ex.: Repositor" onkeydown="if(event.key==='Enter'){event.preventDefault();addEstrutura('funcoes');}"><button type="button" class="btn-secondary" onclick="addEstrutura('funcoes')">+ Adicionar</button></div>
+              <div class="estrutura-lista" id="lista-funcoes"></div>
+            </div>
+            <div class="card">
+              <h3>Setores</h3>
+              <div class="insp-add-item"><input type="text" id="novo-item-setor" placeholder="ex.: Logística" onkeydown="if(event.key==='Enter'){event.preventDefault();addEstrutura('setores');}"><button type="button" class="btn-secondary" onclick="addEstrutura('setores')">+ Adicionar</button></div>
+              <div class="estrutura-lista" id="lista-setores"></div>
+            </div>
+            <div class="card">
+              <h3>BPs <span style="font-weight:400; text-transform:none; color:var(--areia-esc); font-size:11.5px;">(pessoas responsáveis)</span></h3>
+              <div class="insp-add-item"><input type="text" id="novo-item-bp" placeholder="ex.: Marcelo Andrade" onkeydown="if(event.key==='Enter'){event.preventDefault();addEstrutura('bps');}"><button type="button" class="btn-secondary" onclick="addEstrutura('bps')">+ Adicionar</button></div>
+              <div class="estrutura-lista" id="lista-bps"></div>
+            </div>
+            <div class="card">
+              <h3>Gerentes Regionais</h3>
+              <div class="insp-add-item"><input type="text" id="novo-item-gr" placeholder="ex.: Marcelo Andrade" onkeydown="if(event.key==='Enter'){event.preventDefault();addEstrutura('gerentesRegionais');}"><button type="button" class="btn-secondary" onclick="addEstrutura('gerentesRegionais')">+ Adicionar</button></div>
+              <div class="estrutura-lista" id="lista-gerentesRegionais"></div>
+            </div>
+          </div>
+          <div class="card" style="margin-top:16px;">
+            <h3>Lojas (Unidades)</h3>
+            <span class="sub">Lista somente leitura — para adicionar ou editar uma loja, use a aba "Unidades".</span>
+            <div id="lista-lojas-readonly" style="margin-top:10px;"></div>
+          </div>
+        </div>
+
+        <!-- AUDITORIA -->
+        <div class="insp-sub" id="gestao-sub-auditoria">
+          <div class="gs-cab">
+            <span class="gs-cab-ic"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="10.5" cy="10.5" r="6"/><path d="m15 15 5 5"/></svg></span>
+            <div class="gs-cab-txt"><h3>Auditoria</h3><p>Registro de início de inspeções (com geolocalização) e de assinaturas de relatórios (data, hora com segundos, geolocalização e responsável).</p></div>
+          </div>
+          <div class="card">
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Unidade</th><th>Técnico</th><th>Início (data/hora)</th><th>Geo. início</th><th>Assinado em</th><th>Geo. assinatura</th></tr></thead>
+                <tbody id="tbl-auditoria"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- IMPORTAR DADOS -->
+        <div class="insp-sub" id="gestao-sub-importar">
+          <div class="gs-cab">
+            <span class="gs-cab-ic"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4m0 0L7.5 8.5M12 4l4.5 4.5"/><path d="M4 15v3.5A1.5 1.5 0 0 0 5.5 20h13a1.5 1.5 0 0 0 1.5-1.5V15"/></svg></span>
+            <div class="gs-cab-txt"><h3>Importar Dados</h3><p>Importe bases de dados existentes para a plataforma. Cada seção abaixo tem seu próprio modelo de planilha.</p></div>
+          </div>
+
+          <div class="section-title"><span>Acidentes e Incidentes</span><div class="ln"></div></div>
+<div id="painel-upload">
+          <div class="card" style="margin-bottom:18px;">
+            <h3>Como importar</h3>
+            <span class="sub">1. Baixe o modelo · 2. Preencha uma linha por acidente · 3. Envie o arquivo preenchido abaixo</span>
+            <div class="template-links">
+              <button class="btn-secondary" onclick="baixarModelo()">⬇ Baixar planilha modelo (.xlsx)</button>
+            </div>
+          </div>
+
+          <div class="upload-zone" id="drop-zone" onclick="document.getElementById('file-input').click()">
+            <div class="icon">⇪</div>
+            <h3>Clique para selecionar ou arraste o arquivo aqui</h3>
+            <p>Formatos aceitos: .xlsx, .xls, .csv</p>
+            <input type="file" id="file-input" accept=".xlsx,.xls,.csv" style="display:none">
+          </div>
+
+          <div class="section-title"><span>Pré-visualização do arquivo</span><div class="ln"></div></div>
+          <div class="card" style="margin-bottom:18px;">
+            <span class="sub" id="upload-status">Nenhum arquivo carregado ainda.</span>
+            <div class="table-wrap" style="margin-top:10px;">
+              <table>
+                <thead id="tbl-preview-head"></thead>
+                <tbody id="tbl-preview-body"></tbody>
+              </table>
+            </div>
+            <div class="form-actions" id="upload-actions" style="display:none;">
+              <button class="btn-primary inline" onclick="confirmarImportacao()">Confirmar importação</button>
+              <button class="btn-secondary" onclick="cancelarImportacao()">Cancelar</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- fecha gestao-sub-importar -->
+        </div>
+
+        <!-- GESTÃO DE DEMANDAS -->
+        <div class="insp-sub" id="gestao-sub-demandas">
+          <div class="gs-cab">
+            <span class="gs-cab-ic"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="4" width="17" height="16" rx="2.5"/><path d="M9 4v16M15 4v16"/></svg></span>
+            <div class="gs-cab-txt"><h3>Gestão de Demandas</h3><p>Configure as opções de categoria/tipo de demanda e os fluxos (colunas do quadro Kanban) usados na aba Demandas.</p></div>
+          </div>
+
+          <div class="section-title"><span>Opções de demanda</span><div class="ln"></div></div>
+          <div class="grid-2">
+            <div class="card">
+              <h3>Categorias</h3>
+              <div class="insp-add-item"><input type="text" id="novo-item-dem-categoria" placeholder="ex.: Jurídico" onkeydown="if(event.key==='Enter'){event.preventDefault();addOpcaoDemanda('categoria');}"><button type="button" class="btn-secondary" onclick="addOpcaoDemanda('categoria')">+ Adicionar</button></div>
+              <div class="estrutura-lista" id="lista-dem-categoria"></div>
+            </div>
+            <div class="card">
+              <h3>Área dentro do SESMT</h3>
+              <span class="sub" style="display:block; margin-bottom:8px;">ex.: Saúde, Segurança, Gestão</span>
+              <div class="insp-add-item"><input type="text" id="novo-item-dem-area" placeholder="ex.: Saúde" onkeydown="if(event.key==='Enter'){event.preventDefault();addOpcaoDemanda('area');}"><button type="button" class="btn-secondary" onclick="addOpcaoDemanda('area')">+ Adicionar</button></div>
+              <div class="estrutura-lista" id="lista-dem-area"></div>
+            </div>
+          </div>
+          <div class="grid-2">
+            <div class="card">
+              <h3>Tipo de atividade</h3>
+              <div class="insp-add-item"><input type="text" id="novo-item-dem-tipo_atividade" placeholder="ex.: Visita técnica" onkeydown="if(event.key==='Enter'){event.preventDefault();addOpcaoDemanda('tipo_atividade');}"><button type="button" class="btn-secondary" onclick="addOpcaoDemanda('tipo_atividade')">+ Adicionar</button></div>
+              <div class="estrutura-lista" id="lista-dem-tipo_atividade"></div>
+            </div>
+            <div class="card">
+              <h3>Prioridades</h3>
+              <span class="sub" style="display:block; margin-bottom:8px;">Fixas na plataforma: Alta, Normal e Baixa.</span>
+            </div>
+          </div>
+
+          <div class="section-title"><span>Tipos de demanda</span><div class="ln"></div></div>
+          <span class="sub" style="display:block; margin-bottom:12px;">Cada tipo define automaticamente o fluxo (etapas) que a demanda seguirá e o tempo médio esperado de execução — usado para calcular o tempo restante.</span>
+          <div class="form-card" style="margin-bottom:16px;">
+            <h3 style="margin-bottom:12px;">Novo tipo de demanda</h3>
+            <div class="insp-header-grid">
+              <div class="field"><label>Nome do tipo</label><input type="text" id="novo-tipo-nome" placeholder="ex.: Auditoria"></div>
+              <div class="field"><label>Fluxo</label><select id="novo-tipo-fluxo"></select></div>
+              <div class="field"><label>Tempo estimado (horas)</label><input type="number" id="novo-tipo-tempo" placeholder="ex.: 4" min="0" step="0.5"></div>
+            </div>
+            <label style="display:flex; align-items:center; gap:7px; margin:10px 0 12px; font-size:13px; color:var(--marrom-esc); cursor:pointer;"><input type="checkbox" id="novo-tipo-qualidade" style="width:auto;"> Exige Análise de Qualidade</label>
+            <button type="button" class="btn-secondary" onclick="addTipoDemandaConfig()">+ Adicionar tipo de demanda</button>
+          </div>
+          <div class="card" style="margin-bottom:16px;">
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Tipo de demanda</th><th>Fluxo</th><th>Tempo estimado</th><th>Qualidade</th><th>Ações</th></tr></thead>
+                <tbody id="tbl-tipos-demanda-config"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="section-title"><span>Fluxos (etapas do fluxo de trabalho)</span><div class="ln"></div></div>
+          <div class="form-card">
+            <h3 style="margin-bottom:12px;">Criar novo fluxo</h3>
+            <div class="insp-add-item"><input type="text" id="novo-fluxo-nome" placeholder="ex.: Fluxo Jurídico"><button type="button" class="btn-secondary" onclick="criarFluxo()">+ Criar fluxo</button></div>
+          </div>
+
+          <div id="lista-fluxos-config"></div>
+        </div>
+
+        <!-- DISPONIBILIDADE -->
+        <div class="insp-sub" id="gestao-sub-agenda">
+          <div class="gs-cab">
+            <span class="gs-cab-ic"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg></span>
+            <div class="gs-cab-txt"><h3>Agenda</h3><p>Cadastros que alimentam o lançamento de visitas na aba Agenda.</p></div>
+          </div>
+          <div class="card">
+            <h3>Motivos de visita / projetos</h3>
+            <span class="sub" style="display:block; margin-bottom:14px;">Lista suspensa usada no campo "Motivo da visita / projeto" ao lançar uma visita (é possível escolher mais de um). Visitas já lançadas mantêm o motivo com que foram criadas.</span>
+            <div class="insp-add-item"><input type="text" id="novo-motivo-agenda" placeholder="ex.: Inspeção de rotina" onkeydown="if(event.key==='Enter'){event.preventDefault();addMotivoAgenda();}"><button type="button" class="btn-secondary" onclick="addMotivoAgenda()">+ Adicionar</button></div>
+            <div class="estrutura-lista" id="lista-motivos-agenda"></div>
+          </div>
+        </div>
+
+        <div class="insp-sub" id="gestao-sub-disponibilidade">
+          <div class="gs-cab">
+            <span class="gs-cab-ic"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 19a8 8 0 1 1 14 0"/><path d="m12 13 3.5-4"/></svg></span>
+            <div class="gs-cab-txt"><h3>Disponibilidade</h3><p>Tempo disponível de cada usuário para receber novas demandas, com base na carga horária diária definida no cadastro e nas demandas ativas atribuídas a ele.</p></div>
+          </div>
+          <div id="lista-disponibilidade-usuarios"></div>
+
+          <div class="section-title" style="margin-top:22px;"><span>Disponibilidade por dia</span><div class="ln"></div></div>
+          <div class="topbar" style="margin-bottom:14px;">
+            <div class="switch-aprovacao">
+              <button type="button" class="sw-btn ativo sw-aprovado" id="btn-disp-semana" onclick="mudarVisaoDisponibilidade('semana')">Semana</button>
+              <button type="button" class="sw-btn" id="btn-disp-mes" onclick="mudarVisaoDisponibilidade('mes')">Mês</button>
+            </div>
+            <div style="display:flex; gap:10px; align-items:center;">
+              <button type="button" class="btn-secondary" onclick="navegarDisponibilidade(-1)">‹ Anterior</button>
+              <span class="sub" id="disp-periodo-label" style="font-weight:700; color:var(--marrom-esc); white-space:nowrap;"></span>
+              <button type="button" class="btn-secondary" onclick="navegarDisponibilidade(1)">Próximo ›</button>
+            </div>
+          </div>
+          <div id="disp-grid-usuarios"></div>
+        </div>
+
+        <!-- CHECKLIST DE INSPEÇÃO -->
+        <div class="insp-sub" id="gestao-sub-checklist">
+          <div class="gs-cab">
+            <span class="gs-cab-ic"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m4 7 2 2 3.5-4"/><path d="m4 15 2 2 3.5-4"/><path d="M13 7.5h7.5M13 15.5h7.5"/></svg></span>
+            <div class="gs-cab-txt"><h3>Relatório Vistorial</h3><p>Tudo o que aparece no relatório vistorial: grupos e itens do checklist (C, C/A, N/C), tipos de inconformidade, riscos expostos, matriz GUT e tipos de ocorrência. Marque "Exige evidência" para itens que precisam de foto quando marcados como C/A ou N/C.</p></div>
+          </div>
+
+          <div class="section-title"><span>Grupos a serem vistoriados</span><div class="ln"></div></div>
+          <div class="insp-add-item"><input type="text" id="novo-grupo-checklist-nome" placeholder="ex.: Documentos" onkeydown="if(event.key==='Enter'){event.preventDefault();addGrupoChecklist();}"><button type="button" class="btn-secondary" onclick="addGrupoChecklist()">+ Adicionar grupo</button></div>
+          <div class="estrutura-lista" id="lista-grupos-checklist" style="margin-bottom:20px;"></div>
+
+          <div class="section-title"><span>Itens de cada grupo</span><div class="ln"></div></div>
+          <div class="form-card" style="margin-bottom:16px;">
+            <h3 style="margin-bottom:12px;">Novo item</h3>
+            <div class="insp-header-grid">
+              <div class="field"><label>Grupo</label><select id="novo-item-checklist-grupo"></select></div>
+              <div class="field"><label>Título do item</label><input type="text" id="novo-item-checklist-titulo" placeholder="ex.: Ficha de EPIs"></div>
+              <div class="field"><label>Descrição (opcional)</label><input type="text" id="novo-item-checklist-desc" placeholder="Detalhe o que deve ser verificado"></div>
+            </div>
+            <label style="display:flex; align-items:center; gap:7px; margin:10px 0 12px; font-size:13px; color:var(--marrom-esc); cursor:pointer;"><input type="checkbox" id="novo-item-checklist-evidencia" style="width:auto;"> Exige evidência (foto) quando marcado PC ou NC</label>
+            <button type="button" class="btn-secondary" onclick="addItemChecklist()">+ Adicionar item</button>
+          </div>
+          <div class="card">
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Grupo</th><th>Título</th><th>Descrição</th><th>Exige evidência</th><th>Ações</th></tr></thead>
+                <tbody id="tbl-itens-checklist-config"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="section-title" style="margin-top:22px;"><span>Tipos de ocorrência</span><div class="ln"></div></div>
+          <span class="sub" style="display:block; margin-bottom:12px;">Lista suspensa usada na Parte 3 (Registro de ocorrências) de toda inspeção.</span>
+          <div class="insp-add-item"><input type="text" id="novo-tipo-ocorrencia" placeholder="ex.: Comportamental" onkeydown="if(event.key==='Enter'){event.preventDefault();addTipoOcorrencia();}"><button type="button" class="btn-secondary" onclick="addTipoOcorrencia()">+ Adicionar</button></div>
+          <div class="estrutura-lista" id="lista-tipos-ocorrencia"></div>
+
+          <div class="section-title" style="margin-top:22px;"><span>Tipos de inconformidade</span><div class="ln"></div></div>
+          <span class="sub" style="display:block; margin-bottom:12px;">Lista suspensa do campo TIPO ao lançar uma inconformidade. Edite o nome direto na linha.</span>
+          <div class="insp-add-item"><input type="text" id="vg-tipos-novo" placeholder="ex.: Infraestrutura" onkeydown="if(event.key==='Enter'){event.preventDefault();vistGestaoAdd('tipos');}"><button type="button" class="btn-secondary" onclick="vistGestaoAdd('tipos')">+ Adicionar</button></div>
+          <div class="vg-lista" id="vg-tipos"></div>
+
+          <div class="section-title" style="margin-top:22px;"><span>Riscos expostos</span><div class="ln"></div></div>
+          <span class="sub" style="display:block; margin-bottom:12px;">Opções de múltipla escolha do campo RISCO EXPOSTO.</span>
+          <div class="insp-add-item"><input type="text" id="vg-riscos-novo" placeholder="ex.: Choque elétrico" onkeydown="if(event.key==='Enter'){event.preventDefault();vistGestaoAdd('riscos');}"><button type="button" class="btn-secondary" onclick="vistGestaoAdd('riscos')">+ Adicionar</button></div>
+          <div class="vg-lista" id="vg-riscos"></div>
+
+          <div class="section-title" style="margin-top:22px;"><span>Matriz GUT — itens de cada critério</span><div class="ln"></div></div>
+          <span class="sub" style="display:block; margin-bottom:12px;">Cada critério (Gravidade, Urgência, Tendência) tem 5 itens, valorados de 1 a 5. Edite o texto de cada um.</span>
+          <div class="vg-gut3" id="vg-gut"></div>
+
+          <div class="section-title" style="margin-top:12px;"><span>Matriz GUT — classes do resultado (G × U × T)</span><div class="ln"></div></div>
+          <span class="sub" style="display:block; margin-bottom:12px;">O resultado (de 1 a 125) recebe o nome da maior faixa que ele alcança. Ex.: a partir de 100 = RISCO GRAVÍSSIMO. A cor é a do retângulo no relatório.</span>
+          <div class="vg-lista" id="vg-classes"></div>
+          <button type="button" class="btn-secondary" onclick="vistGestaoClasseAdd()">+ Nova classe</button>
+        </div>
+
+        <!-- FICHA DE EPI -->
+        <div class="insp-sub" id="gestao-sub-epi">
+          <div class="gs-cab">
+            <span class="gs-cab-ic"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 4.5 6v5.5c0 4.4 3 7.9 7.5 9.5 4.5-1.6 7.5-5.1 7.5-9.5V6z"/><path d="m9 12 2.2 2.2L15.5 10"/></svg></span>
+            <div class="gs-cab-txt"><h3>Ficha de EPI</h3><p>Base usada pela aba Ficha de EPI (ficha individual, impressão em lote e novo admitido). Envie a planilha "Gerador de Ficha de EPI" todo mês para manter a lista de colaboradores e os EPIs por função atualizados.</p></div>
+          </div>
+          <div class="card" style="margin-bottom:16px;">
+            <h3>Importar planilha de EPI</h3>
+            <span class="sub">Aceita o arquivo original, lendo as abas "BASE COLABORADORES" e "LISTA DE EPI POR FUNÇÃO". A leitura acontece aqui no seu navegador — sem limite de linhas.</span>
+            <div style="display:flex; gap:10px; align-items:center; margin-top:10px; flex-wrap:wrap;">
+              <input type="file" id="epi-import-file" accept=".xlsx,.xls">
+              <button type="button" class="btn-primary inline" onclick="importarBaseEpi()">Importar arquivo</button>
+              <label style="display:flex; align-items:center; gap:6px; font-size:12.5px; color:var(--areia-esc); cursor:pointer;"><input type="checkbox" id="epi-import-substituir" checked style="width:auto;"> Substituir toda a base atual antes de importar</label>
+            </div>
+            <span class="sub" id="epi-import-status" style="display:block; margin-top:10px; font-weight:600;"></span>
+          </div>
+          <div class="kpi-row">
+            <div class="kpi k1"><div class="lbl">Colaboradores na base</div><div class="val" id="epi-kpi-colaboradores">0</div><span class="foot">Usados para buscar por matrícula</span></div>
+            <div class="kpi k2"><div class="lbl">Combinações setor + função</div><div class="val" id="epi-kpi-combinacoes">0</div><span class="foot">Com lista de EPI cadastrada</span></div>
+          </div>
+        </div>
+
+        <!-- EPI E C.A POR FUNÇÃO -->
+        <div class="insp-sub" id="gestao-sub-epifuncao">
+          <div class="gs-cab">
+            <span class="gs-cab-ic"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h11M9 12h11M9 18h11"/><path d="m3.5 6 1.2 1.2L6.8 5M3.5 12l1.2 1.2L6.8 11M3.5 18l1.2 1.2L6.8 17"/></svg></span>
+            <div class="gs-cab-txt"><h3>EPI e C.A por setor e função</h3><p>Abra o setor e escolha a função: cada função de cada setor tem a sua própria lista de EPI e C.A, e é ela que alimenta a Ficha de EPI. Importar a planilha com "Substituir toda a base" apaga as listas editadas aqui.</p></div>
+            <button type="button" class="btn-primary inline gs-cab-acao" onclick="efNovaManual()">+ Novo setor/função</button>
+          </div>
+          <div class="dm-kpis" id="ef-kpis"></div>
+          <div class="rn-seg ef-abas" id="ef-abas">
+            <button type="button" class="active" data-a="funcoes" onclick="efMostrarAba('funcoes')">Por setor e função</button>
+            <button type="button" data-a="catalogo" onclick="efMostrarAba('catalogo')">Catálogo de EPI e C.A</button>
+          </div>
+          <div class="ef-layout" id="ef-painel-funcoes">
+            <aside class="ef-lista-card">
+              <div class="rn-seg" id="ef-seg">
+                <button type="button" class="active" data-l="todas" onclick="efTrocarLista('todas')">Todas <span id="ef-n-todas"></span></button>
+                <button type="button" data-l="sem" onclick="efTrocarLista('sem')">Sem lista <span id="ef-n-sem"></span></button>
+                <button type="button" data-l="com" onclick="efTrocarLista('com')">Com lista <span id="ef-n-com"></span></button>
+              </div>
+              <input type="search" class="ef-busca" id="ef-busca" placeholder="Buscar setor ou função…" oninput="efFiltrarLista(this.value)" autocomplete="off">
+              <div class="ef-lista" id="ef-lista"></div>
+            </aside>
+            <section class="ef-editor-card" id="ef-editor"></section>
+          </div>
+          <div class="card" id="ef-painel-catalogo" style="display:none;">
+            <h3>Catálogo de EPI e C.A</h3>
+            <span class="sub" style="display:block; margin-bottom:12px;">Cada EPI usado nas listas, com seu C.A. Ao alterar o C.A (por renovação, por exemplo) ou o nome, a mudança vale para todas as funções que usam esse EPI.</span>
+            <div id="ef-catalogo"></div>
+          </div>
+          <datalist id="ef-dl-epis"></datalist><datalist id="ef-dl-setores"></datalist><datalist id="ef-dl-funcoes"></datalist>
+        </div>
+
+        <!-- ABSENTEÍSMO -->
+        <div class="insp-sub" id="gestao-sub-absenteismo">
+          <div class="gs-cab">
+            <span class="gs-cab-ic"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg></span>
+            <div class="gs-cab-txt"><h3>Absenteísmo</h3><p>Base do dashboard de Absenteísmo. Envie o relatório bruto de ausências (aba "GERAL", exportado do sistema de RH) — a própria plataforma identifica os campos, filtra as linhas relevantes e calcula os indicadores mês a mês, por loja, setor e regional. Reenviar o mesmo arquivo (ou um período mais recente) não duplica: registros já lançados são detectados e descartados automaticamente.</p></div>
+          </div>
+          <div class="card" style="margin-bottom:16px;">
+            <h3>Importar relatório de absenteísmo</h3>
+            <span class="sub">A leitura acontece aqui no seu navegador, sem limite de linhas. Linhas sem "Tipo de ausência ou presença" preenchido (vínculos, não ausências) são ignoradas automaticamente.</span>
+            <div style="display:flex; gap:10px; align-items:center; margin-top:10px; flex-wrap:wrap;">
+              <input type="file" id="abs-import-file" accept=".xlsx,.xls">
+              <button type="button" class="btn-primary inline" onclick="importarAbsenteismoBruto()">Importar arquivo</button>
+            </div>
+            <span class="sub" id="abs-import-status" style="display:block; margin-top:10px; font-weight:600;"></span>
+          </div>
+          <div class="kpi-row">
+            <div class="kpi k1"><div class="lbl">Registros na base</div><div class="val" id="abs-kpi-total-base">0</div><span class="foot">Ausências já importadas</span></div>
+          </div>
+
+          <div class="section-title" style="margin-top:20px;"><span>Categorias dos tipos de ausência</span><div class="ln"></div></div>
+          <span class="sub" style="display:block; margin-bottom:12px;">Defina a qual dos 5 indicadores do dashboard cada tipo de ausência pertence. Tipos sem categoria não entram nos indicadores principais, mas continuam contabilizados na base.</span>
+          <div class="card">
+            <div class="table-wrap" style="max-height:420px; overflow:auto;">
+              <table>
+                <thead><tr><th>Tipo de ausência (planilha)</th><th>Categoria do indicador</th></tr></thead>
+                <tbody id="tbl-abs-categorias"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+</div>
+
+<!-- ============ MODAL: NOVO/EDITAR USUÁRIO ============ -->
+<div class="modal-bg" id="modal-usuario">
+  <div class="modal">
+    <h3 id="modal-title">Novo usuário</h3>
+    <form id="form-usuario" onsubmit="return salvarUsuario(event)">
+      <input type="hidden" id="us-id">
+      <div class="field"><label>Nome completo</label><input required type="text" id="us-nome"></div>
+      <div class="field"><label>E-mail</label><input required type="email" id="us-login" placeholder="nome@hortifruti.com.br"></div>
+      <div class="field"><label>Senha</label><input required type="password" id="us-senha" placeholder="defina uma senha" minlength="6"></div>
+      <div class="field"><label>Registro profissional</label><input type="text" id="us-registro" placeholder="ex.: Téc. Seg. Trabalho — MTE 12345"></div>
+      <div class="field"><label>Cargo / Função</label><input type="text" id="us-cargo" placeholder="ex.: Técnico de Segurança do Trabalho"></div>
+      <div class="field"><label>Carga horária diária (horas) <span style="font-weight:400; text-transform:none; color:var(--areia-esc); font-size:11px;">— usada para calcular a disponibilidade em Demandas</span></label><input type="number" id="us-carga-horaria" min="0" step="0.5" value="8" placeholder="ex.: 8"></div>
+      <div class="field">
+        <label>Foto do usuário</label>
+        <div class="assinatura-box">
+          <img id="us-foto-preview" style="display:none; border-radius:50%; height:56px; width:56px; object-fit:cover;">
+          <label class="foto-btn" style="display:inline-block; width:auto;">Enviar foto
+            <input type="file" accept="image/*" onchange="onFotoUsuarioChange(this)" hidden>
+          </label>
+          <button type="button" class="small-btn" id="us-foto-remover" style="display:none;" onclick="removerFotoUsuario()">Remover</button>
+        </div>
+      </div>
+      <div class="field">
+        <label>Assinatura (usada para assinar relatórios de inspeção)</label>
+        <div class="assinatura-box">
+          <img id="us-assinatura-preview" style="display:none;">
+          <label class="foto-btn" style="display:inline-block; width:auto;">Enviar imagem da assinatura
+            <input type="file" accept="image/*" onchange="onAssinaturaChange(this)" hidden>
+          </label>
+          <button type="button" class="small-btn" id="us-assinatura-remover" style="display:none;" onclick="removerAssinaturaUsuario()">Remover</button>
+        </div>
+      </div>
+      <div class="field"><label>Perfil</label>
+        <select id="us-perfil" onchange="aplicarModulosPadrao()">
+          <option value="Administrador">Administrador</option>
+          <option value="Coordenador">Coordenador</option>
+          <option value="Usuário Padrão">Usuário Padrão</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Módulos que este usuário pode acessar</label>
+        <div class="mod-check">
+          <label><input type="checkbox" value="lancamento" class="us-mod"> Acidentes (lista em Acidentes · Registro e Análise em Tarefas · indicadores em Dashboards)</label>
+          <label><input type="checkbox" value="inspecoes" class="us-mod"> Inspeções de Segurança</label>
+          <label><input type="checkbox" value="agenda" class="us-mod"> Agenda (indicadores em Dashboards)</label>
+          <label><input type="checkbox" value="demandas" class="us-mod"> Demandas (indicadores em Dashboards)</label>
+          <label><input type="checkbox" value="reunioes" class="us-mod"> Reuniões</label>
+          <label><input type="checkbox" value="saude" class="us-mod"> Saúde (em Tarefas)</label>
+          <label><input type="checkbox" value="absenteismo" class="us-mod"> Absenteísmo (em Tarefas)</label>
+          <label><input type="checkbox" value="fichaEpi" class="us-mod"> Ficha de EPI (em Tarefas)</label>
+          <label><input type="checkbox" value="auditoriaEpi" class="us-mod"> Auditoria EPI</label>
+          <label><input type="checkbox" value="gestao" class="us-mod"> Gestão (Usuários, Unidades, Estrutura, Auditoria)</label>
+        </div>
+      </div>
+      <div class="field">
+        <label>Notificações que este usuário receberá</label>
+        <div class="mod-check-grupo">
+          <span class="mod-check-titulo">Demandas</span>
+          <div class="mod-check">
+            <label><input type="checkbox" value="demanda_atribuida" class="us-notif"> Demanda atribuída a ele</label>
+            <label><input type="checkbox" value="demanda_vencendo" class="us-notif"> Demanda vencendo</label>
+            <label><input type="checkbox" value="demanda_atrasada" class="us-notif"> Demanda atrasada</label>
+            <label><input type="checkbox" value="demanda_atualizada" class="us-notif"> Demanda atualizada (qualquer alteração)</label>
+          </div>
+        </div>
+        <div class="mod-check-grupo">
+          <span class="mod-check-titulo">Controle de qualidade</span>
+          <div class="mod-check">
+            <label><input type="checkbox" value="demanda_qualidade_solicitada" class="us-notif"> Análise de qualidade solicitada</label>
+            <label><input type="checkbox" value="demanda_qualidade_reprovada" class="us-notif"> Reprovada — correção solicitada</label>
+            <label><input type="checkbox" value="demanda_qualidade_resolvida" class="us-notif"> Correção marcada como resolvida</label>
+            <label><input type="checkbox" value="demanda_qualidade_aprovada" class="us-notif"> Análise aprovada</label>
+          </div>
+        </div>
+        <div class="mod-check-grupo">
+          <span class="mod-check-titulo">Conversa e reuniões</span>
+          <div class="mod-check">
+            <label><input type="checkbox" value="demanda_mensagem" class="us-notif"> Nova mensagem na conversa de uma demanda</label>
+            <label><input type="checkbox" value="reuniao_convocada" class="us-notif"> Convocação para reunião</label>
+          </div>
+        </div>
+        <div class="mod-check-grupo">
+          <span class="mod-check-titulo">Agenda e Acidentes</span>
+          <div class="mod-check">
+            <label><input type="checkbox" value="agenda_aprovacao" class="us-notif"> Visita aguardando aprovação</label>
+            <label><input type="checkbox" value="acidente_novo" class="us-notif"> Novo acidente registrado</label>
+          </div>
+        </div>
+      </div>
+      <div class="field"><label><input type="checkbox" id="us-ativo" checked style="width:auto; margin-right:6px;">Usuário ativo</label></div>
+      <div class="form-actions">
+        <button type="submit" class="btn-primary inline">Salvar usuário</button>
+        <button type="button" class="btn-secondary" onclick="fecharModalUsuario()">Cancelar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ============ MODAL: NOVA/EDITAR UNIDADE ============ -->
+<div class="modal-bg" id="modal-dem-lote">
+  <div class="modal" style="max-width:640px;">
+    <h3 id="lote-titulo">Alterar demandas em lote</h3>
+    <span class="sub" style="display:block; margin-bottom:12px;">Só os campos que você preencher serão alterados em todas as demandas selecionadas. Campos em branco ficam como estão.</span>
+    <form id="form-dem-lote" onsubmit="return aplicarLoteDemandas(event)">
+      <div class="insp-header-grid" id="lote-campos"></div>
+      <div id="lote-aviso" class="dm-lote-aviso" style="display:none;"></div>
+      <div style="display:flex; gap:10px; justify-content:space-between; align-items:center; margin-top:16px; flex-wrap:wrap;">
+        <button type="button" class="small-btn danger" id="lote-btn-excluir" style="display:none;" onclick="excluirLoteDemandas()">Excluir selecionadas</button>
+        <span style="display:flex; gap:10px; margin-left:auto;">
+          <button type="button" class="btn-secondary" onclick="fecharModalLoteDemandas()">Cancelar</button>
+          <button type="submit" class="btn-primary" id="lote-btn-aplicar">Aplicar alterações</button>
+        </span>
+      </div>
+    </form>
+  </div>
+</div>
+
+
+<div class="modal-bg" id="modal-visita">
+  <div class="modal" style="max-width:980px; width:96vw; max-height:92dvh; overflow:auto;">
+    <div class="form-card" style="box-shadow:none; border:none; padding:0; margin:0;">
+            <h3 id="ag-modal-titulo">Agendar Visita/Local de Trabalho</h3>
+            <div class="ag-form-grid">
+              <div class="ag-form-campos">
+                <div class="field" id="ag-campo-quem" style="display:none;"><label>Para quem</label><select id="ag-quem" style="display:none;"></select><div class="av-picker" id="ag-quem-av"></div><div class="av-sel-nome" id="ag-quem-nome"></div></div>
+                <div class="field"><label>O que você vai agendar?</label>
+                  <div class="switch-aprovacao ag-tipo-sw" id="ag-tipo-sw">
+                    <button type="button" class="sw-btn ativo sw-aprovado" data-t="visita" onclick="agSetTipoAgenda('visita')">📍 Visita</button>
+                    <button type="button" class="sw-btn" data-t="local" onclick="agSetTipoAgenda('local')">🏢 Local de trabalho</button>
+                  </div>
+                </div>
+                <div class="field" id="ag-bloco-local" style="display:none;"><label>Local de trabalho</label><div class="ag-locais" id="ag-locais"></div></div>
+                <div class="insp-header-grid">
+                  <div class="field" id="ag-bloco-unidade"><label>Unidade / loja</label><select id="ag-unidade" onchange="agAoMudarUnidade()"><option value="">Selecione...</option></select></div>
+                  <div class="field"><label>Período <span class="ag-sub">(padrão para os novos dias)</span></label>
+                    <div class="switch-aprovacao" id="ag-periodo-switch">
+                      <button type="button" class="sw-btn ativo sw-aprovado" data-periodo="Manhã" onclick="selecionarPeriodoAgenda('Manhã')">Manhã</button>
+                      <button type="button" class="sw-btn" data-periodo="Tarde" onclick="selecionarPeriodoAgenda('Tarde')">Tarde</button>
+                      <button type="button" class="sw-btn" data-periodo="Dia inteiro" onclick="selecionarPeriodoAgenda('Dia inteiro')">Dia inteiro</button>
+                    </div>
+                    <input type="hidden" id="ag-periodo" value="Manhã">
+                  </div>
+                </div>
+                <div class="ag-paineis" id="ag-paineis" style="display:none;">
+                  <div class="ag-painel" id="ag-ultima-visita-info"></div>
+                  <div class="ag-painel" id="ag-sugestao"></div>
+                </div>
+                <div class="field">
+                  <label>Atividades principais de cada dia <span class="ag-sub">(marque os dias no calendário e escolha o período e as atividades; a unidade é a escolhida acima)</span></label>
+                  <div class="ag-resumo" id="ag-dias-resumo"></div>
+                  <div class="ag-dias-cfg" id="ag-dias-config"></div>
+                </div>
+                <div class="field"><label>Descrição <span class="ag-sub">(opcional)</span></label><textarea id="ag-descricao" rows="2" maxlength="500" placeholder="Detalhes da visita ou do dia de trabalho"></textarea></div>
+                <input type="checkbox" id="ag-oculto" style="display:none">
+                <div class="form-actions">
+                  <button type="button" class="btn-primary inline" id="ag-btn-agendar" onclick="adicionarVisitaAgenda()">Agendar</button>
+                  <button type="button" class="btn-secondary" onclick="fecharModalVisitaAgenda()">Cancelar</button>
+                </div>
+              </div>
+              <div class="ag-form-cal">
+                <div class="field"><label>Dias</label>
+                  <div class="ag-cal" id="ag-calsel"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="modal-aus">
+  <div class="modal" style="max-width:560px;">
+    <h3 id="aus-titulo">Registrar ausência</h3>
+    <form id="form-aus" onsubmit="return salvarAusencia(event)">
+      <div class="insp-header-grid">
+        <div class="field" style="grid-column:1/-1;" id="aus-campo-tipo"><label>Tipo de ausência</label>
+          <select id="aus-tipo">
+            <option value="Compensação de banco de horas">Banco de horas</option>
+            <option value="Férias">Férias</option>
+            <option value="Folga">Folga</option>
+            <option value="Ausência justificada">Ausência justificada</option>
+          </select>
+        </div>
+        <div class="field"><label>De</label><input type="date" id="aus-ini" required onchange="ausAtualizarResumo()"></div>
+        <div class="field"><label>Até</label><input type="date" id="aus-fim" required onchange="ausAtualizarResumo()"></div>
+        <div class="field" style="grid-column:1/-1;"><span class="ag-dica" id="aus-resumo"></span></div>
+        <div class="field" style="grid-column:1/-1;"><label>Período</label>
+          <div class="switch-aprovacao" id="aus-periodo-sw">
+            <button type="button" class="sw-btn ativo sw-aprovado" data-p="Dia inteiro" onclick="ausPeriodo('Dia inteiro')">Dia inteiro</button>
+            <button type="button" class="sw-btn" data-p="Manhã" onclick="ausPeriodo('Manhã')">Manhã</button>
+            <button type="button" class="sw-btn" data-p="Tarde" onclick="ausPeriodo('Tarde')">Tarde</button>
+            <button type="button" class="sw-btn" data-p="Horário" onclick="ausPeriodo('Horário')">Horário</button>
+          </div>
+          <input type="hidden" id="aus-periodo" value="Dia inteiro">
+        </div>
+        <div class="field" id="aus-hi-wrap" style="display:none;"><label>Hora de início</label><input type="time" id="aus-hi" value="08:00"></div>
+        <div class="field" id="aus-hf-wrap" style="display:none;"><label>Hora de fim</label><input type="time" id="aus-hf" value="12:00"></div>
+        <div class="field" style="grid-column:1/-1;"><label id="aus-obs-lbl">Observação (opcional)</label><input type="text" id="aus-obs" maxlength="200"></div>
+        <div class="field" style="grid-column:1/-1;" id="aus-campo-oculto"><div class="mod-check"><label><input type="checkbox" class="ios-toggle" id="aus-oculto"> Oculto <span class="ag-sub">(os outros veem apenas “Ocupado”)</span></label></div></div>
+        <div class="field" style="grid-column:1/-1;" id="aus-campo-pessoas"><label>Para quem</label>
+          <div class="av-picker" id="aus-pessoas-lista"></div><div class="av-sel-nome" id="aus-pessoas-nome"></div></div>
+      </div>
+      <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:14px;">
+        <button type="button" class="btn-secondary" onclick="fecharModalAusencia()">Cancelar</button>
+        <button type="submit" class="btn-primary" id="aus-btn-salvar">Salvar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="modal-bg" id="modal-cal">
+  <div class="modal" style="max-width:600px;">
+    <h3 id="cal-modal-titulo">Novo evento</h3>
+    <form id="form-cal" onsubmit="return salvarEventoCal(event)">
+      <input type="hidden" id="cal-id">
+      <div class="insp-header-grid">
+        <div class="field" style="grid-column:1/-1;"><label>Título</label><input type="text" id="cal-titulo" maxlength="120" placeholder="ex.: Reunião com a loja Barra"></div>
+        <div class="field"><label>Tipo</label><select id="cal-tipo" onchange="calAoMudarTipo()"></select></div>
+        <div class="field"><label>Local (opcional)</label><input type="text" id="cal-local" maxlength="120"></div>
+        <div class="field"><label>Início</label><input type="date" id="cal-ini" required onchange="calAtualizarOcultoAuto()"></div>
+        <div class="field"><label>Fim</label><input type="date" id="cal-fim" required onchange="calAtualizarOcultoAuto()"></div>
+        <div class="field" style="grid-column:1/-1;">
+          <div class="mod-check">
+            <label><input type="checkbox" class="ios-toggle" id="cal-dia-inteiro" checked onchange="calAlternarHoras(); calAtualizarOcultoAuto();"> Dia inteiro</label>
+            <label id="cal-bloqueia-lbl"><input type="checkbox" class="ios-toggle" id="cal-bloqueia" checked> Bloqueia a agenda (indisponível)</label>
+            <label id="cal-oculto-lbl"><input type="checkbox" class="ios-toggle" id="cal-oculto"> Oculto (os outros veem só “Ocupado”)</label>
+          </div>
+        </div>
+        <div class="field" id="cal-horas-hi" style="display:none;"><label>Hora de início</label><input type="time" id="cal-hi" onchange="calAtualizarOcultoAuto()"></div>
+        <div class="field" id="cal-horas-hf" style="display:none;"><label>Hora de fim</label><input type="time" id="cal-hf" onchange="calAtualizarOcultoAuto()"></div>
+        <div class="field" style="grid-column:1/-1;"><label>Descrição (opcional)</label><textarea id="cal-desc" rows="2" maxlength="600"></textarea></div>
+        <div class="field" style="grid-column:1/-1;" id="cal-campo-pessoas">
+          <label>Para quem</label>
+          <div class="av-picker" id="cal-pessoas-lista" onchange="calAtualizarOcultoAuto()"></div><div class="av-sel-nome" id="cal-pessoas-nome"></div>
+        </div>
+      </div>
+      <div class="field" id="cal-campo-convidados" style="margin-top:10px;">
+        <label>Convidar pessoas <span class="ag-sub">(cada uma aceita ou recusa; ao aceitar, o evento entra na agenda dela)</span></label>
+        <div class="av-picker" id="cal-convidados-lista"></div><div class="av-sel-nome" id="cal-convidados-nome"></div>
+      </div>
+      <div id="cal-aviso-conflito" class="dm-lote-aviso" style="display:none;"></div>
+      <div id="cal-aviso-oculto" class="dm-lote-aviso" style="display:none; background:#eceff1; color:#3c4043;">Este horário está dentro de um bloqueio da agenda: o evento fica <b>oculto</b> automaticamente.</div>
+      <div style="display:flex; gap:10px; justify-content:space-between; align-items:center; margin-top:14px; flex-wrap:wrap;">
+        <button type="button" class="small-btn danger" id="cal-btn-excluir" style="display:none;" onclick="excluirEventoCal()">Excluir</button>
+        <span style="display:flex; gap:10px; margin-left:auto;">
+          <button type="button" class="btn-secondary" onclick="fecharModalEventoCal()">Cancelar</button>
+          <button type="submit" class="btn-primary" id="cal-btn-salvar">Salvar</button>
+        </span>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="modal-bg" id="modal-dia-cal" onclick="if(event.target===this) fecharDiaCal()">
+  <div class="modal" style="max-width:720px; width:96vw; max-height:90dvh; overflow:auto;">
+    <div id="dia-cal-corpo"></div>
+  </div>
+</div>
+
+<div class="modal-bg" id="modal-convites" onclick="if(event.target===this) fecharConvites()">
+  <div class="modal" style="max-width:700px; width:96vw; max-height:90dvh; overflow:auto;">
+    <div class="dc-topo"><div><span class="dc-sub">Eventos e tarefas</span><h3>Convites</h3></div><button type="button" class="dc-x" onclick="fecharConvites()" aria-label="Fechar">×</button></div>
+    <div style="padding:14px 22px 0;"><div class="switch-aprovacao" id="cv-abas">
+      <button type="button" class="sw-btn ativo sw-aprovado" data-a="recebidos" onclick="convitesAba('recebidos')">Recebidos</button>
+      <button type="button" class="sw-btn" data-a="enviados" onclick="convitesAba('enviados')">Enviados</button>
+    </div></div>
+    <div class="dc-corpo" id="cv-corpo"></div>
+  </div>
+</div>
+
+<div class="modal-bg" id="modal-aviso">
+  <div class="modal" style="max-width:540px;">
+    <h3>Enviar aviso</h3>
+    <span class="sub" style="display:block; margin-bottom:12px;">O aviso aparece no card “Avisos” da página inicial de quem receber, com um check para marcar como resolvido.</span>
+    <form id="form-aviso" onsubmit="return enviarAviso(event)">
+      <div class="field"><label>Assunto</label><input required type="text" id="av-titulo" maxlength="120" placeholder="ex.: Entregar relatório de inspeção até sexta"></div>
+      <div class="field"><label>Mensagem (opcional)</label><textarea id="av-mensagem" rows="3" maxlength="600" placeholder="Detalhes do aviso"></textarea></div>
+      <div class="field">
+        <label>Para quem</label>
+        <div class="mod-check" style="margin-bottom:8px;">
+          <label><input type="radio" name="av-dest" id="av-dest-todos" value="todos" checked onchange="alternarDestinatariosAviso()"> Todos os usuários</label>
+          <label><input type="radio" name="av-dest" id="av-dest-alguns" value="alguns" onchange="alternarDestinatariosAviso()"> Escolher pessoas</label>
+        </div>
+        <div class="mod-check" id="av-lista-usuarios" style="display:none; max-height:180px; overflow:auto;"></div>
+      </div>
+      <div class="field">
+        <label>Relacionar a algo da plataforma (opcional)</label>
+        <div style="display:grid; grid-template-columns:150px minmax(0,1fr); gap:8px;">
+          <select id="av-ref-tipo" onchange="preencherRefAviso()"><option value="">Nada</option><option value="agenda">Visita</option><option value="demanda">Demanda</option><option value="reuniao">Reunião</option><option value="calendario">Evento do calendário</option><option value="acidente">Acidente</option></select>
+          <select id="av-ref-id" disabled><option value="">—</option></select>
+        </div>
+        <span class="sub" style="display:block; margin-top:4px;">Quem receber o aviso abre o item direto por ele.</span>
+      </div>
+      <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:14px;">
+        <button type="button" class="btn-secondary" onclick="fecharModalAviso()">Cancelar</button>
+        <button type="submit" class="btn-primary">Enviar aviso</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="modal-bg" id="modal-unidade">
+  <div class="modal">
+    <h3 id="modal-unidade-title">Nova unidade</h3>
+    <form id="form-unidade" onsubmit="return salvarUnidade(event)">
+      <input type="hidden" id="un-id">
+      <div class="field"><label>Nome da unidade</label><input required type="text" id="un-nome" placeholder="ex.: Loja SP - Campinas"></div>
+      <div class="field"><label>CNPJ</label><input type="text" id="un-cnpj" placeholder="00.000.000/0000-00"></div>
+      <div class="field"><label>Endereço</label><input type="text" id="un-endereco" placeholder="Rua, número - bairro"></div>
+      <div class="insp-header-grid">
+        <div class="field"><label>Praça</label>
+          <select id="un-praca"><option>SP</option><option>MG</option><option>ES</option><option>RJ</option></select>
+        </div>
+        <div class="field"><label>Regional (gerente responsável)</label><input type="text" id="un-regional" placeholder="ex.: Rogerio"></div>
+        <div class="field"><label>BP</label><input type="text" id="un-bp" placeholder="ex.: BP-1001"></div>
+      </div>
+      <div class="insp-header-grid">
+        <div class="field"><label>Tipo de loja</label><input type="text" id="un-tipo-loja" placeholder="ex.: Loja, CD, Corporativo"></div>
+        <div class="field"><label>Tipo de negócio</label>
+          <select id="un-tipo-negocio"><option>Lojas</option><option>CD</option><option>Corporativo</option></select>
+        </div>
+        <div class="field"><label>Nº de colaboradores</label><input type="number" min="0" id="un-qtd-colaboradores" placeholder="0"></div>
+      </div>
+      <div class="insp-header-grid">
+        <div class="field"><label>Gerente</label><input type="text" id="un-gerente" placeholder="Nome do gerente"></div>
+        <div class="field"><label>Gerente regional</label><input type="text" id="un-gerente-regional" placeholder="Nome do gerente regional"></div>
+        <div class="field"><label>Supervisor</label><input type="text" id="un-supervisor" placeholder="Nome do supervisor"></div>
+      </div>
+      <div class="insp-header-grid">
+        <div class="field"><label>E-mail do gerente</label><input type="email" id="un-email-gerente" placeholder="gerente@empresa.com"></div>
+        <div class="field"><label>Contato do gerente</label><input type="text" id="un-contato-gerente" placeholder="(00) 90000-0000"></div>
+        <div class="field"><label>Técnico responsável</label><input type="text" id="un-tecnico" placeholder="Nome do técnico"></div>
+      </div>
+      <div class="field">
+        <label>Exigir check-in / check-out de visita nesta unidade para:</label>
+        <div class="mod-check">
+          <label><input type="checkbox" value="Administrador" class="un-checkin-perfil"> Administrador</label>
+          <label><input type="checkbox" value="Coordenador" class="un-checkin-perfil"> Coordenador</label>
+          <label><input type="checkbox" value="Usuário Padrão" class="un-checkin-perfil"> Usuário Padrão</label>
+        </div>
+      </div>
+      <div class="form-actions">
+        <button type="submit" class="btn-primary inline">Salvar unidade</button>
+        <button type="button" class="btn-secondary" onclick="fecharModalUnidade()">Cancelar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- ============ MODAL: DETALHES DA INSPEÇÃO ============ -->
+<div class="modal-bg" id="modal-inspecao">
+  <div class="modal">
+    <h3>Detalhes da inspeção</h3>
+    <div id="detalhe-inspecao-body"></div>
+    <div class="form-actions">
+      <button type="button" class="btn-secondary" onclick="fecharModalInspecao()">Fechar</button>
+    </div>
+  </div>
+</div>
+
+
+
+<div class="modal-bg dm-tela" id="modal-demanda">
+  <div class="dm-janela">
+    <header class="dm-jan-cab">
+      <div class="dm-jan-tit">
+        <div class="dm-jan-linha"><span class="dm-jan-key" id="dem-key">Nova</span><h3 id="demanda-modal-title">Nova demanda</h3></div>
+        <div class="dm-jan-chips" id="dem-chips"></div>
+        <div class="dm-stepper" id="dem-stepper"></div>
+      </div>
+      <div class="dm-jan-acoes">
+        <button type="button" class="small-btn danger" id="btn-remover-demanda" style="display:none;" onclick="removerDemanda()">Remover</button>
+        <button type="button" class="btn-primary inline" id="btn-entregar-demanda" onclick="registrarEntregaDemanda()">Entregar demanda</button>
+        <button type="submit" form="form-demanda" class="dm-ok" title="Salvar demanda" aria-label="Salvar demanda"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></button>
+        <button type="button" class="dm-x" title="Fechar (Esc)" onclick="fecharModalDemanda()"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+      </div>
+    </header>
+
+    <div class="dm-jan-corpo">
+      <div class="dm-col-principal">
+        <form id="form-demanda" onsubmit="return salvarDemanda(event)">
+          <input type="hidden" id="dem-id">
+          <input type="hidden" id="dem-fluxo-id-atual">
+
+          <div class="dm-card">
+            <div class="dm-card-tit"><span class="ic"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8l-5-5Z"/><path d="M14 3v5h5M9 13h6M9 17h6"/></svg></span><h4>Sobre a demanda</h4></div>
+            <div class="field"><textarea required id="dem-descricao" rows="2" placeholder="Descreva a demanda"></textarea></div>
+            <div class="dm-grid">
+              <div class="field campo-admin"><label>Categoria</label><select id="dem-categoria"></select></div>
+              <div class="field campo-admin"><label>Tipo de demanda</label><select id="dem-tipo" onchange="aoTrocarTipoDemanda()"></select></div>
+              <div class="field campo-admin"><label>Prioridade</label><select id="dem-prioridade"><option>Normal</option><option>Alta</option><option>Baixa</option></select></div>
+              <div class="field campo-admin"><label>Área (SESMT)</label><select id="dem-area"><option value="">Selecione</option></select></div>
+              <div class="field campo-admin"><label>Tipo de atividade</label><select id="dem-tipo-atividade"><option value="">Selecione</option></select></div>
+            </div>
+            <span class="sub" id="dem-fluxo-auto-info" style="display:block; margin:-4px 0 12px;">O fluxo (etapas) é definido automaticamente pelo tipo de demanda escolhido.</span>
+          </div>
+
+          <div class="dm-card">
+            <div class="dm-card-tit"><span class="ic"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4M16 3v4M3 10h18"/></svg></span><h4>Prazo e entrega</h4></div>
+            <div class="dm-grid">
+              <div class="field campo-admin"><label>Data de entrada</label><input type="date" id="dem-data-entrada"></div>
+              <div class="field campo-admin"><label>Data limite de entrega</label><input type="date" id="dem-data-limite" onchange="validarAgendadoPara()"></div>
+              <div class="field campo-resp"><label>Agendado para</label><input type="date" id="dem-agendado-para" onchange="validarAgendadoPara()"><span class="sub" id="dem-agendado-aviso" style="display:none; color:var(--vermelho);"></span></div>
+              <div class="field campo-resp" id="dem-campo-entrega" style="display:none;">
+                <label>Entrega da demanda</label>
+                <input type="hidden" id="dem-entregue-em">
+                <span class="sub" id="dem-entregue-em-display" style="display:none;"></span>
+              </div>
+              <div class="field campo-resp"><label>Satisf. da entrega (tempo)</label><input type="text" id="dem-satisfacao" placeholder="ex.: Dentro do previsto"></div>
+              <div class="field campo-admin"><label>Saldo anterior</label><input type="text" id="dem-saldo-anterior"></div>
+            </div>
+          </div>
+
+          <div class="dm-card" id="dem-sub-card">
+            <div class="dm-card-tit"><span class="ic"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M6 4v8a3 3 0 0 0 3 3h9M6 4a2 2 0 1 0 0-.01M18 15a2 2 0 1 0 0-.01M6 9h6"/></svg></span><h4>Sub-demandas</h4><button type="button" class="small-btn" id="btn-nova-sub" style="margin-left:auto;" onclick="novaSubDemanda()">+ Nova sub-demanda</button></div>
+            <div id="dem-sub-lista"></div>
+          </div>
+
+          <div class="dm-card">
+            <div class="dm-card-tit"><span class="ic"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0M16 4.5a3.5 3.5 0 0 1 0 7M18 14.5a6.5 6.5 0 0 1 3.5 5.5"/></svg></span><h4>Responsáveis e andamento</h4></div>
+            <div class="dm-grid">
+              <div class="field campo-admin"><label>Unidade</label><select id="dem-unidade"><option value="">—</option></select></div>
+              <div class="field campo-admin"><label>Responsável</label><select id="dem-responsavel"><option value="">Selecione um usuário</option></select></div>
+              <div class="field campo-resp"><label>Etapa atual (status)</label><select id="dem-etapa" onchange="onCampoEtapaChange()"></select></div>
+              <div class="field campo-resp"><label>Aguardando (item)</label><input type="text" id="dem-aguardando-item" placeholder="ex.: Ficha de EPIs"></div>
+              <div class="field campo-resp"><label>Aguardando (responsável)</label><input type="text" id="dem-aguardando-responsavel" placeholder="ex.: Gerência de lojas"></div>
+              <div class="field campo-admin"><label>Demanda mãe (relacionada)</label><select id="dem-mae"><option value="">Nenhuma</option></select></div>
+              <div class="field" id="dem-campo-convidados" style="grid-column:1/-1;"><label>Convidar pessoas <span class="ag-sub">(cada uma aceita ou recusa; ao aceitar, vira uma nova demanda dela)</span></label>
+                <div class="av-picker" id="dem-convidados-lista"></div><div class="av-sel-nome" id="dem-convidados-nome"></div></div>
+            </div>
+          </div>
+
+          <div class="dm-card" id="dem-qualidade-card" style="display:none;">
+            <div class="dm-card-tit" id="dem-qualidade-titulo"><span class="ic"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 4 6v6c0 4.5 3.2 8 8 9 4.8-1 8-4.5 8-9V6l-8-3Z"/><path d="m9 12 2 2 4-4"/></svg></span><h4>Controle de qualidade</h4></div>
+            <div id="dem-qualidade-bloco">
+              <div id="dem-qualidade-status-badge" style="margin-bottom:10px;"></div>
+              <span class="sub" style="display:block; margin-bottom:6px;">Linha do tempo</span>
+              <div class="estrutura-lista" id="dem-qualidade-timeline" style="max-height:160px; margin-bottom:12px;"></div>
+              <div id="dem-qualidade-acoes"></div>
+            </div>
+          </div>
+
+          <div class="dm-card">
+            <div class="dm-card-tit"><span class="ic"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16v11H8l-4 4V5Z"/></svg></span><h4>Observações</h4></div>
+            <div class="field campo-resp"><label>Título de e-mail relacionado</label><input type="text" id="dem-email"></div>
+            <div class="field campo-resp"><label>Comentários</label><textarea id="dem-comentarios" rows="3"></textarea></div>
+          </div>
+        </form>
+      </div>
+
+      <aside class="dm-chat" id="dem-chat">
+        <div class="dm-tm" id="dem-timer-box">
+          <div class="dm-tm-linha">
+            <span class="dm-tm-it"><small>Estimado</small><b id="dem-tempo-estimado-display">—</b></span>
+            <span class="dm-tm-it"><small>Gasto</small><b id="dem-tempo-gasto-display">0min</b></span>
+            <span class="dm-tm-it"><small>Restante</small><b id="dem-tempo-restante-display">—</b></span>
+            <button type="button" class="dm-tm-btn" id="btn-timer-demanda" onclick="toggleTimerDemanda()"><svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor" style="vertical-align:-2px;"><path d="M6 4.5v15l14-7.5-14-7.5Z"/></svg> Iniciar</button>
+          </div>
+          <div class="dm-tm-barra" title="Tempo gasto em relação ao estimado"><i id="dem-tempo-barra"></i></div>
+          <details class="dm-tm-ts">
+            <summary>Time sheet <span id="dem-ts-n"></span></summary>
+            <div class="dm-ts-form">
+              <input type="date" id="dem-ts-data" aria-label="Dia">
+              <input type="time" id="dem-ts-ini" aria-label="Início">
+              <span>até</span>
+              <input type="time" id="dem-ts-fim" aria-label="Término">
+              <button type="button" class="small-btn" onclick="adicionarTimesheetDemanda()">Lançar</button>
+            </div>
+            <div class="dm-ts-lista" id="dem-historico-sessoes"></div>
+          </details>
+        </div>
+        <div class="dm-chat-cab">
+          <span class="ic"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20.5l1.5-4.6A8 8 0 1 1 21 12Z"/></svg></span>
+          <div><b>Conversa da demanda</b><span id="dem-chat-n">Sem mensagens</span></div>
+        </div>
+        <div class="dm-chat-msgs" id="dem-chat-msgs"></div>
+        <div class="dm-chat-form">
+          <textarea id="dem-chat-input" rows="1" maxlength="4000" placeholder="Escreva uma mensagem…"></textarea>
+          <button type="button" class="dm-chat-env" id="dem-chat-enviar" title="Enviar (Enter)" onclick="enviarMensagemDemanda()"><svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M3.4 20.4 21 12 3.4 3.6 3.4 10l12.6 2-12.6 2z"/></svg></button>
+        </div>
+      </aside>
+    </div>
+  </div>
+</div>
+
+<!-- ============ MODAL: REUNIÃO (tela cheia) ============ -->
+<div class="modal-bg dm-tela" id="modal-reuniao">
+  <div class="dm-janela">
+    <header class="dm-jan-cab">
+      <div class="dm-jan-tit">
+        <div class="dm-jan-linha"><span class="dm-jan-key" id="rn-key">Reunião</span><h3 id="rn-modal-title">Nova reunião</h3></div>
+        <div class="dm-jan-chips" id="rn-chips"></div>
+      </div>
+      <div class="dm-jan-acoes">
+        <button type="button" class="small-btn danger" id="btn-remover-reuniao" style="display:none;" onclick="removerReuniao()">Remover</button>
+        <button type="button" class="btn-secondary" onclick="fecharModalReuniao()">Cancelar</button>
+        <button type="submit" form="form-reuniao" class="btn-primary inline">Salvar reunião</button>
+        <button type="button" class="dm-x" title="Fechar (Esc)" onclick="fecharModalReuniao()"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+      </div>
+    </header>
+    <form id="form-reuniao" class="rn-jan-corpo" onsubmit="return salvarReuniao(event)">
+      <input type="hidden" id="rn-id">
+      <div>
+        <div class="dm-card">
+          <div class="dm-card-tit"><span class="ic"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4M16 3v4M3 10h18"/></svg></span><h4>Informações</h4></div>
+          <div class="field"><label>Título</label><input type="text" id="rn-titulo" required maxlength="160" placeholder="ex.: Alinhamento semanal do SESMT"></div>
+          <div class="dm-grid">
+            <div class="field"><label>Tipo de reunião</label><select id="rn-tipo"></select></div>
+            <div class="field"><label>Status</label><select id="rn-status"><option>Agendada</option><option>Realizada</option><option>Cancelada</option></select></div>
+            <div class="field"><label>Data</label><input type="date" id="rn-data" required></div>
+            <div class="field"><label>Início</label><input type="time" id="rn-hi"></div>
+            <div class="field"><label>Término</label><input type="time" id="rn-hf"></div>
+            <div class="field"><label>Local / link</label><input type="text" id="rn-local" maxlength="200" placeholder="Sala, Teams, Meet…"></div>
+          </div>
+        </div>
+        <div class="dm-card">
+          <div class="dm-card-tit"><span class="ic"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0M16 4.5a3.5 3.5 0 0 1 0 7M18 14.5a6.5 6.5 0 0 1 3.5 5.5"/></svg></span><h4>Participantes</h4><button type="button" class="small-btn" style="margin-left:auto;" onclick="rnConvocarTodos()">Convocar todos</button></div>
+          <div class="rn-part" id="rn-part"></div>
+        </div>
+      </div>
+      <div>
+        <div class="dm-card">
+          <div class="dm-card-tit"><span class="ic"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h11M9 12h11M9 18h11M4 6h.01M4 12h.01M4 18h.01"/></svg></span><h4>Pauta</h4></div>
+          <div class="field"><textarea id="rn-pauta" rows="5" placeholder="Pontos que serão tratados na reunião"></textarea></div>
+        </div>
+        <div class="dm-card">
+          <div class="dm-card-tit"><span class="ic"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8l-5-5Z"/><path d="M14 3v5h5M9 13h6M9 17h6"/></svg></span><h4>Ata e decisões</h4></div>
+          <div class="field"><textarea id="rn-ata" rows="6" placeholder="O que foi discutido e decidido"></textarea></div>
+        </div>
+        <div class="dm-card">
+          <div class="dm-card-tit"><span class="ic"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 4 4 10-10"/></svg></span><h4>Encaminhamentos</h4></div>
+          <div class="rn-enc" id="rn-enc"></div>
+          <button type="button" class="rn-add-btn" onclick="rnEncAdd()">+ Adicionar encaminhamento</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ============ MODAL: TIPOS DE REUNIÃO ============ -->
+<div class="modal-bg" id="modal-reuniao-tipos">
+  <div class="modal">
+    <h3>Tipos de reunião</h3>
+    <span class="sub" style="display:block; margin:-8px 0 14px; color:var(--areia-esc); font-size:13px;">Os tipos organizam e colorem as reuniões da lista. Remover um tipo não apaga as reuniões já criadas com ele.</span>
+    <div class="rn-tipos-lista" id="rn-tipos-lista"></div>
+    <div class="rn-tipo-add" id="rn-tipo-add">
+      <input type="color" id="rn-tipo-cor" value="#a15a33" title="Cor do tipo">
+      <input type="text" id="rn-tipo-nome" maxlength="60" placeholder="ex.: Reunião de resultados" onkeydown="if(event.key==='Enter'){event.preventDefault();addTipoReuniao();}">
+      <button type="button" class="btn-primary inline" onclick="addTipoReuniao()">Adicionar</button>
+    </div>
+    <div class="form-actions"><button type="button" class="btn-secondary" onclick="document.getElementById('modal-reuniao-tipos').style.display='none'">Fechar</button></div>
+  </div>
+</div>
+
+
+<!-- ============ MODAL: NOVO ITEM DE INSPEÇÃO ============ -->
+<div class="modal-bg" id="modal-item-inspecao">
+  <div class="modal">
+    <h3>Novo item da inspeção</h3>
+    <form id="form-item-inspecao" onsubmit="return adicionarItemInspecao(event)">
+      <div class="field"><label>Categoria</label>
+        <select id="it-categoria">
+          <option>Infraestrutura</option>
+          <option>Incêndio</option>
+          <option>SESMT</option>
+          <option>Segurança Patrimonial</option>
+          <option>Meio Ambiente</option>
+          <option>Outros</option>
+        </select>
+      </div>
+      <div class="field"><label>Local</label><input required type="text" id="it-local" placeholder="ex.: Câmara fria 2"></div>
+      <div class="field"><label>Risco / Desvio encontrado</label><textarea required id="it-risco" rows="2" placeholder="ex.: Piso molhado sem sinalização"></textarea></div>
+      <div class="field"><label>Risco exposto</label><textarea id="it-risco-exposto" rows="2" placeholder="ex.: Queda com lesão"></textarea></div>
+      <div class="field"><label>Solução de correção proposta</label><textarea id="it-solucao" rows="2" placeholder="ex.: Instalar sinalização e tapete antiderrapante"></textarea></div>
+
+      <div class="insp-header-grid">
+        <div class="field"><label>Prazo para correção (dias)</label><input required type="number" min="1" id="it-prazo" value="15" oninput="atualizarPreviewDataLimite()"></div>
+        <div class="field"><label>Data limite (calculada)</label><input type="text" id="it-data-limite-preview" disabled></div>
+        <div class="field"><label>Status</label>
+          <select id="it-status">
+            <option value="Notificado">Notificado</option>
+            <option value="Não iniciado" selected>Não iniciado</option>
+            <option value="Em Andamento">Em Andamento</option>
+            <option value="Concluído">Concluído</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Matriz GUT (Gravidade × Urgência × Tendência)</label>
+        <div class="gut-grid">
+          <div>
+            <label class="gut-mini-label">Gravidade</label>
+            <select id="it-g" onchange="atualizarPreviewGUT()">
+              <option value="1">1</option><option value="2">2</option><option value="3" selected>3</option><option value="4">4</option><option value="5">5</option>
+            </select>
+          </div>
+          <div>
+            <label class="gut-mini-label">Urgência</label>
+            <select id="it-u" onchange="atualizarPreviewGUT()">
+              <option value="1">1</option><option value="2">2</option><option value="3" selected>3</option><option value="4">4</option><option value="5">5</option>
+            </select>
+          </div>
+          <div>
+            <label class="gut-mini-label">Tendência</label>
+            <select id="it-t" onchange="atualizarPreviewGUT()">
+              <option value="1">1</option><option value="2">2</option><option value="3" selected>3</option><option value="4">4</option><option value="5">5</option>
+            </select>
+          </div>
+        </div>
+        <div id="gut-preview" style="margin-top:10px;"></div>
+      </div>
+
+      <div class="field">
+        <label>Evidência (foto)</label>
+        <div id="it-foto-area">
+          <label class="foto-btn" style="display:inline-block; width:auto;"><svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" style="vertical-align:-2px;"><path d="M9 3h6l1.2 2H19a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h2.8L9 3Zm3 5a4.5 4.5 0 1 0 0 9 4.5 4.5 0 0 0 0-9Zm0 2a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5Z"/></svg> Tirar foto / anexar
+            <input type="file" accept="image/*" capture="environment" onchange="onFotoItemModalChange(this)" hidden>
+          </label>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="btn-primary inline">Adicionar item</button>
+        <button type="button" class="btn-secondary" onclick="fecharModalItemInspecao()">Cancelar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script src="js/00-utilitarios-base.js"></script>
+<script src="js/01-dados-usuarios.js"></script>
+<script src="js/02-dashboard.js"></script>
+<script src="js/03-inspecoes-checklist.js"></script>
+<script src="js/04-demandas.js"></script>
+<script src="js/05-reunioes.js"></script>
+<script src="js/06-gestao.js"></script>
+<script src="js/07-notificacoes-saude.js"></script>
+<script src="js/08-ficha-epi.js"></script>
+<script src="js/09-absenteismo.js"></script>
+<script src="js/10-agenda-inicio.js"></script>
+<script src="js/11-convites.js"></script>
+<script src="js/12-usuarios-utilitarios.js"></script>
+<script src="js/13-relatorio-vistorial.js"></script>
+<script src="js/14-publica-gestao-vistorial.js"></script>
+<script src="js/15-sons.js"></script>
+</body>
+</html>

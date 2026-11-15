@@ -1,0 +1,67 @@
+/* ===== v3: painel da loja, visão estratégica, assinaturas validadas, capa/intro do PDF ===== */
+.vt-modo{display:flex; gap:8px; margin:0 0 12px;}
+.vt-travado{background:#f4f1ea; border:1px solid var(--areia-cla); border-radius:12px; padding:10px 13px; font-size:12.5px; font-weight:700; color:var(--marrom-esc); margin-bottom:12px;}
+.vt-kgrid{display:grid; grid-template-columns:repeat(auto-fit,minmax(128px,1fr)); gap:10px; margin:12px 0;}
+.vt-k{background:#fff; border:1px solid var(--areia-cla); border-radius:14px; padding:12px 10px; text-align:center;}
+.vt-k b{display:block; font-size:24px; line-height:1.1; color:var(--marrom-esc);}
+.vt-k span{display:block; margin-top:3px; font-size:10.5px; font-weight:800; text-transform:uppercase; color:var(--areia-esc); letter-spacing:.2px;}
+.vt-k.al b{color:#b91c1c;} .vt-k.ok b{color:#15803d;}
+.vt-kdonut{display:flex; gap:16px; align-items:center; background:#fff; border:1px solid var(--areia-cla); border-radius:16px; padding:14px; flex-wrap:wrap;}
+.vt-leg{display:flex; flex-direction:column; gap:5px;}
+.vt-leg span{display:flex; align-items:center; gap:7px; font-size:12.5px; font-weight:700; color:var(--texto);}
+.vt-leg i{width:12px; height:12px; border-radius:3px; display:inline-block;}
+.vt-box > svg{max-width:560px; display:block; margin:6px auto 0;}
+.vt-pn-top select{width:100%; box-sizing:border-box; padding:12px 14px; border:2px solid #e3d5bf; border-radius:12px; font-size:15px; font-weight:700; font-family:inherit; background:#fff; color:var(--texto); margin-bottom:12px;}
+.vt-pn-cols{display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:0 12px;}
+.vt-barra{display:flex; align-items:center; gap:8px; font-size:12.5px; margin:6px 0;}
+.vt-barra em{flex:0 0 40%; font-style:normal; font-weight:700; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.vt-barra div{flex:1; background:#f0eadc; border-radius:99px; height:11px; overflow:hidden;}
+.vt-barra div i{display:block; height:100%; background:var(--verde-esc); border-radius:99px;}
+.vt-barra b{flex:0 0 28px; text-align:right;}
+.vt-mini{max-width:220px; max-height:160px; border-radius:8px; border:1px solid #bcd0f5; margin-top:6px; display:block;}
+.vt-meta{font-size:11.5px; color:#4a3b2a; line-height:1.55; margin-top:8px; background:#faf6ee; border:1px solid var(--areia-cla); border-radius:10px; padding:8px 10px; word-break:break-word;}
+.vt-meta a{color:#1d4ed8; font-weight:700;}
+.mono{font-family:var(--f-mono, ui-monospace, Menlo, monospace); font-size:10.5px; word-break:break-all;}
+.vt-sigv{margin-bottom:14px; padding-bottom:12px; border-bottom:1px dashed #dccfb8;}
+.vt-sigv:last-of-type{border-bottom:none;}
+.vt-sigv img{display:block; max-height:70px; max-width:240px; margin:8px 0;}
+.vt-sigv small{display:block; color:var(--areia-esc);}
+.vt-aviso-i{background:#fff4dc; color:#8a5a00; border:1px solid #f2d79a; border-radius:10px; padding:9px 12px; font-size:12.5px; font-weight:700;}
+.pub-kpis{display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin:8px 0 10px;}
+.pub-kpis div{background:#faf6ee; border:1px solid var(--areia-cla); border-radius:12px; padding:9px 4px; text-align:center;}
+.pub-kpis b{display:block; font-size:19px; color:var(--marrom-esc);}
+.pub-kpis span{font-size:9.5px; font-weight:800; text-transform:uppercase; color:var(--areia-esc);}
+.pub-barra{height:9px; background:#f0eadc; border-radius:99px; overflow:hidden;} .pub-barra i{display:block; height:100%; background:#16a34a;}
+/* PDF: capa, introdução, gráficos, fotos padrão */
+.vr-folha.vr-capa{padding:0; display:block;}
+.vr-capa-in{position:absolute; left:0; top:0; right:0; bottom:0; display:flex; flex-direction:column; align-items:center; text-align:center; padding:0 18mm 12mm;}
+.vr-capa-band{position:absolute; left:0; right:0; top:0; height:16mm; background:#00733f;}
+.vr-capa-logo{height:30mm; width:auto; margin-top:30mm;}
+.vr-capa-in h1{margin:22mm 0 0; font-size:30pt; font-weight:800; letter-spacing:1.4pt; color:#1a1a1a;}
+.vr-capa-s{font-size:11pt; color:#666; font-weight:600; margin-top:3mm;}
+.vr-capa-un{margin-top:26mm; font-size:21pt; font-weight:800; color:#00573a; text-transform:uppercase;}
+.vr-capa-cod{margin-top:6mm; border:.4mm solid #00733f; color:#00733f; font-weight:800; font-size:13pt; padding:1.6mm 7mm; letter-spacing:1.2pt;}
+.vr-capa-meta{display:flex; gap:7mm; margin-top:26mm; width:100%; justify-content:center;}
+.vr-capa-meta div{flex:1; border-top:.5mm solid #e5d1ab; padding-top:3mm;}
+.vr-capa-meta span{display:block; font-size:7.5pt; text-transform:uppercase; font-weight:700; color:#6b5a45; letter-spacing:.3pt;}
+.vr-capa-meta b{display:block; font-size:12pt; margin-top:1.2mm; color:#1a1a1a;}
+.vr-capa-rod{margin-top:auto; font-size:8.5pt; color:#888; font-weight:600;}
+.vr-intro p{margin:0 0 2.4mm; text-align:justify; font-size:9pt; line-height:1.5;}
+.vr-graf{display:flex; gap:6mm; align-items:center; border:.25mm solid #888; padding:3mm 4mm; margin-top:1.5mm;}
+.vr-graf-d{display:flex; align-items:center; gap:4mm; flex:none;}
+.vr-graf-t{flex:1; min-width:0;}
+.vr-leg span{display:flex; align-items:center; gap:1.6mm; font-size:7.4pt; font-weight:700; margin:.8mm 0;}
+.vr-leg i{width:2.8mm; height:2.8mm; display:inline-block;}
+.vr-nota{font-size:6.8pt; color:#666; margin-top:1.6mm;}
+.vr-fotos img, .vr-ev{width:44mm; height:33mm; max-width:none; max-height:none; object-fit:contain; background:#f4f1ea; border:.25mm solid #999; display:block;}
+.vr-fotos img{width:30mm; height:22.5mm;}
+.vr-compacto .vr-fotos img{width:22mm; height:16.5mm;}
+.vr-compacto .vr-ev{width:30mm; height:22mm;}
+.vr-assin2{display:flex; gap:6mm; margin-top:2mm; align-items:flex-start;}
+.vr-assin-c{flex:1; min-width:0; text-align:center; display:flex; flex-direction:column; align-items:center;}
+.vr-assin-c img{max-height:20mm; max-width:70mm; display:block;}
+.vr-assin-c .ln{border-top:.3mm solid #222; width:100%; margin-top:1mm; padding-top:1mm; font-weight:700; font-size:8.6pt;}
+.vr-assin-c small{font-size:6.8pt; color:#555; display:block;}
+.vr-val{text-align:left; width:100%; margin-top:2mm; border:.25mm solid #aaa; background:#faf8f3; padding:1.6mm 2mm; font-size:6.3pt; line-height:1.4; color:#333; word-break:break-all;}
+.vr-val .mono{font-family:"IBM Plex Mono",ui-monospace,Menlo,monospace; font-size:5.4pt; word-break:break-all;}
+.vr-autent{margin-top:3mm; font-size:6.6pt; color:#555; text-align:center; word-break:break-all;}
