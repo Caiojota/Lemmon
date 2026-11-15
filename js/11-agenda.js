@@ -1,391 +1,704 @@
 /* =====================================================================
-   CONVITES — evento ou tarefa com convidado que aceita ou recusa
+   AGENDA — visitas da equipe, check-in/out, aprovação, indicadores e exportação
    ===================================================================== */
-function mapConviteFromDb(c){
-  return {id:c.id, tipo:c.tipo, titulo:c.titulo, descricao:c.descricao||"", convidanteId:c.convidante_id, convidanteNome:c.convidante_nome||"",
-    convidadoId:c.convidado_id, status:c.status, dataRef:c.data_ref, dados:c.dados||{}, origemId:c.origem_id, resultadoId:c.resultado_id, criadoEm:c.created_at};
+
+// Verifica se: pode aprovar agenda
+function podeAprovarAgenda(user){ return !!user && (user.perfil==="Administrador" || user.perfil==="Coordenador"); }
+
+// Inicializa: init agenda
+function initAgenda(){
+  popularSelectUnidadeAgenda();
+  popularMotivosAgenda();
+  atualizarSelecaoAgenda();
+  renderInicio();
+  renderGradeSemanal();
+  renderGradeMensal();
 }
-function convitesRecebidos(){ return CONVITES.filter(c=>currentUser && c.convidadoId===currentUser.id); }
-function convitesEnviados(){ return CONVITES.filter(c=>currentUser && c.convidanteId===currentUser.id); }
-function convitesPendentesRecebidos(){ return convitesRecebidos().filter(c=>c.status==="Pendente"); }
-function atualizarBadgeConvites(){
-  const n = currentUser ? convitesPendentesRecebidos().length : 0;
-  const b = document.getElementById("cal-convites-n"); if(!b) return;
-  b.textContent = n; b.style.display = n ? "inline-flex" : "none";
-  const btn = document.getElementById("cal-convites-btn"); if(btn) btn.classList.toggle("tem", n>0);
+
+// Preenche: popular motivos agenda
+function popularMotivosAgenda(){ renderChipsDiasAgenda(); }
+
+// Função do módulo: ag unidade padrao
+function agUnidadePadrao(){ const el = document.getElementById("ag-unidade"); return el ? el.value : ""; }
+
+// Função do módulo: ag periodo padrao
+function agPeriodoPadrao(){ const el = document.getElementById("ag-periodo"); return (el && el.value) || "Manhã"; }
+
+// Função do módulo: ag garantir config dia
+function agGarantirConfigDia(iso){
+  if(agDiasConfig[iso]) return;
+  const outro = Object.keys(agDiasConfig).sort()[0];
+  agDiasConfig[iso] = outro ? JSON.parse(JSON.stringify(agDiasConfig[outro])) : [{unidade:agUnidadePadrao(), periodo:agPeriodoPadrao(), motivos:[]}];
 }
-// envia convites (uma linha por convidado; ignora quem já foi convidado para o mesmo item)
-async function enviarConvites(tipo, titulo, descricao, dataRef, dados, origemId, ids){
-  ids = [...new Set(ids||[])].filter(id=>id && id!==currentUser.id);
-  ids = ids.filter(id=>!CONVITES.some(c=>c.tipo===tipo && c.origemId===origemId && c.convidadoId===id));
-  if(!ids.length) return 0;
-  const linhas = ids.map(id=>({tipo, titulo, descricao:descricao||"", convidante_id:currentUser.id, convidante_nome:currentUser.nome, convidado_id:id, status:"Pendente", data_ref:dataRef||null, dados, origem_id:origemId}));
-  const { data, error } = await sb.from("convites").insert(linhas).select();
-  if(error){ alert("O item foi salvo, mas não foi possível enviar os convites: "+error.message); return 0; }
-  (data||[]).forEach(r=>{
-    const c = mapConviteFromDb(r); CONVITES.unshift(c);
-    criarNotificacao(c.convidadoId, "calendario_evento", "Convite: "+titulo, currentUser.nome+" convidou você para "+(tipo==="evento"?"um evento":"uma tarefa")+(dataRef?" em "+dataBR(dataRef):"")+". Aceite ou recuse em Agenda › Convites.", "convite", c.id);
+
+// Função do módulo: ag sincronizar dias
+// um único cartão de atividades vale para todos os dias marcados: edita o do 1º dia e replica nos demais
+function agSincronizarDias(){
+  const dias = [...agDiasSelecionados].sort(); if(dias.length<2) return;
+  const modelo = JSON.stringify(agDiasConfig[dias[0]]||[]);
+  dias.slice(1).forEach(iso=>{ agDiasConfig[iso] = JSON.parse(modelo); });
+}
+
+// Função do módulo: ag set entrada
+function agSetEntrada(iso, i, campo, valor){
+  iso = [...agDiasSelecionados].sort()[0] || iso;
+  const e = agDiasConfig[iso] && agDiasConfig[iso][i]; if(!e) return;
+  e[campo] = valor;
+  renderChipsDiasAgenda();
+}
+
+// Função do módulo: ag add motivo
+function agAddMotivo(iso, i, valor){
+  iso = [...agDiasSelecionados].sort()[0] || iso;
+  const e = agDiasConfig[iso] && agDiasConfig[iso][i]; if(!e || !valor) return;
+  if(!e.motivos.includes(valor)) e.motivos.push(valor);
+  renderChipsDiasAgenda();
+}
+
+// Função do módulo: ag remover motivo
+function agRemoverMotivo(iso, i, k){
+  iso = [...agDiasSelecionados].sort()[0] || iso;
+  const e = agDiasConfig[iso] && agDiasConfig[iso][i]; if(!e) return;
+  e.motivos.splice(k,1); renderChipsDiasAgenda();
+}
+
+// Função do módulo: ag nova entrada
+function agNovaEntrada(iso){
+  iso = [...agDiasSelecionados].sort()[0] || iso;
+  const lista = agDiasConfig[iso]; if(!lista) return;
+  const usados = lista.map(e=>e.periodo);
+  const periodo = usados.includes("Manhã") ? (usados.includes("Tarde") ? "Manhã" : "Tarde") : "Manhã";
+  lista.push({unidade:agUnidadePadrao(), periodo, motivos:[]});
+  renderChipsDiasAgenda();
+}
+
+// Função do módulo: ag remover entrada
+function agRemoverEntrada(iso, i){
+  iso = [...agDiasSelecionados].sort()[0] || iso;
+  const lista = agDiasConfig[iso]; if(!lista || lista.length<2) return;
+  lista.splice(i,1); renderChipsDiasAgenda();
+}
+
+// Função do módulo: ag copiar primeiro dia
+function agCopiarPrimeiroDia(){
+  const dias = [...agDiasSelecionados].sort();
+  if(dias.length<2) return;
+  const modelo = JSON.parse(JSON.stringify(agDiasConfig[dias[0]]||[]));
+  dias.slice(1).forEach(iso=>{ agDiasConfig[iso] = JSON.parse(JSON.stringify(modelo)); });
+  renderChipsDiasAgenda();
+  mostrarToast("Atividades do primeiro dia copiadas para os demais.");
+}
+
+// Função do módulo: norm txt
+function normTxt(t){ return String(t||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().trim(); }
+
+// Função do módulo: locais trabalho agenda
+function locaisTrabalhoAgenda(){
+  const nomes = UNIDADES.map(u=>u.nome);
+  return LOCAIS_TRABALHO.map(l=>nomes.find(n=>normTxt(n)===normTxt(l)) || l);
+}
+
+// Função do módulo: unidades agenda opcoes
+function unidadesAgendaOpcoes(){
+  const locais = locaisTrabalhoAgenda();
+  return [...locais, ...UNIDADES.map(u=>u.nome).filter(n=>!locais.includes(n))];
+}
+
+// Função do módulo: ag tipos atividade
+function agTiposAtividade(){
+  const base = TIPOS_ATIVIDADE_PRINCIPAIS.slice(), chaves = new Set(base.map(normTxt));
+  AGENDA_MOTIVOS.slice().sort((a,b)=>a.ordem-b.ordem).forEach(m=>{ if(!chaves.has(normTxt(m.valor))){ chaves.add(normTxt(m.valor)); base.push(m.valor); } });
+  return base;
+}
+
+// Desenha na tela: render locais trabalho agenda
+function renderLocaisTrabalhoAgenda(){
+  const box = document.getElementById("ag-locais"); if(!box) return;
+  const atual = agUnidadePadrao();
+  box.innerHTML = locaisTrabalhoAgenda().map(n=>`<button type="button" class="sw-btn ${n===atual?"ativo sw-aprovado":""}" data-l="${escHtml(n)}" onclick="agSetLocal(this.dataset.l)">${escHtml(n)}</button>`).join("");
+}
+
+// Função do módulo: ag aplicar unidade todos
+function agAplicarUnidadeTodos(){
+  const u = agUnidadePadrao();
+  Object.values(agDiasConfig).forEach(lista=>lista.forEach(e=>{ e.unidade = u; }));
+}
+
+// Função do módulo: ag set local
+function agSetLocal(nome){
+  const sel = document.getElementById("ag-unidade"); if(sel) sel.value = nome;
+  agAplicarUnidadeTodos();
+  renderLocaisTrabalhoAgenda(); renderChipsDiasAgenda(); mostrarUltimaVisitaUnidade();
+}
+
+// Função do módulo: ag ao mudar unidade
+function agAoMudarUnidade(){ agAplicarUnidadeTodos(); renderLocaisTrabalhoAgenda(); renderChipsDiasAgenda(); mostrarUltimaVisitaUnidade(); }
+
+// Função do módulo: ag set tipo agenda
+// Visita OU Local de trabalho: ao escolher um, os campos do outro somem
+function agSetTipoAgenda(t){
+  agTipoAgenda = t==="local" ? "local" : "visita";
+  const local = agTipoAgenda==="local";
+  document.querySelectorAll("#ag-tipo-sw .sw-btn").forEach(b=>{ const at = b.dataset.t===agTipoAgenda; b.classList.toggle("ativo", at); b.classList.toggle("sw-aprovado", at); });
+  document.getElementById("ag-bloco-local").style.display = local ? "" : "none";
+  document.getElementById("ag-bloco-unidade").style.display = local ? "none" : "";
+  const sel = document.getElementById("ag-unidade"); if(sel) sel.value = "";
+  popularSelectUnidadeAgenda();
+  agAplicarUnidadeTodos();
+  renderLocaisTrabalhoAgenda(); renderChipsDiasAgenda(); mostrarUltimaVisitaUnidade();
+}
+
+// Função do módulo: ag alvo visita
+function agAlvoVisita(){
+  const el = document.getElementById("ag-quem");
+  if(el && el.value && ehAdminOuCoordenador()){ const u = USUARIOS.find(x=>x.id===el.value); if(u) return u; }
+  return currentUser;
+}
+
+// Função do módulo: av face html
+/* ---- seletor de pessoas só com avatar (foto ou iniciais) ---- */
+function avFaceHtml(u){
+  if(u.foto) return `<img class="av-face" src="${u.foto}" alt="">`;
+  return `<span class="av-face" style="background:${corAvatarPorNome(u.nome)};">${escHtml(iniciaisTexto(u.nome))}</span>`;
+}
+
+// Função do módulo: av picker html
+function avPickerHtml(users, cls, tipo, nomeGrupo, marcadoFn, desabilitado){
+  return users.map(u=>{
+    const rot = u.id===currentUser.id ? u.nome+" (eu)" : u.nome;
+    return `<label class="av-pick" title="${escHtml(rot)}"><input type="${tipo}" class="${cls}" ${nomeGrupo?`name="${nomeGrupo}"`:""} value="${u.id}" ${marcadoFn(u)?"checked":""} ${desabilitado?"disabled":""}>${avFaceHtml(u)}<i class="av-ok">✓</i></label>`;
+  }).join("");
+}
+
+// Função do módulo: av picker nomes
+function avPickerNomes(boxId, nomeId){
+  const box = document.getElementById(boxId), el = document.getElementById(nomeId); if(!box || !el) return;
+  const nomes = [...box.querySelectorAll("input:checked")].map(i=>{ const u = USUARIOS.find(x=>x.id===i.value); return u ? primeiroNomeAgenda(u.nome) : ""; }).filter(Boolean);
+  el.textContent = nomes.length ? nomes.join(", ") : "Ninguém selecionado";
+}
+
+// Preenche: preencher quem visita
+function preencherQuemVisita(){
+  const campo = document.getElementById("ag-campo-quem"), sel = document.getElementById("ag-quem");
+  if(!campo || !sel) return;
+  if(!ehAdminOuCoordenador()){ campo.style.display = "none"; sel.innerHTML = ""; return; }
+  campo.style.display = "";
+  const us = usuariosAtivosOrdenados();
+  sel.innerHTML = us.map(u=>`<option value="${u.id}">${escHtml(u.id===currentUser.id ? u.nome+" (eu)" : u.nome)}</option>`).join("");
+  sel.value = currentUser.id;
+  sel.onchange = ()=>atualizarSelecaoAgenda();
+  const box = document.getElementById("ag-quem-av");
+  box.innerHTML = avPickerHtml(us, "ag-q", "radio", "ag-q-grupo", u=>u.id===currentUser.id, false);
+  box.querySelectorAll("input").forEach(r=>r.addEventListener("change", ()=>{ sel.value = r.value; sel.onchange(); }));
+  avPickerNomes("ag-quem-av","ag-quem-nome");
+}
+
+// Abre: abrir modal visita agenda
+function abrirModalVisitaAgenda(iso){
+  if(!currentUser || !(currentUser.modulos||[]).includes("agenda")){ mostrarToast("Você não tem acesso ao agendamento de visitas."); return; }
+  agTipoAgenda = "visita"; agDiasConfig = {}; agMotivosBase = []; agExtras = []; agMenuTipoAberto = null; { const dd = document.getElementById("ag-descricao"); if(dd) dd.value = ""; }
+  const _sel = document.getElementById("ag-unidade"); if(_sel) _sel.value = "";
+  popularSelectUnidadeAgenda();
+  preencherQuemVisita();
+  document.querySelectorAll("#ag-tipo-sw .sw-btn").forEach(b=>{ const at = b.dataset.t==="visita"; b.classList.toggle("ativo", at); b.classList.toggle("sw-aprovado", at); });
+  document.getElementById("ag-bloco-local").style.display = "none"; document.getElementById("ag-bloco-unidade").style.display = "";
+  const oc = document.getElementById("ag-oculto"); if(oc) oc.checked = false;
+  if(iso){ const g = new Date(iso+"T00:00:00").getDay(); if(g!==0 && g!==6) agDiasSelecionados.add(iso); }
+  renderLocaisTrabalhoAgenda();
+  atualizarSelecaoAgenda();
+  mostrarUltimaVisitaUnidade();
+  document.getElementById("modal-visita").style.display = "flex";
+}
+
+// Fecha: fechar modal visita agenda
+function fecharModalVisitaAgenda(){ const m = document.getElementById("modal-visita"); if(m) m.style.display = "none"; }
+
+// Preenche: popular select unidade agenda
+function popularSelectUnidadeAgenda(){
+  const sel = document.getElementById("ag-unidade");
+  if(!sel) return;
+  const atual = sel.value;
+  const locais = locaisTrabalhoAgenda();
+  const lista = agTipoAgenda==="local" ? locais : UNIDADES.map(u=>u.nome).filter(n=>!locais.includes(n));
+  sel.innerHTML = '<option value="">Selecione...</option>' + lista.map(n=>`<option>${escHtml(n)}</option>`).join("");
+  sel.value = lista.includes(atual) ? atual : "";
+}
+
+// Troca para a sub-tela: mostrar sub acidentes
+function mostrarSubAcidentes(sub){
+  if(sub==="indicadores"){ irParaView("dashAcidentes"); return; }
+  if(sub==="registro"){ irParaView("registroAnalise"); return; }
+  popularFiltrosTodosAcidentes(); renderTodosAcidentes();
+}
+
+// Desenha na tela: render grade semanal
+function renderGradeSemanal(){ renderCalendario(); }
+
+// Desenha na tela: render grade mensal
+function renderGradeMensal(){ renderCalendario(); }
+
+// Troca para a sub-tela: mostrar sub agenda
+function mostrarSubAgenda(sub){ calModo = sub==="mensal" ? "mes" : "semana"; irParaView("calendario"); return; }
+
+// Troca para a sub-tela: mostrar sub agenda legado
+function mostrarSubAgendaLegado(sub){
+  document.querySelectorAll("#view-agenda .insp-tab").forEach(b=>b.classList.remove("active"));
+  document.querySelector('#view-agenda .insp-tab[data-sub="'+sub+'"]').classList.add("active");
+  document.querySelectorAll("#view-agenda .insp-sub").forEach(s=>s.classList.remove("active"));
+  document.getElementById("agenda-sub-"+sub).classList.add("active");
+  if(sub==="semanal") renderGradeSemanal();
+  if(sub==="mensal") renderGradeMensal();
+}
+
+// Função do módulo: data isolocal
+// meses a partir do mês atual
+
+function dataISOLocal(d){
+  return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+}
+
+// Função do módulo: maiusc1
+function maiusc1(s){ return s ? s.charAt(0).toUpperCase()+s.slice(1) : s; }
+
+// Função do módulo: data br
+function dataBR(iso){ return iso.split("-").reverse().join("/"); }
+
+// Função do módulo: selecionar periodo agenda
+function selecionarPeriodoAgenda(p){
+  document.getElementById("ag-periodo").value = p;
+  document.querySelectorAll("#ag-periodo-switch .sw-btn").forEach(b=>{
+    const ativo = b.dataset.periodo===p;
+    b.classList.toggle("ativo", ativo);
+    b.classList.toggle("sw-aprovado", ativo);
   });
-  atualizarBadgeConvites();
-  return (data||[]).length;
-}
-function convitesDoDiaHtml(uid, iso){
-  if(!currentUser || uid!==currentUser.id) return [];
-  return convitesPendentesRecebidos().filter(c=>c.dataRef===iso).map(c=>`<div class="dc-item convite"><div class="dc-l1"><span class="dc-t">✉ ${escHtml(c.titulo)}</span><span class="dc-chip pend">${c.tipo==="evento"?"Evento":"Tarefa"}</span></div>
-    <div class="dc-s">Convite de ${escHtml(c.convidanteNome)}${conviteQuando(c)}</div>
-    <div class="dc-chips"><button type="button" class="cv-btn sim" onclick="responderConvite(${c.id},true)">✓ Aceitar</button><button type="button" class="cv-btn nao" onclick="responderConvite(${c.id},false)">Recusar</button></div></div>`);
-}
-function conviteQuando(c){
-  const d = c.dados||{};
-  if(c.tipo==="evento") return " · "+(d.data_inicio===d.data_fim || !d.data_fim ? dataBR(d.data_inicio||c.dataRef) : dataBR(d.data_inicio)+" a "+dataBR(d.data_fim))+(d.dia_inteiro ? " · dia inteiro" : (d.hora_inicio ? " · "+String(d.hora_inicio).slice(0,5)+"–"+String(d.hora_fim||"").slice(0,5) : ""));
-  return d.dataLimite ? " · prazo "+dataBR(d.dataLimite) : "";
-}
-let convitesAbaAtual = "recebidos";
-function abrirConvites(){ convitesAbaAtual = convitesPendentesRecebidos().length || !convitesEnviados().length ? "recebidos" : "enviados"; renderConvites(); document.getElementById("modal-convites").style.display = "flex"; }
-function fecharConvites(){ document.getElementById("modal-convites").style.display = "none"; }
-function convitesAba(a){ convitesAbaAtual = a; renderConvites(); }
-function renderConvites(){
-  document.querySelectorAll("#cv-abas .sw-btn").forEach(b=>{ const at = b.dataset.a===convitesAbaAtual; b.classList.toggle("ativo", at); b.classList.toggle("sw-aprovado", at); });
-  const corpo = document.getElementById("cv-corpo");
-  const chipSt = st=>`<span class="dc-chip ${st==="Aceito"?"ok":st==="Recusado"?"rej":"pend"}">${st}</span>`;
-  const quem = id=>{ const u = USUARIOS.find(x=>x.id===id); return u ? u.nome : "—"; };
-  if(convitesAbaAtual==="recebidos"){
-    const lista = convitesRecebidos().slice().sort((a,b)=>(a.status==="Pendente"?0:1)-(b.status==="Pendente"?0:1) || b.id-a.id);
-    corpo.innerHTML = lista.length ? lista.map(c=>`<div class="dc-item convite"><div class="dc-l1"><span class="dc-t">${c.tipo==="evento"?"◆":"▣"} ${escHtml(c.titulo)}</span>${chipSt(c.status)}</div>
-      <div class="dc-s">${c.tipo==="evento"?"Evento":"Tarefa"} · convite de ${escHtml(c.convidanteNome)}${conviteQuando(c)}</div>
-      ${c.descricao?`<div class="dc-d">${escHtml(c.descricao)}</div>`:""}
-      ${c.status==="Pendente" ? `<div class="dc-chips"><button type="button" class="cv-btn sim" onclick="responderConvite(${c.id},true)">✓ Aceitar</button><button type="button" class="cv-btn nao" onclick="responderConvite(${c.id},false)">Recusar</button></div>` : ""}</div>`).join("")
-      : '<div class="dc-vazio">Nenhum convite recebido.</div>';
-  } else {
-    const lista = convitesEnviados().slice().sort((a,b)=>b.id-a.id);
-    corpo.innerHTML = lista.length ? lista.map(c=>`<div class="dc-item convite"><div class="dc-l1"><span class="dc-t">${c.tipo==="evento"?"◆":"▣"} ${escHtml(c.titulo)}</span>${chipSt(c.status)}</div>
-      <div class="dc-s">Para ${escHtml(quem(c.convidadoId))} · ${c.tipo==="evento"?"Evento":"Tarefa"}${conviteQuando(c)}</div>
-      ${c.status==="Pendente" ? `<div class="dc-chips"><button type="button" class="cv-btn nao" onclick="cancelarConvite(${c.id})">Cancelar convite</button></div>` : ""}</div>`).join("")
-      : '<div class="dc-vazio">Você ainda não enviou convites.</div>';
-  }
-}
-async function cancelarConvite(id){
-  const c = CONVITES.find(x=>x.id===id); if(!c || c.status!=="Pendente" || !confirm("Cancelar este convite?")) return;
-  const { error } = await sb.from("convites").delete().eq("id", id);
-  if(error){ alert("Erro ao cancelar: "+error.message); return; }
-  CONVITES = CONVITES.filter(x=>x.id!==id); renderConvites(); renderCalendario();
-}
-async function responderConvite(id, aceitar){
-  const c = CONVITES.find(x=>x.id===id); if(!c || c.status!=="Pendente" || c.convidadoId!==currentUser.id) return;
-  const d = c.dados || {};
-  let resultadoId = null;
-  if(aceitar){
-    if(c.tipo==="evento"){
-      const ini = d.data_inicio || c.dataRef, fim = d.data_fim || ini;
-      if(d.bloqueia!==false){
-        const cf = calConflitos(currentUser.id, {id:null, ini, fim, diaInteiro:!!d.dia_inteiro, hi:d.hora_inicio?String(d.hora_inicio).slice(0,5):"", hf:d.hora_fim?String(d.hora_fim).slice(0,5):""});
-        if(cf.length && !confirm("Você já tem compromisso nesse período:\n\n"+cf.slice(0,3).join("\n")+"\n\nAceitar mesmo assim?")) return;
-      }
-      const linha = {titulo:c.titulo, tipo:d.tipo||"Evento", usuario_id:currentUser.id, criado_por:c.convidanteId, criado_por_nome:c.convidanteNome,
-        data_inicio:ini, data_fim:fim, dia_inteiro:!!d.dia_inteiro, hora_inicio:d.dia_inteiro?null:(d.hora_inicio||null), hora_fim:d.dia_inteiro?null:(d.hora_fim||null),
-        local:d.local||"", descricao:((d.descricao||"")+(d.descricao?"\n":"")+"Convite de "+c.convidanteNome).trim(), bloqueia:d.bloqueia!==false, oculto:false, ...(d.grupo_id ? {grupo_id:d.grupo_id} : {})};
-      const { data, error } = await dbGravarComOculto(p=>sb.from("calendario_eventos").insert(p).select(), [linha]);
-      if(error){ alert("Erro ao aceitar o convite: "+error.message); return; }
-      (data||[]).forEach(r=>{ CAL_EVENTOS.push(mapEventoCalFromDb(r)); resultadoId = r.id; });
-    } else {
-      const etapas = FLUXO_ETAPAS.filter(e=>e.fluxoId===d.fluxoId).sort((a,b)=>(a.ordem||0)-(b.ordem||0));
-      const nova = {demanda:d.demanda||c.titulo, categoria:d.categoria||"", area:d.area||"", tipoAtividade:d.tipoAtividade||"", tipoDemanda:d.tipoDemanda||"", prioridade:d.prioridade||"Normal",
-        dataEntrada:dataISOLocal(new Date()), dataLimite:d.dataLimite||"", tempoEstimado:d.tempoEstimado||"", agendadoPara:"", entregueEm:"", tempoGasto:"", satisfacaoEntrega:"", saldoAnterior:"",
-        unidade:d.unidade||"", responsavel:currentUser.nome, responsavelUsuarioId:currentUser.id, fluxoId:d.fluxoId, etapaId:etapas.length ? etapas[0].id : d.etapaId,
-        aguardandoItem:"", aguardandoResponsavel:"", emailRelacionado:d.emailRelacionado||"", comentarios:((d.comentarios||"")+(d.comentarios?"\n":"")+"Convite de "+c.convidanteNome).trim(), demandaMaeId:null};
-      const { data, error } = await sb.from("demandas").insert({...demandaToDb(nova), created_by:currentUser.id}).select().single();
-      if(error){ alert("Erro ao aceitar o convite: "+error.message); return; }
-      DEMANDAS.unshift(mapDemandaFromDb(data)); resultadoId = data.id;
-    }
-  }
-  const { error: e2 } = await sb.from("convites").update({status:aceitar?"Aceito":"Recusado", respondido_em:new Date().toISOString(), resultado_id:resultadoId}).eq("id", id);
-  if(e2){ alert("Erro ao registrar a resposta: "+e2.message); return; }
-  c.status = aceitar ? "Aceito" : "Recusado"; c.resultadoId = resultadoId;
-  criarNotificacao(c.convidanteId, "calendario_evento", currentUser.nome+(aceitar?" aceitou":" recusou")+" seu convite", c.titulo, "convite", c.id);
-  mostrarToast(aceitar ? (c.tipo==="evento" ? "Convite aceito: o evento entrou na sua agenda." : "Convite aceito: criei uma nova demanda para você.") : "Convite recusado.");
-  atualizarBadgeConvites(); renderCalendario(); renderInicio();
-  if(document.getElementById("modal-convites").style.display==="flex") renderConvites();
-  if(document.getElementById("modal-dia-cal").style.display==="flex") renderDiaCal();
-}
-// campos "Convidar pessoas" dos formulários
-function convPickerHtml(cls, excluirIds){
-  return avPickerHtml(usuariosAtivosOrdenados().filter(u=>u.id!==currentUser.id && !(excluirIds||[]).includes(u.id)), cls, "checkbox", "", ()=>false, false);
-}
-function convStatusHtml(tipo, origemId){
-  const l = CONVITES.filter(c=>c.tipo===tipo && c.origemId===origemId);
-  if(!l.length) return '<span class="dc-vazio">Nenhum convite enviado.</span>';
-  return l.map(c=>{ const u = USUARIOS.find(x=>x.id===c.convidadoId); return `<span class="dc-chip ${c.status==="Aceito"?"ok":c.status==="Recusado"?"rej":"pend"}" style="margin:0 6px 6px 0;">${escHtml(u?u.nome:"—")} · ${c.status}</span>`; }).join("");
-}
-function calPopularConvidados(ev){
-  const box = document.getElementById("cal-convidados-lista"), nome = document.getElementById("cal-convidados-nome");
-  if(!box) return;
-  if(ev){ box.className = ""; box.innerHTML = convStatusHtml("evento", ev.id); nome.textContent = ""; }
-  else { box.className = "av-picker"; box.innerHTML = convPickerHtml("cal-conv"); avPickerNomes("cal-convidados-lista","cal-convidados-nome"); nome.textContent = "Ninguém convidado"; }
-}
-function demPopularConvidados(id){
-  const box = document.getElementById("dem-convidados-lista"), nome = document.getElementById("dem-convidados-nome");
-  if(!box) return;
-  if(id){ box.className = ""; box.innerHTML = convStatusHtml("tarefa", Number(id)); nome.textContent = ""; }
-  else { box.className = "av-picker"; box.innerHTML = convPickerHtml("dem-conv"); nome.textContent = "Ninguém convidado"; }
+  renderChipsDiasAgenda(); mostrarUltimaVisitaUnidade();
 }
 
-/* ---- registrar ausência / bloquear a agenda ---- */
-let ausModo = "ausencia";
-function ausDiasUteis(ini, fim){
-  if(!ini || !fim || fim<ini) return 0;
-  let n = 0; for(let d=new Date(ini+"T00:00:00"), f=new Date(fim+"T00:00:00"); d<=f; d.setDate(d.getDate()+1)){ const g=d.getDay(); if(g!==0 && g!==6) n++; }
-  return n;
-}
-function ausAtualizarResumo(){
-  const el = document.getElementById("aus-resumo"); if(!el) return;
-  const ini = document.getElementById("aus-ini").value, fim = document.getElementById("aus-fim").value;
-  if(fim && ini && fim<ini){ el.textContent = "A data final não pode ser antes da inicial."; return; }
-  const n = ausDiasUteis(ini, fim);
-  el.textContent = n ? n+" dia"+(n===1?"":"s")+" útil"+(n===1?"":"eis")+" no período (fins de semana não contam)." : "";
-}
-function ausPeriodo(p){
-  document.getElementById("aus-periodo").value = p;
-  document.querySelectorAll("#aus-periodo-sw .sw-btn").forEach(b=>{ const a = b.dataset.p===p; b.classList.toggle("ativo",a); b.classList.toggle("sw-aprovado",a); });
-  const h = p==="Horário";
-  document.getElementById("aus-hi-wrap").style.display = h ? "" : "none";
-  document.getElementById("aus-hf-wrap").style.display = h ? "" : "none";
-}
-function abrirModalAusencia(modo, isoPadrao){
-  ausModo = modo==="bloqueio" ? "bloqueio" : "ausencia";
-  const bl = ausModo==="bloqueio";
-  document.getElementById("form-aus").reset();
-  document.getElementById("aus-titulo").textContent = bl ? "Bloquear a agenda" : "Registrar ausência";
-  document.getElementById("aus-campo-tipo").style.display = bl ? "none" : "";
-  document.getElementById("aus-campo-oculto").style.display = bl ? "none" : "";
-  document.getElementById("aus-obs-lbl").textContent = bl ? "Motivo (só você e o administrador veem)" : "Observação (opcional)";
-  const hoje = isoPadrao || dataISOLocal(new Date());
-  document.getElementById("aus-ini").value = hoje; document.getElementById("aus-fim").value = hoje;
-  ausPeriodo("Dia inteiro"); ausAtualizarResumo();
-  const campo = document.getElementById("aus-campo-pessoas"), lista = document.getElementById("aus-pessoas-lista");
-  if(ehAdminOuCoordenador()){
-    campo.style.display = "";
-    lista.innerHTML = avPickerHtml(usuariosAtivosOrdenados(), "aus-p", "checkbox", "", u=>u.id===currentUser.id, false);
-  } else { campo.style.display = "none"; lista.innerHTML = `<input type="checkbox" class="aus-p" value="${currentUser.id}" checked>`; }
-  avPickerNomes("aus-pessoas-lista","aus-pessoas-nome");
-  document.getElementById("modal-aus").style.display = "flex";
-}
-function fecharModalAusencia(){ document.getElementById("modal-aus").style.display = "none"; }
-async function salvarAusencia(ev){
-  if(ev) ev.preventDefault();
-  const bl = ausModo==="bloqueio";
-  const ini = document.getElementById("aus-ini").value, fim = document.getElementById("aus-fim").value;
-  const per = document.getElementById("aus-periodo").value;
-  if(!ini || !fim || fim<ini){ alert("A data final não pode ser antes da inicial."); return false; }
-  if(!ausDiasUteis(ini, fim)){ alert("O período escolhido só tem fim de semana. Escolha ao menos um dia útil."); return false; }
-  let diaInteiro = per==="Dia inteiro", hi = null, hf = null;
-  if(per==="Manhã" || per==="Tarde"){ hi = PERIODO_HORAS[per][0]; hf = PERIODO_HORAS[per][1]; }
-  else if(per==="Horário"){
-    hi = document.getElementById("aus-hi").value; hf = document.getElementById("aus-hf").value;
-    if(!hi || !hf || hf<=hi){ alert("Informe a hora de início e uma hora de fim posterior."); return false; }
+// Desenha na tela: render calendario selecao agenda
+function renderCalendarioSelecaoAgenda(){
+  const wrap = document.getElementById("ag-calsel");
+  if(!wrap) return;
+  const hoje = new Date();
+  const hojeISO = dataISOLocal(hoje);
+  const mesRef = new Date(hoje.getFullYear(), hoje.getMonth()+agCalMesOffset, 1);
+  const nomeMes = maiusc1(mesRef.toLocaleDateString("pt-BR", {month:"long", year:"numeric"}));
+  const offsetPrimeiro = (mesRef.getDay()+6)%7;                     // segunda = 0
+  const diasNoMes = new Date(mesRef.getFullYear(), mesRef.getMonth()+1, 0).getDate();
+  const alvoSel = agAlvoVisita();
+  const meusDias = new Set(AGENDA.filter(v=>alvoSel && v.usuarioId===alvoSel.id && v.status!=="Rejeitado").map(v=>v.data));
+
+  let html = `<div class="ag-cal-topo">
+      <button type="button" class="ag-cal-nav" onclick="mudarMesCalAgenda(-1)" aria-label="Mês anterior">‹</button>
+      <span class="ag-cal-mes">${nomeMes}</span>
+      <button type="button" class="ag-cal-nav" onclick="mudarMesCalAgenda(1)" aria-label="Próximo mês">›</button>
+    </div><div class="ag-cal-grid">`;
+  ["seg","ter","qua","qui","sex","sáb","dom"].forEach(d=>{ html += `<div class="ag-cal-sem">${d}</div>`; });
+  for(let i=0; i<offsetPrimeiro; i++) html += "<div></div>";
+  for(let dia=1; dia<=diasNoMes; dia++){
+    const d = new Date(mesRef.getFullYear(), mesRef.getMonth(), dia);
+    const iso = dataISOLocal(d);
+    const fds = d.getDay()===0 || d.getDay()===6;
+    const classes = ["ag-dia"];
+    if(fds) classes.push("fds");
+    if(iso===hojeISO) classes.push("hoje");
+    if(agDiasSelecionados.has(iso)) classes.push("sel");
+    if(meusDias.has(iso)) classes.push("tem");
+    html += `<button type="button" class="${classes.join(" ")}" ${fds?"disabled":""} title="${fds?"Fim de semana — não é possível agendar":(meusDias.has(iso)?"Você já tem visita neste dia":"")}" onclick="alternarDiaAgenda('${iso}')">${dia}</button>`;
   }
-  let pessoas = [...document.querySelectorAll(".aus-p")].filter(c=>c.checked).map(c=>c.value);
-  if(!ehAdminOuCoordenador()) pessoas = [currentUser.id];
-  if(!pessoas.length){ alert("Escolha para quem é o lançamento."); return false; }
-  const tipo = bl ? "Bloqueio" : document.getElementById("aus-tipo").value;
-  const titulo = bl ? "Agenda bloqueada" : (CAL_TIPOS[tipo] ? (tipo==="Compensação de banco de horas" ? "Banco de horas" : tipo) : tipo);
-  const obs = document.getElementById("aus-obs").value.trim();
-  const ocCk = !bl && document.getElementById("aus-oculto").checked;
-  const btn = document.getElementById("aus-btn-salvar"); btn.disabled = true;
-  try{
-    const linhas = pessoas.map(uid=>({titulo, tipo, usuario_id:uid, criado_por:currentUser.id, criado_por_nome:currentUser.nome,
-      data_inicio:ini, data_fim:fim, dia_inteiro:diaInteiro, hora_inicio:hi, hora_fim:hf, local:"", descricao:obs, bloqueia:true,
-      oculto: bl || ocCk || calBloqueioNoIntervalo(uid, ini, fim, diaInteiro, hi||"00:00", hf||"23:59")}));
-    const { data, error } = await dbGravarComOculto(p=>sb.from("calendario_eventos").insert(p).select(), linhas);
-    if(error){ alert("Erro ao salvar: "+error.message); return false; }
-    (data||[]).forEach(r=>{
-      const m = mapEventoCalFromDb(r); CAL_EVENTOS.push(m);
-      if(m.usuarioId!==currentUser.id) criarNotificacao(m.usuarioId, "calendario_evento", bl ? "Sua agenda foi bloqueada" : "Ausência lançada no seu calendário", (bl ? "" : titulo+" — ")+(m.dataInicio===m.dataFim ? dataBR(m.dataInicio) : dataBR(m.dataInicio)+" a "+dataBR(m.dataFim)), "calendario", m.id);
-    });
-    acaoPlataforma(bl ? "Agenda bloqueada" : "Ausência registrada", bl ? "(bloqueio)" : titulo, "calendario", (data&&data[0]) ? data[0].id : null, pessoas);
-    mostrarToast(bl ? "Agenda bloqueada." : "Ausência registrada.");
-  } finally { btn.disabled = false; }
-  fecharModalAusencia();
-  renderCalendario(); renderInicio();
-  return false;
+  html += "</div>";
+  wrap.innerHTML = html;
 }
 
-/* ---- criar / editar / excluir evento ---- */
-function calAoMudarTipo(){
-  const tipo = document.getElementById("cal-tipo").value;
-  const aus = CAL_AUSENCIAS.includes(tipo);
-  const bq = document.getElementById("cal-bloqueia");
-  if(aus){ bq.checked = true; }
-  bq.disabled = aus;
-  document.getElementById("cal-bloqueia-lbl").style.opacity = aus ? ".6" : "1";
-  const t = document.getElementById("cal-titulo");
-  t.required = !aus;
-  t.placeholder = aus ? "opcional — se vazio, usa “"+tipo+"”" : "ex.: Reunião com a loja Barra";
+// Função do módulo: ag reconstruir config
+function agReconstruirConfig(){
+  const dias = [...agDiasSelecionados].sort();
+  agExtras.forEach(x=>{ x.dias = x.dias.filter(d=>agDiasSelecionados.has(d)); });
+  const per = agPeriodoPadrao(), un = agUnidadePadrao();
+  const novo = {};
+  dias.forEach(iso=>{
+    const ex = agExtras.filter(x=>x.dias.includes(iso)).pop();
+    novo[iso] = [{unidade:un, periodo:(ex && ex.periodo) || per, motivos:(ex ? ex.motivos : agMotivosBase).slice()}];
+  });
+  agDiasConfig = novo;
 }
-function calAlternarHoras(){
-  const di = document.getElementById("cal-dia-inteiro").checked;
-  document.getElementById("cal-horas-hi").style.display = di ? "none" : "";
-  document.getElementById("cal-horas-hf").style.display = di ? "none" : "";
+
+// Função do módulo: ag lista motivos
+function agListaMotivos(alvo){ return alvo==="b" ? agMotivosBase : (agExtras[alvo] && agExtras[alvo].motivos); }
+
+// Função do módulo: ag menu tipo
+function agMenuTipo(alvo, ev){
+  if(ev) ev.stopPropagation();
+  agMenuTipoAberto = agMenuTipoAberto===String(alvo) ? null : String(alvo); renderChipsDiasAgenda();
 }
-function abrirModalEventoCal(id, isoPadrao, uidPadrao){
-  document.getElementById("form-cal").reset();
-  document.getElementById("cal-aviso-conflito").style.display = "none";
-  const ev = id!=null ? CAL_EVENTOS.find(e=>e.id===Number(id)) : null;
-  if(id!=null && !ev) return;
-  if(ev && ev.tipo==="Ocupado") return;
-  { const tipos = [...CAL_TIPOS_EVENTO, ...CAL_AUSENCIAS]; if(ev && !tipos.includes(ev.tipo)) tipos.push(ev.tipo);
-    document.getElementById("cal-tipo").innerHTML = tipos.map(t=>`<option value="${escHtml(t)}">${escHtml((CAL_TIPOS[t]||{}).curto===undefined ? t : (CAL_AUSENCIAS.includes(t) ? CAL_TIPOS[t].curto : t))}</option>`).join(""); }
-  const podeEditar = !ev || calPodeEditar(ev);
-  calPopularConvidados(ev);
-  document.getElementById("cal-id").value = ev ? ev.id : "";
-  document.getElementById("cal-modal-titulo").textContent = ev ? (podeEditar ? "Editar evento" : "Evento") : "Novo evento";
+
+// Função do módulo: ag alternar motivo
+function agAlternarMotivo(alvo, valor){
+  agMenuTipoAberto = null;
+  const l = agListaMotivos(alvo); if(!l) return;
+  const k = l.indexOf(valor); if(k>=0) l.splice(k,1); else l.push(valor);
+  renderChipsDiasAgenda();
+}
+
+// Função do módulo: ag novo extra
+function agNovoExtra(){
+  const livres = [...agDiasSelecionados].sort().filter(d=>!agExtras.some(x=>x.dias.includes(d)));
+  agExtras.push({dias:livres.length ? [livres[0]] : [], motivos:[], periodo:agPeriodoPadrao()});
+  renderChipsDiasAgenda();
+}
+
+// Função do módulo: ag set periodo extra
+function agSetPeriodoExtra(i, p){ if(agExtras[i]){ agExtras[i].periodo = p; renderChipsDiasAgenda(); } }
+
+// Função do módulo: ag remover extra
+function agRemoverExtra(i){ agExtras.splice(i,1); renderChipsDiasAgenda(); }
+
+// Função do módulo: ag alternar dia extra
+function agAlternarDiaExtra(i, iso){
+  const x = agExtras[i]; if(!x) return;
+  const k = x.dias.indexOf(iso);
+  if(k>=0) x.dias.splice(k,1);
+  else { agExtras.forEach(o=>{ const j = o.dias.indexOf(iso); if(j>=0) o.dias.splice(j,1); }); x.dias.push(iso); }
+  renderChipsDiasAgenda();
+}
+
+// Função do módulo: ag chips tipo
+function agChipsTipo(alvo, lista){
+  const aberto = agMenuTipoAberto===String(alvo);
+  const q = JSON.stringify(alvo).replace(/"/g,"&quot;");
+  return `<div class="ag-tipos">
+    ${lista.map(m=>`<button type="button" class="ag-tipo-chip sel" onclick="agAlternarMotivo(${q},this.dataset.m)" data-m="${escHtml(m)}" title="Remover">${escHtml(m)} ×</button>`).join("")}
+    <span class="ag-tipo-mais">
+      <button type="button" class="ag-tipo-add" onclick="agMenuTipo(${q},event)" title="Adicionar tipo de atividade" aria-label="Adicionar tipo de atividade">+</button>
+      ${aberto ? `<span class="ag-tipo-menu">${TIPOS_ATIVIDADE_PRINCIPAIS.filter(m=>!lista.includes(m)).map(m=>`<button type="button" data-m="${escHtml(m)}" onclick="agAlternarMotivo(${q},this.dataset.m)">${escHtml(m)}</button>`).join("") || "<em>Todos adicionados</em>"}</span>` : ""}
+    </span></div>`;
+}
+
+// Desenha na tela: render chips dias agenda
+function renderChipsDiasAgenda(){
+  const box = document.getElementById("ag-dias-config");
+  const resumo = document.getElementById("ag-dias-resumo");
+  if(!box || !resumo) return;
+  const dias = [...agDiasSelecionados].sort();
+  agReconstruirConfig();
+  if(!dias.length){
+    resumo.innerHTML = '<span class="ag-dica">Nenhum dia selecionado. Clique nos dias do calendário.</span>';
+    box.innerHTML = "";
+    return;
+  }
+  resumo.innerHTML = dias.length+" dia(s) selecionado(s)";
+  const rot = x=>{ const d = new Date(x+"T00:00:00"); return DIAS_SEMANA_ABREV[d.getDay()]+" "+x.slice(8,10)+"/"+x.slice(5,7); };
+  box.innerHTML = agChipsTipo("b", agMotivosBase)
+    + agExtras.map((x,i)=>`<div class="ag-extra">
+        <div class="ag-extra-topo"><span class="ag-extra-tit">Outro tipo de atividade em:</span>
+          <button type="button" class="ag-mini-btn x" onclick="agRemoverExtra(${i})" aria-label="Remover" title="Remover">×</button></div>
+        <div class="ag-dia-pills">${dias.map(d=>`<button type="button" class="ag-dia-pill ${x.dias.includes(d)?"sel":""}" onclick="agAlternarDiaExtra(${i},'${d}')">${rot(d)}</button>`).join("")}</div>
+        <div class="ag-extra-linha">
+          <div class="ag-per-mtd" role="group" aria-label="Período">${[["M","Manhã"],["T","Tarde"],["D","Dia inteiro"]].map(([l,pp])=>`<button type="button" class="${(x.periodo||agPeriodoPadrao())===pp?"ativo":""}" title="${pp}" aria-label="${pp}" onclick="agSetPeriodoExtra(${i},'${pp}')">${l}</button>`).join("")}</div>
+          ${agChipsTipo(i, x.motivos)}
+        </div>
+      </div>`).join("")
+    + (dias.length>1 ? `<button type="button" class="ag-add-outro" onclick="agNovoExtra()">+ Adicionar outro tipo de atividade nos dias selecionados</button>` : "");
+}
+
+// Atualiza: atualizar selecao agenda
+function atualizarSelecaoAgenda(){ renderCalendarioSelecaoAgenda(); renderChipsDiasAgenda(); marcarSugestoesAgenda(); }
+
+// Alterna (mostra/esconde): alternar dia agenda
+function alternarDiaAgenda(iso){
+  const d = new Date(iso+"T00:00:00");
+  if(d.getDay()===0 || d.getDay()===6) return;
+  if(agDiasSelecionados.has(iso)){ agDiasSelecionados.delete(iso); delete agDiasConfig[iso]; }
+  else { agDiasSelecionados.add(iso); agGarantirConfigDia(iso); }
+  atualizarSelecaoAgenda();
+}
+
+// Função do módulo: mudar mes cal agenda
+function mudarMesCalAgenda(delta){ agCalMesOffset += delta; renderCalendarioSelecaoAgenda(); }
+
+// Calcula: somar dias iso
+function somarDiasISO(iso, n){ const d = new Date(iso+"T00:00:00"); d.setDate(d.getDate()+n); return dataISOLocal(d); }
+
+// Função do módulo: dias entre iso
+function diasEntreISO(a, b){ return Math.round((new Date(b+"T00:00:00")-new Date(a+"T00:00:00"))/86400000); }
+
+// Função do módulo: semana chave iso
+function semanaChaveISO(iso){ const d = new Date(iso+"T00:00:00"); d.setDate(d.getDate()-((d.getDay()+6)%7)); return dataISOLocal(d); }
+
+// Função do módulo: eh reuniao agenda
+function ehReuniaoAgenda(v){ return /reuniao/.test(String(v.motivo||"").normalize("NFD").replace(/[̀-ͯ]/g,"").toLowerCase()); }
+
+// Função do módulo: motivos separados agenda
+function motivosSeparadosAgenda(txt){ return String(txt||"").split(/\s*\+\s*/).map(s=>s.trim()).filter(Boolean); }
+
+// Função do módulo: padrao reunioes agenda
+// Dias da semana + período em que o usuário costuma ter reunião (últimas 12 semanas)
+function padraoReunioesAgenda(usuarioId){
   const hojeISO = dataISOLocal(new Date());
-  document.getElementById("cal-titulo").value = ev ? ev.titulo : "";
-  document.getElementById("cal-tipo").value = ev ? ev.tipo : "Evento";
-  document.getElementById("cal-local").value = ev ? ev.local : "";
-  document.getElementById("cal-ini").value = ev ? ev.dataInicio : (isoPadrao || hojeISO);
-  document.getElementById("cal-fim").value = ev ? ev.dataFim : (isoPadrao || hojeISO);
-  document.getElementById("cal-dia-inteiro").checked = ev ? ev.diaInteiro : true;
-  document.getElementById("cal-hi").value = ev ? ev.horaInicio : "09:00";
-  document.getElementById("cal-hf").value = ev ? ev.horaFim : "10:00";
-  document.getElementById("cal-desc").value = ev ? ev.descricao : "";
-  document.getElementById("cal-bloqueia").checked = ev ? ev.bloqueia : true;
-  document.getElementById("cal-oculto").checked = ev ? !!ev.oculto : false;
-  calAlternarHoras(); calAoMudarTipo();
-  // pessoas: administrador/coordenador pode criar no nome de outros; usuário padrão só para si
-  const lista = document.getElementById("cal-pessoas-lista"), campo = document.getElementById("cal-campo-pessoas");
-  if(ev){
-    const u = USUARIOS.find(x=>x.id===ev.usuarioId);
-    lista.innerHTML = avPickerHtml([u || {id:ev.usuarioId, nome:"—"}], "cal-p", "checkbox", "", ()=>true, true);
-    campo.querySelector("label").innerHTML = 'Pessoa'+(ev.criadoPor && ev.criadoPor!==ev.usuarioId ? ' <span class="ag-sub">(criado por '+escHtml(ev.criadoPorNome||"outra pessoa")+')</span>' : "");
-  } else if(ehAdminOuCoordenador()){
-    campo.querySelector("label").textContent = "Para quem";
-    const alvo = uidPadrao || currentUser.id;
-    lista.innerHTML = avPickerHtml(usuariosAtivosOrdenados(), "cal-p", "checkbox", "", u=>u.id===alvo, false);
-  } else {
-    campo.querySelector("label").textContent = "Para quem";
-    lista.innerHTML = avPickerHtml([currentUser], "cal-p", "checkbox", "", ()=>true, true);
-  }
-  avPickerNomes("cal-pessoas-lista","cal-pessoas-nome");
-  document.querySelectorAll("#form-cal input:not(.cal-p), #form-cal select, #form-cal textarea").forEach(el=>{ if(el.id!=="cal-id") el.disabled = !podeEditar; });
-  if(podeEditar){ calAoMudarTipo(); calAtualizarOcultoAuto(); }
-  document.getElementById("cal-btn-salvar").style.display = podeEditar ? "" : "none";
-  document.getElementById("cal-btn-excluir").style.display = ev && podeEditar ? "inline-block" : "none";
-  document.getElementById("modal-cal").style.display = "flex";
-}
-function fecharModalEventoCal(){ document.getElementById("modal-cal").style.display = "none"; }
-// dentro de um bloqueio da agenda o evento fica oculto automaticamente
-function calAtualizarOcultoAuto(){
-  const cb = document.getElementById("cal-oculto"), av = document.getElementById("cal-aviso-oculto"); if(!cb) return;
-  const ini = document.getElementById("cal-ini").value, fim = document.getElementById("cal-fim").value;
-  const di = document.getElementById("cal-dia-inteiro").checked;
-  const hi = document.getElementById("cal-hi").value || "00:00", hf = document.getElementById("cal-hf").value || "23:59";
-  const pessoas = [...document.querySelectorAll(".cal-p")].filter(c=>c.checked).map(c=>c.value);
-  const ehBloq = document.getElementById("cal-tipo").value==="Bloqueio";
-  const dentro = !ehBloq && !!ini && !!fim && pessoas.some(u=>calBloqueioNoIntervalo(u, ini, fim, di, hi, hf));
-  if(dentro || ehBloq) cb.checked = true;
-  cb.disabled = dentro || ehBloq;
-  if(av) av.style.display = dentro ? "block" : "none";
-}
-// grava; se o banco ainda não tem a coluna "oculto", grava sem ela e avisa
-async function dbGravarComOculto(fazer, payload){
-  let r = await fazer(payload);
-  if(r.error && /oculto/i.test(r.error.message||"")){
-    const limpa = Array.isArray(payload) ? payload.map(({oculto,...x})=>x) : (({oculto,...x})=>x)(payload);
-    r = await fazer(limpa);
-    if(!r.error) mostrarToast("Salvo, mas a coluna “oculto” ainda não existe no banco: rode o SQL de migração para o recurso funcionar.");
-  }
-  return r;
-}
-function calHorasSobrepoem(a, b){ if(a.diaInteiro || b.diaInteiro) return true; return a.hi < b.hf && b.hi < a.hf; }
-// o que já ocupa a pessoa no período do novo evento
-function calConflitos(uid, d){
-  const lista = CAL_EVENTOS.filter(e=>e.id!==d.id && e.usuarioId===uid && e.bloqueia && e.dataInicio<=d.fim && e.dataFim>=d.ini
-    && calHorasSobrepoem({diaInteiro:e.diaInteiro, hi:e.horaInicio, hf:e.horaFim}, d)).map(e=>{ const m = calMascararEvento(e); return m.tipo+": "+m.titulo; });
-  if(d.diaInteiro) DEMANDAS.filter(x=>x.responsavelUsuarioId===uid && x.agendadoPara && x.agendadoPara>=d.ini && x.agendadoPara<=d.fim && !x.entregueEm && !demandaConcluida(x)).forEach(x=>lista.push("Demanda #"+x.id+" agendada em "+dataBR(x.agendadoPara)));
-  return lista;
-}
-async function salvarEventoCal(ev){
-  if(ev) ev.preventDefault();
-  const id = document.getElementById("cal-id").value;
-  const tipo = document.getElementById("cal-tipo").value;
-  const aus = CAL_AUSENCIAS.includes(tipo);
-  const titulo = document.getElementById("cal-titulo").value.trim() || (aus ? tipo : "");
-  const ini = document.getElementById("cal-ini").value, fim = document.getElementById("cal-fim").value;
-  const diaInteiro = document.getElementById("cal-dia-inteiro").checked;
-  const hi = document.getElementById("cal-hi").value, hf = document.getElementById("cal-hf").value;
-  if(!titulo){ alert("Informe o título do evento."); return false; }
-  if(!ini || !fim || fim<ini){ alert("A data final não pode ser antes da inicial."); return false; }
-  if(!diaInteiro){
-    if(!hi || !hf){ alert("Informe a hora de início e de fim, ou marque “Dia inteiro”."); return false; }
-    if(ini===fim && hf<=hi){ alert("A hora de fim precisa ser depois da hora de início."); return false; }
-  }
-  const pessoas = id ? [CAL_EVENTOS.find(e=>e.id===Number(id)).usuarioId] : [...document.querySelectorAll(".cal-p")].filter(c=>c.checked).map(c=>c.value);
-  if(!pessoas.length){ alert("Escolha para quem é o evento."); return false; }
-  if(!id && !ehAdminOuCoordenador() && pessoas.some(p=>p!==currentUser.id)){ alert("Você só pode criar eventos para si mesmo."); return false; }
-  const campos = {titulo, tipo, data_inicio:ini, data_fim:fim, dia_inteiro:diaInteiro, hora_inicio:diaInteiro?null:hi, hora_fim:diaInteiro?null:hf,
-    local:document.getElementById("cal-local").value.trim(), descricao:document.getElementById("cal-desc").value.trim(), bloqueia: aus ? true : document.getElementById("cal-bloqueia").checked};
-  campos.oculto = document.getElementById("cal-oculto").checked || tipo==="Bloqueio" || pessoas.some(uid=>calBloqueioNoIntervalo(uid, ini, fim, diaInteiro, diaInteiro?"00:00":hi, diaInteiro?"23:59":hf));
-  // avisa conflitos (e deixa o usuário decidir)
-  const avisoEl = document.getElementById("cal-aviso-conflito");
-  if(campos.bloqueia){
-    const conflitos = [];
-    pessoas.forEach(uid=>{ const c = calConflitos(uid, {id:id?Number(id):null, ini, fim, diaInteiro, hi, hf}); if(c.length){ const u = USUARIOS.find(x=>x.id===uid); conflitos.push((u?primeiroNomeAgenda(u.nome):"?")+": "+c.slice(0,3).join("; ")); } });
-    if(conflitos.length && !confirm("Já existe compromisso nesse período:\n\n"+conflitos.join("\n")+"\n\nSalvar mesmo assim?")) return false;
-  }
-  avisoEl.style.display = "none";
-  const btn = document.getElementById("cal-btn-salvar"); btn.disabled = true;
-  try{
-    if(id){
-      const { error } = await dbGravarComOculto(p=>sb.from("calendario_eventos").update(p).eq("id", Number(id)), campos);
-      if(error){ alert("Erro ao salvar o evento: "+error.message); return false; }
-      const atual = CAL_EVENTOS.find(e=>e.id===Number(id));
-      Object.assign(atual, mapEventoCalFromDb({...atual, titulo, tipo, usuario_id:atual.usuarioId, criado_por:atual.criadoPor, criado_por_nome:atual.criadoPorNome, ...campos}));
-      acaoPlataforma("Evento atualizado no calendário", campos.oculto ? "(evento oculto)" : titulo, "calendario", Number(id), [atual.usuarioId]);
-      mostrarToast("Evento atualizado.");
-    } else {
-      const convSel = [...document.querySelectorAll(".cal-conv")].filter(c=>c.checked).map(c=>c.value).filter(u=>!pessoas.includes(u));
-      const grupo = (pessoas.length>1 || convSel.length) ? (crypto.randomUUID ? crypto.randomUUID() : null) : null;
-      const linhas = pessoas.map(uid=>({...campos, usuario_id:uid, criado_por:currentUser.id, criado_por_nome:currentUser.nome, ...(grupo ? {grupo_id:grupo} : {})}));
-      const { data, error } = await dbGravarComOculto(p=>sb.from("calendario_eventos").insert(p).select(), linhas);
-      if(error){ alert("Erro ao criar o evento: "+error.message); return false; }
-      (data||[]).forEach(r=>{
-        const m = mapEventoCalFromDb(r); CAL_EVENTOS.push(m);
-        if(m.usuarioId!==currentUser.id) criarNotificacao(m.usuarioId, "calendario_evento", "Novo evento no seu calendário", m.titulo+" — "+(m.dataInicio===m.dataFim ? dataBR(m.dataInicio) : dataBR(m.dataInicio)+" a "+dataBR(m.dataFim)), "calendario", m.id);
-      });
-      acaoPlataforma("Novo evento no calendário", campos.oculto ? "(evento oculto)" : titulo, "calendario", (data&&data[0]) ? data[0].id : null, pessoas);
-      const convIds = [...document.querySelectorAll(".cal-conv")].filter(c=>c.checked).map(c=>c.value).filter(u=>!pessoas.includes(u));
-      if(convIds.length && data && data[0]){
-        const nEnv = await enviarConvites("evento", titulo, campos.descricao, ini, {grupo_id:grupo, tipo, data_inicio:ini, data_fim:fim, dia_inteiro:diaInteiro, hora_inicio:campos.hora_inicio, hora_fim:campos.hora_fim, local:campos.local, descricao:campos.descricao, bloqueia:campos.bloqueia}, data[0].id, convIds);
-        if(nEnv) mostrarToast("Evento criado e "+nEnv+" convite"+(nEnv>1?"s enviados":" enviado")+".");
-      }
-      mostrarToast(pessoas.length>1 ? "Evento criado para "+pessoas.length+" pessoas." : (pessoas[0]!==currentUser.id ? "Evento criado no calendário de outra pessoa." : "Evento criado."));
-    }
-  } finally { btn.disabled = false; }
-  fecharModalEventoCal();
-  renderCalendario(); renderInicio();
-  return false;
-}
-async function excluirEventoCal(){
-  const id = Number(document.getElementById("cal-id").value);
-  const e = CAL_EVENTOS.find(x=>x.id===id);
-  if(!e || !calPodeEditar(e) || !confirm("Excluir este evento?")) return;
-  const { data: apagados, error } = await sb.from("calendario_eventos").delete().eq("id", id).select("id");
-  if(error){ alert("Erro ao excluir: "+error.message); return; }
-  if(!apagados || !apagados.length){ alert("Não foi possível excluir este evento: sem permissão."); return; }
-  acaoPlataforma("Evento excluído do calendário", e.titulo, null, null, [e.usuarioId]);
-  CAL_EVENTOS = CAL_EVENTOS.filter(x=>x.id!==id);
-  fecharModalEventoCal(); renderCalendario(); renderInicio();
-  mostrarToast("Evento excluído.");
+  const ini = somarDiasISO(hojeISO, -84);
+  const minhas = AGENDA.filter(v=>v.usuarioId===usuarioId && v.status!=="Rejeitado");
+  if(!minhas.length) return {habituais:[], semanas:0};
+  const primeira = minhas.reduce((m,v)=>v.data<m?v.data:m, minhas[0].data);
+  const semanas = Math.min(12, Math.max(1, Math.ceil(diasEntreISO(primeira<ini ? ini : primeira, hojeISO)/7)));
+  const mapa = new Map();   // "dia|período" -> semanas distintas com reunião
+  minhas.filter(v=>ehReuniaoAgenda(v) && v.data>=ini && v.data<hojeISO).forEach(v=>{
+    const dow = new Date(v.data+"T00:00:00").getDay();
+    (v.periodo==="Dia inteiro" ? ["Manhã","Tarde"] : [v.periodo]).forEach(p=>{
+      const k = dow+"|"+p; if(!mapa.has(k)) mapa.set(k, new Set()); mapa.get(k).add(semanaChaveISO(v.data));
+    });
+  });
+  const habituais = [];
+  mapa.forEach((set,k)=>{ const [dow,periodo] = k.split("|"); if(set.size>=2 && set.size/semanas>=0.25) habituais.push({dow:Number(dow), periodo, n:set.size}); });
+  habituais.sort((a,b)=>a.dow-b.dow || a.periodo.localeCompare(b.periodo,"pt-BR"));
+  return {habituais, semanas};
 }
 
-/* ---- Atualização dos dados: automática (a cada 2 min, sem atrapalhar quem está digitando) e manual ---- */
-const ATUALIZACAO_AUTO_MS = 120000;
-let timerAtualizacao = null, atualizandoDados = false, ultimaAtualizacao = Date.now();
+// Função do módulo: sugerir revisita agenda
+// Sugere datas livres perto de (última visita à unidade + 30 dias), evitando reuniões habituais e dias já ocupados
+function sugerirRevisitaAgenda(unidade, periodo){
+  const hojeISO = dataISOLocal(new Date());
+  const amanha = somarDiasISO(hojeISO, 1);
+  const daUnidade = AGENDA.filter(v=>v.unidade===unidade && v.status!=="Rejeitado");
+  const base = daUnidade.length ? daUnidade.reduce((m,v)=>v.data>m?v.data:m, daUnidade[0].data) : null;
+  let alvo = base ? somarDiasISO(base, REVISITA_PRAZO_DIAS) : amanha;
+  const prazoOriginal = alvo;
+  const vencida = !!base && alvo<hojeISO;
+  if(alvo<amanha) alvo = amanha;
+  const padrao = padraoReunioesAgenda(currentUser.id);
+  const minhas = AGENDA.filter(v=>v.usuarioId===currentUser.id && v.status!=="Rejeitado");
+  const livre = (iso)=>{
+    const dow = new Date(iso+"T00:00:00").getDay();
+    if(dow===0 || dow===6) return false;
+    if(padrao.habituais.some(h=>h.dow===dow && (periodo==="Dia inteiro" || h.periodo===periodo))) return false;
+    return !minhas.some(v=>v.data===iso && (v.periodo==="Dia inteiro" || periodo==="Dia inteiro" || v.periodo===periodo));
+  };
+  let candidatos = [];
+  for(const raio of [7, 14]){
+    candidatos = [];
+    for(let off=-raio; off<=raio; off++){
+      const iso = somarDiasISO(alvo, off);
+      if(iso<amanha || !livre(iso)) continue;
+      candidatos.push({iso, diff:diasEntreISO(prazoOriginal, iso)});
+    }
+    if(candidatos.length>=3) break;
+  }
+  candidatos.sort((a,b)=> Math.abs(diasEntreISO(alvo,a.iso))-Math.abs(diasEntreISO(alvo,b.iso)) || (a.iso<b.iso?-1:1));
+  return {base, prazo:prazoOriginal, vencida, sugestoes:candidatos.slice(0,3), padrao};
+}
+
+// Função do módulo: rotulo prazo sugestao
+function rotuloPrazoSugestao(s, vencida, temBase){
+  if(!temBase) return "próximo dia livre";
+  if(vencida) return "prazo já vencido";
+  const d = s.diff;
+  return d===0 ? "no prazo (30 dias)" : d<0 ? (-d)+" dia"+(d===-1?"":"s")+" antes do prazo" : d+" dia"+(d===1?"":"s")+" após o prazo";
+}
+
+// Desenha na tela: render ultima visita unidade agenda
+function renderUltimaVisitaUnidadeAgenda(unidade){
+  const el = document.getElementById("ag-ultima-visita-info");
+  const hojeISO = dataISOLocal(new Date());
+  const passadas = AGENDA.filter(v=>v.unidade===unidade && v.status!=="Rejeitado" && v.data<=hojeISO);
+  if(!passadas.length){
+    el.innerHTML = '<div class="ag-painel-tit">Última visita à unidade</div><div class="ag-painel-txt">Nenhuma visita anterior registrada para esta unidade.</div>';
+    return;
+  }
+  const ultimaData = passadas.reduce((m,v)=>v.data>m?v.data:m, passadas[0].data);
+  const doDia = passadas.filter(v=>v.data===ultimaData);
+  const motivos = [...new Set(doDia.flatMap(v=>motivosSeparadosAgenda(v.motivo)))];
+  const quem = [...new Set(doDia.map(v=>primeiroNomeAgenda(v.usuarioNome)+" ("+v.periodo.toLowerCase()+")"))].join(", ");
+  const dias = diasEntreISO(ultimaData, hojeISO);
+  el.innerHTML = `<div class="ag-painel-tit">Última visita à unidade</div>
+    <div class="ag-painel-txt"><b>${dataBR(ultimaData)}</b> · ${dias===0?"hoje":"há "+dias+" dia"+(dias===1?"":"s")} · ${escHtml(quem)}</div>
+    <ul class="ag-bullets">${motivos.length ? motivos.map(m=>`<li>${escHtml(m)}</li>`).join("") : "<li>Motivo não informado</li>"}</ul>`;
+}
+
+// Desenha na tela: render sugestao revisita agenda
+function renderSugestaoRevisitaAgenda(unidade){
+  const el = document.getElementById("ag-sugestao");
+  const periodo = document.getElementById("ag-periodo").value || "Manhã";
+  const s = sugerirRevisitaAgenda(unidade, periodo);
+  const temBase = !!s.base;
+  let resumo;
+  if(!temBase) resumo = "Sem visita anterior: sugiro os próximos dias livres da sua agenda.";
+  else if(s.vencida) resumo = `Prazo de revisita (30 dias após ${dataBR(s.base)}) venceu em <b>${dataBR(s.prazo)}</b>. Estes são os próximos dias livres:`;
+  else resumo = `Revisita em 30 dias após <b>${dataBR(s.base)}</b> = <b>${dataBR(s.prazo)}</b>. Datas livres mais próximas:`;
+  const chips = s.sugestoes.length ? s.sugestoes.map(x=>{
+    const d = new Date(x.iso+"T00:00:00");
+    const sel = agDiasSelecionados.has(x.iso) ? " sel" : "";
+    return `<button type="button" class="ag-sug-chip${sel}" data-iso="${x.iso}" onclick="usarSugestaoAgenda('${x.iso}')"><b>${DIAS_SEMANA_ABREV[d.getDay()]} ${dataBR(x.iso).slice(0,5)}</b><small>${rotuloPrazoSugestao(x, s.vencida, temBase)}</small></button>`;
+  }).join("") : '<span class="ag-painel-txt">Não encontrei dia livre nas próximas semanas para esse período.</span>';
+  const hab = s.padrao.habituais;
+  const nota = hab.length
+    ? "Evitei seus dias de reunião habitual: "+hab.map(h=>DIAS_SEMANA_PLURAL[h.dow]+" ("+h.periodo.toLowerCase()+")").join(", ")+" e os dias em que você já tem visita."
+    : "Não identifiquei reuniões habituais na sua agenda; evitei apenas os dias em que você já tem visita.";
+  el.innerHTML = `<div class="ag-painel-tit">Sugestão de revisita</div>
+    <div class="ag-painel-txt">${resumo}</div>
+    <div class="ag-sug-chips">${chips}</div>
+    <div class="ag-painel-nota">${escHtml(nota)}</div>`;
+}
+
+// Função do módulo: marcar sugestoes agenda
+function marcarSugestoesAgenda(){
+  document.querySelectorAll("#ag-sugestao .ag-sug-chip").forEach(b=>b.classList.toggle("sel", agDiasSelecionados.has(b.dataset.iso)));
+}
+
+// Função do módulo: usar sugestao agenda
+function usarSugestaoAgenda(iso){
+  agDiasSelecionados.add(iso); agGarantirConfigDia(iso);
+  const hoje = new Date(), d = new Date(iso+"T00:00:00");
+  agCalMesOffset = (d.getFullYear()-hoje.getFullYear())*12 + (d.getMonth()-hoje.getMonth());
+  atualizarSelecaoAgenda();
+}
+
+// Função do módulo: mostrar ultima visita unidade
+function mostrarUltimaVisitaUnidade(){
+  const unidade = document.getElementById("ag-unidade").value;
+  const grade = document.getElementById("ag-paineis");
+  if(!grade) return;
+  if(agTipoAgenda!=="visita" || !unidade || !currentUser){ grade.style.display = "none"; return; }
+  grade.style.display = "grid";
+  renderUltimaVisitaUnidadeAgenda(unidade);
+  renderSugestaoRevisitaAgenda(unidade);
+}
+
+// Função do módulo: adicionar visita agenda
+async function adicionarVisitaAgenda(){
+  const dias = [...agDiasSelecionados].sort();
+  if(!dias.length){ alert("Selecione ao menos um dia no calendário."); return; }
+  if(dias.some(iso=>{ const g = new Date(iso+"T00:00:00").getDay(); return g===0 || g===6; })){
+    alert("Só é possível agendar visitas em dias úteis (segunda a sexta)."); return;
+  }
+  dias.forEach(agGarantirConfigDia);
+  const alvo = agAlvoVisita();
+  const sobrepoe = (a,b)=> a==="Dia inteiro" || b==="Dia inteiro" || a===b;
+  // cada dia: unidade + período + ao menos uma atividade; sem períodos sobrepostos dentro do mesmo dia
+  for(const iso of dias){
+    const ents = agDiasConfig[iso];
+    for(let i=0;i<ents.length;i++){
+      const e = ents[i];
+      e.unidade = agUnidadePadrao();
+      if(!e.unidade){ alert(agTipoAgenda==="local" ? "Escolha o local de trabalho." : "Escolha a unidade / loja."); return; }
+      if(!e.motivos.length){ alert("Em "+dataBR(iso)+": marque ao menos uma atividade principal."); return; }
+      for(let j=i+1;j<ents.length;j++){
+        if(sobrepoe(e.periodo, ents[j].periodo)){ alert("Em "+dataBR(iso)+": os períodos das unidades se sobrepõem. Use manhã em uma e tarde em outra."); return; }
+      }
+    }
+  }
+  // não duplica: mesma pessoa, mesma unidade, mesma data e período que se sobrepõe ao já agendado
+  const novas = [], duplicadas = [];
+  dias.forEach(iso=>agDiasConfig[iso].forEach(e=>{
+    const dup = AGENDA.some(v=>v.usuarioId===alvo.id && v.unidade===e.unidade && v.data===iso && v.status!=="Rejeitado" && sobrepoe(v.periodo, e.periodo));
+    if(dup) duplicadas.push(iso); else novas.push({iso, ...e});
+  }));
+  if(!novas.length){
+    alert("Você já tem visita nessa unidade, nesse período, em: "+[...new Set(duplicadas)].map(dataBR).join(", ")+".");
+    return;
+  }
+  const precisaAprovacao = currentUser.perfil === "Usuário Padrão";
+  const linhas = novas.map(n=>({
+    usuario_id: alvo.id, usuario_nome: alvo.nome, usuario_perfil: alvo.perfil,
+    unidade: n.unidade, data: n.iso, periodo: n.periodo, motivo: n.motivos.join(" + "), status: precisaAprovacao ? "Pendente" : "Aprovado",
+    oculto: false,
+    descricao: (document.getElementById("ag-descricao")?.value || "").trim() || null
+  }));
+  const btn = document.getElementById("ag-btn-agendar");
+  if(btn) btn.disabled = true;
+  try{
+    const { data: rows, error } = await dbGravarComOculto(p=>sb.from("agenda").insert(p).select(), linhas);
+    if(error){ alert("Erro ao agendar visita: "+error.message); return; }
+    (rows||[]).slice().reverse().forEach(r=>AGENDA.unshift(mapAgendaFromDb(r)));
+    if(alvo.id!==currentUser.id && rows && rows.length) notificarVisitas(rows.map(mapAgendaFromDb), "Visita agendada para você");
+    if(precisaAprovacao && rows && rows.length){
+      const diasNovos = [...new Set(novas.map(n=>n.iso))];
+      const unidades = [...new Set(novas.map(n=>n.unidade))].join(", ");
+      const resumoDias = diasNovos.length===1 ? dataBR(diasNovos[0]) : diasNovos.length+" dias ("+diasNovos.map(d=>d.slice(8,10)+"/"+d.slice(5,7)).join(", ")+")";
+      notificarAdminsCoordenadores("agenda_aprovacao", "Visita aguardando aprovação", currentUser.nome+" — "+unidades+" — "+resumoDias, "agenda", rows[0].id);
+    }
+  } finally {
+    if(btn) btn.disabled = false;
+  }
+  agDiasSelecionados.clear(); agDiasConfig = {}; agMotivosBase = []; agExtras = [];
+  fecharModalVisitaAgenda();
+  atualizarSelecaoAgenda();
+  mostrarUltimaVisitaUnidade();
+  renderInicio();
+  renderGradeSemanal();
+  renderGradeMensal();
+  const qtd = novas.length;
+  let msg = qtd===1 ? "Visita agendada" : qtd+" visitas agendadas";
+  if(duplicadas.length) msg += " ("+duplicadas.length+" já existia(m) e foi(ram) ignorada(s))";
+  msg += precisaAprovacao ? " — aguardando aprovação do organizador." : ".";
+  mostrarToast(msg);
+}
+
+// Remove/cancela: remover visita agenda
+async function removerVisitaAgenda(ids){
+  ids = [].concat(ids);
+  const msg = ids.length>1 ? "Esta linha reúne "+ids.length+" visitas (manhã e tarde) na mesma unidade. Remover as duas da agenda?" : "Remover esta visita da agenda?";
+  if(!confirm(msg)) return;
+  const { data: apagadas, error } = await sb.from("agenda").delete().in("id", ids).select("id");
+  if(error){ alert("Erro ao remover visita: "+error.message); return; }
+  if(!apagadas || !apagadas.length){ alert("Não foi possível remover: você não tem permissão para excluir esta visita (só quem a criou, o Administrador ou o Coordenador)."); return; }
+  notificarVisitas(AGENDA.filter(v=>ids.includes(v.id)), ids.length>1 ? "Visitas removidas" : "Visita removida");
+  AGENDA = AGENDA.filter(v=>!ids.includes(v.id));
+  renderInicio(); renderGradeSemanal(); renderGradeMensal();
+  if(typeof renderCalendario==="function") renderCalendario();
+  if(typeof diaCalAtual!=="undefined" && diaCalAtual && document.getElementById("modal-dia-cal").style.display!=="none") renderDiaCal();
+  mostrarToast(ids.length>1 ? "Visitas removidas." : "Visita removida.");
+}
+
+// Define o rótulo/cor visual de status de: tag status agenda
+function tagStatusAgenda(status){
+  const cor = status==="Aprovado"?"concluido":status==="Rejeitado"?"notificado":"andamento";
+  return `<span class="tag-status ${cor}">${status}</span>`;
+}
+
+// Função do módulo: fazer checkin
+/* ---- Check-in / Check-out (geolocalização obrigatória) ---- */
+async function fazerCheckin(id){
+  const v = AGENDA.find(x=>x.id===id);
+  if(!v) return;
+  if(v.status!=="Aprovado"){ alert("Essa visita ainda não foi aprovada pelo organizador."); return; }
+  mostrarToast("Obtendo localização para o check-in...");
+  let geo;
+  try{ geo = await capturarGeolocalizacaoObrigatoria(); }
+  catch(e){ alert("Check-in não realizado: "+e.message); return; }
+  const checkin = {hora:new Date().toLocaleString("pt-BR",{day:"2-digit",month:"2-digit",year:"numeric",hour:"2-digit",minute:"2-digit",second:"2-digit"}), geo};
+  const { error } = await sb.from("agenda").update({checkin}).eq("id", id);
+  if(error){ alert("Erro ao registrar check-in: "+error.message); return; }
+  v.checkin = checkin;
+  notificarVisitas([v], "Check-in registrado");
+  renderInicio();
+  mostrarToast("Check-in registrado com localização.");
+}
+
+// Função do módulo: fazer checkout
+async function fazerCheckout(id){
+  const v = AGENDA.find(x=>x.id===id);
+  if(!v) return;
+  if(!v.checkin){ alert("Faça o check-in antes do check-out."); return; }
+  if(await vistBloqueiaCheckout(id)) return;
+  mostrarToast("Obtendo localização para o check-out...");
+  let geo;
+  try{ geo = await capturarGeolocalizacaoObrigatoria(); }
+  catch(e){ alert("Check-out não realizado: "+e.message); return; }
+  const checkout = {hora:new Date().toLocaleString("pt-BR",{day:"2-digit",month:"2-digit",year:"numeric",hour:"2-digit",minute:"2-digit",second:"2-digit"}), geo};
+  const { error } = await sb.from("agenda").update({checkout}).eq("id", id);
+  if(error){ alert("Erro ao registrar check-out: "+error.message); return; }
+  v.checkout = checkout;
+  notificarVisitas([v], "Check-out registrado");
+  renderInicio();
+  mostrarToast("Check-out registrado com localização.");
+}
+
+// Função do módulo: interacao em andamento
 function interacaoEmAndamento(){
   const ae = document.activeElement;
   if(ae && /^(INPUT|TEXTAREA|SELECT)$/.test(ae.tagName)) return true;
   return [...document.querySelectorAll(".modal-bg")].some(m=>m.style.display && m.style.display!=="none");
 }
+
+// Função do módulo: recarregar operacionais
 // tabelas que mudam no dia a dia
 async function recarregarOperacionais(){
   const [rAc, rAg, rDem, rNot] = await Promise.all([
@@ -401,7 +714,8 @@ async function recarregarOperacionais(){
   await carregarAvisosCalendarioEpi();
   await carregarSessaoAtiva(); await carregarTempoDemandas();
 }
-const VIEWS_RECARREGAVEIS_AUTO = ["inicio","agenda","demandas","lancamento","calendario"];
+
+// Atualiza: atualizar dados
 async function atualizarDados(origem){
   if(!currentUser || atualizandoDados) return;
   const manual = origem==="manual";
@@ -428,26 +742,34 @@ async function atualizarDados(origem){
     if(btn) btn.classList.remove("girando");
   }
 }
+
+// Função do módulo: iniciar atualizacao automatica
 function iniciarAtualizacaoAutomatica(){
   pararAtualizacaoAutomatica();
   timerAtualizacao = setInterval(()=>atualizarDados("auto"), ATUALIZACAO_AUTO_MS);
 }
-function pararAtualizacaoAutomatica(){ if(timerAtualizacao){ clearInterval(timerAtualizacao); timerAtualizacao = null; } }
-document.addEventListener("visibilitychange", ()=>{
-  if(!document.hidden && currentUser && Date.now()-ultimaAtualizacao > 60000) atualizarDados("auto");
-});
 
+// Função do módulo: parar atualizacao automatica
+function pararAtualizacaoAutomatica(){ if(timerAtualizacao){ clearInterval(timerAtualizacao); timerAtualizacao = null; } }
+
+// Função do módulo: visitas pendentes agenda
 /* ---- Aprovação de visitas: feita direto na Visão Semanal (Administrador/Coordenador) ---- */
 function visitasPendentesAgenda(){ return AGENDA.filter(v=>v.status==="Pendente"); }
+
+// Função do módulo: intervalo semana agenda
 function intervaloSemanaAgenda(){
   const seg = segundaDaSemana(semanaAgendaOffset), sex = new Date(seg); sex.setDate(seg.getDate()+4);
   return [dataISOLocal(seg), dataISOLocal(sex)];
 }
+
+// Função do módulo: offset semana de data
 function offsetSemanaDeData(iso){
   const d = new Date(iso+"T00:00:00");
   const seg = new Date(d); seg.setDate(d.getDate() - ((d.getDay()+6)%7));
   return Math.round((seg - segundaDaSemana(0)) / (7*86400000));
 }
+
+// Função do módulo: ir para semana pendente agenda
 // Vai para a semana mais próxima com visita pendente. Se a semana mostrada já tem pendência, fica nela (a não ser que forcarOutra).
 function irParaSemanaPendenteAgenda(forcarOutra){
   calModo = "semana";
@@ -461,10 +783,14 @@ function irParaSemanaPendenteAgenda(forcarOutra){
   renderGradeSemanal();
   return true;
 }
+
+// Abre: abrir aprovacoes inicio
 function abrirAprovacoesInicio(){
   abrirModuloInicio("agenda","semanal");
   irParaSemanaPendenteAgenda();
 }
+
+// Desenha na tela: render aprovacao semana agenda
 function renderAprovacaoSemanaAgenda(){
   const el = document.getElementById("sem-aprovacao");
   if(!el) return;
@@ -481,6 +807,8 @@ function renderAprovacaoSemanaAgenda(){
       ${fora ? `<button type="button" class="small-btn" onclick="irParaSemanaPendenteAgenda(true)">Ver ${fora} em outras semanas →</button>` : ""}
     </span>`;
 }
+
+// Função do módulo: botoes aprovar agenda html
 // botões Aprovar / Rejeitar dentro do card da visita pendente (só para quem organiza)
 function botoesAprovarAgendaHtml(vs){
   const ids = (vs||[]).filter(x=>x && x.status==="Pendente" && !x._mask).map(x=>x.id);
@@ -490,6 +818,8 @@ function botoesAprovarAgendaHtml(vs){
     <button type="button" class="ag-ap nao" title="Rejeitar visita" onclick="event.stopPropagation(); decidirVisitasAgenda([${ids.join(",")}],'Rejeitado')">Rejeitar</button>
   </span>`;
 }
+
+// Função do módulo: decidir visitas agenda
 async function decidirVisitasAgenda(ids, status){
   if(!podeAprovarAgenda(currentUser)) return;
   const alvo = AGENDA.filter(v=>ids.includes(v.id) && v.status==="Pendente");
@@ -503,6 +833,8 @@ async function decidirVisitasAgenda(ids, status){
   renderInicio(); renderGradeSemanal(); renderGradeMensal();
   mostrarToast(alvo.length>1 ? alvo.length+(aprovar?" visitas aprovadas.":" visitas rejeitadas.") : (aprovar?"Visita aprovada.":"Visita rejeitada."));
 }
+
+// Função do módulo: aprovar semana agenda
 async function aprovarSemanaAgenda(){
   const [ini, fim] = intervaloSemanaAgenda();
   const ids = visitasPendentesAgenda().filter(v=>v.data>=ini && v.data<=fim).map(v=>v.id);
@@ -510,9 +842,14 @@ async function aprovarSemanaAgenda(){
   if(!confirm("Aprovar as "+ids.length+" visita(s) pendente(s) desta semana?")) return;
   await decidirVisitasAgenda(ids, "Aprovado");
 }
+
+// Função do módulo: aprovar visita
 function aprovarVisita(id){ return decidirVisitasAgenda([id], "Aprovado"); }
+
+// Função do módulo: rejeitar visita
 function rejeitarVisita(id){ return decidirVisitasAgenda([id], "Rejeitado"); }
 
+// Limpa: limpar filtros agenda indicadores
 /* ---- Indicadores da Agenda (Administrador/Coordenador) ---- */
 function limparFiltrosAgendaIndicadores(){
   document.getElementById("ag-ind-de").value = "";
@@ -520,18 +857,26 @@ function limparFiltrosAgendaIndicadores(){
   document.getElementById("ag-ind-profissional").value = "";
   renderIndicadoresAgenda();
 }
+
+// Verifica se: pode ver presenca agenda
 // Horário e localização do check-in/out: só o próprio usuário e o Administrador enxergam
 function podeVerPresencaAgenda(v){
   return !!currentUser && !!v && (currentUser.perfil==="Administrador" || v.usuarioId===currentUser.id);
 }
+
+// Função do módulo: link geo
 function linkGeo(geo, rotulo){
   if(!geo || geo.lat==null || geo.lng==null) return "";
   return `<a class="ag-geo" href="https://www.google.com/maps?q=${encodeURIComponent(geo.lat)},${encodeURIComponent(geo.lng)}" target="_blank" rel="noopener" title="${escHtml(rotulo||"Ver local no mapa")}" aria-label="${escHtml(rotulo||"Ver local no mapa")}" onclick="event.stopPropagation()"><svg viewBox="0 0 24 24" width="10" height="10" fill="currentColor"><path d="M12 2a7 7 0 0 1 7 7c0 5-7 13-7 13S5 14 5 9a7 7 0 0 1 7-7Zm0 4.5A2.5 2.5 0 1 0 12 11.5 2.5 2.5 0 0 0 12 6.5Z"/></svg></a>`;
 }
+
+// Função do módulo: celula presenca agenda
 function celulaPresencaAgenda(v, reg){
   if(!reg) return "—";
   return podeVerPresencaAgenda(v) ? escHtml(horaDoRegistroAgenda(reg) || reg.hora || "") : "Registrado";
 }
+
+// Desenha na tela: render indicadores agenda
 function renderIndicadoresAgenda(){
   const podeVer = podeAprovarAgenda(currentUser);
   const semPermissao = document.getElementById("agenda-indicadores-sem-permissao");
@@ -625,6 +970,7 @@ function renderIndicadoresAgenda(){
   }).join("");
 }
 
+// Função do módulo: segunda da semana
 /* ---- Visão semanal ---- */
 function segundaDaSemana(offsetSemanas){
   const hoje = new Date();
@@ -634,23 +980,33 @@ function segundaDaSemana(offsetSemanas){
   hoje.setDate(hoje.getDate()+diffParaSegunda+offsetSemanas*7);
   return hoje;
 }
+
+// Função do módulo: mudar semana agenda
 function mudarSemanaAgenda(delta){ semanaAgendaOffset += delta; renderGradeSemanal(); }
+
+// Função do módulo: ir semana atual agenda
 function irSemanaAtualAgenda(){ semanaAgendaOffset = 0; renderGradeSemanal(); }
+
+// Função do módulo: data ultima visita anterior
 function dataUltimaVisitaAnterior(usuarioId, unidade, dataAtual){
   const anteriores = AGENDA.filter(v=>v.usuarioId===usuarioId && v.unidade===unidade && v.status!=="Rejeitado" && v.data<dataAtual);
   if(!anteriores.length) return null;
   return anteriores.reduce((max,v)=> v.data>max?v.data:max, anteriores[0].data);
 }
+
+// Função do módulo: primeiro nome agenda
 /* ---- Visões semanal e mensal: uma linha por usuário, dividida em Manhã | Tarde (ou barra inteira = Dia inteiro) ---- */
 function primeiroNomeAgenda(n){ return String(n||"").trim().split(/\s+/)[0]; }
-// Monta as linhas de um dia: cada usuário com uma linha por visita "Dia inteiro" e uma linha dividida para manhã/tarde
-const LUZ_VERDE_DIAS = 20, LUZ_AMARELO_DIAS = 45;   // limites da luz de "última visita na unidade": verde ≤20 d, amarela ≤45 d, vermelha >45 d
-let agIndiceUnidades = new Map();                   // unidade -> datas (ordenadas) das visitas aprovadas
+
+// Função do módulo: montar indice unidades agenda
+// unidade -> datas (ordenadas) das visitas aprovadas
 function montarIndiceUnidadesAgenda(){
   const m = new Map();
   AGENDA.forEach(v=>{ if(v.status!=="Aprovado") return; if(!m.has(v.unidade)) m.set(v.unidade, new Set()); m.get(v.unidade).add(v.data); });
   agIndiceUnidades = new Map([...m].map(([u,s])=>[u,[...s].sort()]));
 }
+
+// Função do módulo: luz ultima visita
 // dias entre esta visita e a visita aprovada anterior à mesma unidade (qualquer usuário)
 function luzUltimaVisita(v){
   const datas = agIndiceUnidades.get(v.unidade) || [];
@@ -660,12 +1016,16 @@ function luzUltimaVisita(v){
   const dias = Math.round((new Date(v.data+"T00:00:00")-new Date(ant+"T00:00:00"))/86400000);
   return {cls: dias<=LUZ_VERDE_DIAS ? "verde" : dias<=LUZ_AMARELO_DIAS ? "amarelo" : "vermelho", ant, dias};
 }
+
+// Função do módulo: legenda luzes html
 function legendaLuzesHtml(){
   return `<span class="agm-luzes">
     <span><i class="ag-luz verde"></i>Verde: visita até ${LUZ_VERDE_DIAS} dias</span>
     <span><i class="ag-luz amarelo"></i>Amarela: ${LUZ_VERDE_DIAS+1} a ${LUZ_AMARELO_DIAS} dias</span>
     <span><i class="ag-luz vermelho"></i>Vermelha: loja sem visita há mais de ${LUZ_AMARELO_DIAS} dias</span></span>`;
 }
+
+// Função do módulo: linhas dia agenda
 function linhasDiaAgenda(iso, uidFiltro){
   const porUsuario = new Map();
   visitasAtivasDoDia(iso).filter(v=>!uidFiltro || v.usuarioId===uidFiltro).forEach(v=>{
@@ -690,6 +1050,8 @@ function linhasDiaAgenda(iso, uidFiltro){
   });
   return linhas;
 }
+
+// Abre: abrir edicao visita
 // edição de visita / local de trabalho (somente Administrador)
 function abrirEdicaoVisita(id){
   if(!ehAdministrador()){ alert("Somente o Administrador pode editar."); return; }
@@ -716,7 +1078,11 @@ function abrirEdicaoVisita(id){
   ov.addEventListener("mousedown", e=>{ if(e.target===ov) fecharEdicaoVisita(); });
   document.body.appendChild(ov);
 }
+
+// Fecha: fechar edicao visita
 function fecharEdicaoVisita(){ const o = document.getElementById("modal-edit-visita"); if(o) o.remove(); }
+
+// Salva no banco: salvar edicao visita
 async function salvarEdicaoVisita(id){
   if(!ehAdministrador()) return;
   const v = AGENDA.find(x=>x.id===id); if(!v) return;
@@ -735,11 +1101,17 @@ async function salvarEdicaoVisita(id){
   if(typeof diaCalAtual!=="undefined" && diaCalAtual && document.getElementById("modal-dia-cal").style.display!=="none") renderDiaCal();
   mostrarToast("Visita atualizada.");
 }
+
+// Verifica se: pode excluir visita agenda
 function podeExcluirVisitaAgenda(v){ return !!currentUser && !v._mask && (v.usuarioId===currentUser.id || ehAdminOuCoordenador()); }
+
+// Função do módulo: hora do registro agenda
 function horaDoRegistroAgenda(reg){
   const m = reg && reg.hora ? String(reg.hora).match(/(\d{2}:\d{2})/) : null;
   return m ? m[1] : "";
 }
+
+// Função do módulo: presenca visitas agenda
 // devolve a etiqueta pronta (HTML) com "✓ 08:10 📍 – 11:30 📍", ou "" se não há registro ou o usuário não pode ver
 function presencaVisitasAgenda(vs){
   const partes = vs.filter(podeVerPresencaAgenda).map(x=>{
@@ -750,6 +1122,8 @@ function presencaVisitasAgenda(vs){
   }).filter(Boolean);
   return partes.length ? `<span class="ag-tag ok">${partes.join(" &nbsp;")}</span>` : "";
 }
+
+// Função do módulo: presenca partes agenda
 // check-in: horário ao lado do local (com o ícone do mapa); check-out: linha vermelha com o horário
 function presencaPartesAgenda(vs){
   const lista = vs.filter(podeVerPresencaAgenda);
@@ -759,9 +1133,13 @@ function presencaPartesAgenda(vs){
   const saida = comOut ? `<div class="ag-saida"><span>Check-out ${escHtml(horaDoRegistroAgenda(comOut.checkout))}</span>${linkGeo(comOut.checkout.geo, "Ver local do check-out no mapa")}</div>` : "";
   return {entrada, saida};
 }
+
+// Função do módulo: dica visita agenda
 function dicaVisitaAgenda(vs){
   return vs.map(v=>v.usuarioNome+" · "+v.unidade+" · "+v.periodo+(v.motivo?" · "+v.motivo:"")+(v.status==="Pendente"?" (pendente de aprovação)":"")+(v.descricao?"\n"+v.descricao:"")).join("\n");
 }
+
+// Função do módulo: fatia agenda html
 // vs = [visita] ou [manhã, tarde] (mesma unidade); detalhe = visão semanal (mostra motivo, período, presença e botão excluir)
 function fatiaAgendaHtml(vs, cls, detalhe, luz){
   if(!vs || !vs.length || !vs[0]) return `<div class="ag-fatia ${cls} vazia"></div>`;
@@ -793,6 +1171,8 @@ function fatiaAgendaHtml(vs, cls, detalhe, luz){
     ? `<button type="button" class="ag-fatia-x" title="Remover ${vs.length>1?"estas visitas":"esta visita"}" aria-label="Remover visita" onclick="event.stopPropagation(); removerVisitaAgenda([${vs.map(x=>x.id).join(",")}])">×</button>` : "";
   return `<div class="ag-fatia ${cls} ${pendente?'pendente':''} ${v._mask?'mask':''}" title="${escHtml(dicaVisitaAgenda(vs))}">${corpo}${editar}${excluir}</div>`;
 }
+
+// Função do módulo: linhas dia agenda html
 function linhasDiaAgendaHtml(iso, detalhe, comNome, luz, uidFiltro, semTopo){
   return linhasDiaAgenda(iso, uidFiltro).map(l=>{
     const fatias = l.inteira ? fatiaAgendaHtml([l.inteira, l.par], "inteira", detalhe, luz)
@@ -807,16 +1187,22 @@ function linhasDiaAgendaHtml(iso, detalhe, comNome, luz, uidFiltro, semTopo){
     return `<div class="ag-linha">${avatarMiniAgenda(l.usuarioId, l.nome)}${nome}<div class="ag-fatias">${fatias}</div></div>`;
   }).join("");
 }
+
+// Função do módulo: avatar mini agenda
 function avatarMiniAgenda(usuarioId, nomeFallback){
   const u = USUARIOS.find(x=>x.id===usuarioId);
   const nome = u ? u.nome : (nomeFallback||"");
   if(u && u.foto) return `<img src="${u.foto}" class="agm-av" alt="" title="${escHtml(nome)}">`;
   return `<span class="agm-av" title="${escHtml(nome)}" style="background:${corAvatarPorNome(nome)};">${escHtml(iniciaisTexto(nome))}</span>`;
 }
+
+// Função do módulo: visitas ativas do dia
 function visitasAtivasDoDia(iso){
   return AGENDA.filter(v=>v.data===iso && v.status!=="Rejeitado").map(visitaMascarada)
     .sort((a,b)=> (ORDEM_PERIODO_AGENDA[a.periodo]??9)-(ORDEM_PERIODO_AGENDA[b.periodo]??9) || String(a.usuarioNome).localeCompare(String(b.usuarioNome),"pt-BR"));
 }
+
+// Desenha na tela: render grade semanal legado
 /* ---- Visão semanal ---- */
 function renderGradeSemanalLegado(){
   const wrap = document.getElementById("grade-semanal-agenda");
@@ -843,6 +1229,8 @@ function renderGradeSemanalLegado(){
   html += '</div>';
   wrap.innerHTML = html;
 }
+
+// Exporta: exportar imagem semana
 /* ---- imagem de compartilhamento da semana: retângulo padrão 16:9 (1920x1080), com visitas, locais e ausências ---- */
 // baixa um "print" da agenda exatamente como está na tela (semana ou mês, com os filtros atuais)
 async function exportarImagemSemana(){
@@ -882,6 +1270,8 @@ async function exportarImagemSemana(){
     wrap.remove(); if(btn) btn.disabled = false;
   }
 }
+
+// Exporta: exportar imagem semana canvas
 async function exportarImagemSemanaCanvas(){
   const pessoas = calPessoasSelecionadas().map(id=>USUARIOS.find(u=>u.id===id)).filter(Boolean);
   const seg = segundaDaSemana(semanaAgendaOffset);
@@ -950,6 +1340,8 @@ async function exportarImagemSemanaCanvas(){
     mostrarToast("Imagem da semana baixada.");
   }, "image/png");
 }
+
+// Exporta: exportar imagem semana legado
 function exportarImagemSemanaLegado(){
   const seg = segundaDaSemana(semanaAgendaOffset);
   const dias = [];
@@ -1019,9 +1411,14 @@ function exportarImagemSemanaLegado(){
   mostrarToast("Imagem da semana exportada.");
 }
 
+// Função do módulo: mudar mes agenda
 /* ---- Visão mensal: todos os dados de cada visita direto no dia (sem precisar clicar) ---- */
 function mudarMesAgenda(delta){ mesAgendaOffset += delta; renderGradeMensal(); }
+
+// Função do módulo: ir mes atual agenda
 function irMesAtualAgenda(){ mesAgendaOffset = 0; renderGradeMensal(); }
+
+// Função do módulo: visita mes html
 // vs = [visita] ou [manhã, tarde] (mesma unidade)
 function visitaMesHtml(vs){
   vs = vs.filter(Boolean);
@@ -1041,6 +1438,8 @@ function visitaMesHtml(vs){
     ${pres}
   </div>`;
 }
+
+// Função do módulo: dia mes agenda html
 // um bloco por pessoa (avatar + nome) com todas as visitas dela no dia
 function diaMesAgendaHtml(iso){
   const pessoas = new Map();
@@ -1055,6 +1454,8 @@ function diaMesAgendaHtml(iso){
     ${p.grupos.map(visitaMesHtml).join("")}
   </div>`).join("");
 }
+
+// Desenha na tela: render grade mensal legado
 function renderGradeMensalLegado(){
   const wrap = document.getElementById("grade-mensal-agenda");
   if(!wrap) return;

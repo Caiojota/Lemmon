@@ -1,11 +1,8 @@
 /* =====================================================================
-   GESTÃO — EPI e C.A por função
+   GESTÃO / CONFIGURAÇÕES — EPI por função, tipos de demanda, grupos e itens de checklist, motivos de agenda, tipos de ocorrência, fluxos
    ===================================================================== */
-const EF = {carregado:false, linhas:[], combos:new Map(), cargos:new Map(), itens:new Map(), abertos:new Set(), catalogo:[], aba:"funcoes", lista:"todas", busca:"", sel:null, edit:null};
-const efN = normalizarTextoComparacao;
-const efChave = (setor, funcao)=>efN(setor)+"|"+efN(funcao);
-const EF_CA_OK = /^(\d{3,6}|N\/?A)$/i;
 
+// Inicializa: init epi funcao
 async function initEpiFuncao(){
   if(!EF.carregado){
     document.getElementById("ef-lista").innerHTML = '<div class="ef-vazio">Carregando…</div>';
@@ -20,6 +17,8 @@ async function initEpiFuncao(){
   }
   efRenderTudo();
 }
+
+// Função do módulo: ef carregar
 async function efCarregar(){
   const [linhas, colabs] = await Promise.all([
     buscarTodasLinhas("epi_por_funcao", "id,setor,funcao,ca,descricao,ordem"),
@@ -55,10 +54,14 @@ async function efCarregar(){
   EF.carregado = true;
   invalidarBaseEpi();
 }
+
+// Função do módulo: ef colabs do combo
 function efColabsDoCombo(setor, funcao){
   const it = EF.itens.get(efChave(setor, funcao));
   return it ? it.n : 0;
 }
+
+// Função do módulo: ef montar catalogo
 function efMontarCatalogo(){
   const m = new Map();
   EF.linhas.forEach(l=>{
@@ -74,12 +77,18 @@ function efMontarCatalogo(){
     return {desc:g.desc, novoDesc:g.desc, cas:[...g.cas], novoCa:g.cas.size===1?[...g.cas][0]:"", ids:g.ids, n:g.combos.size};
   }).sort((a,b)=>a.desc.localeCompare(b.desc,"pt-BR"));
 }
+
+// Função do módulo: ef sem lista
 function efSemLista(){
   return [...EF.itens.values()].filter(i=>!i.rows);
 }
+
+// Função do módulo: ef render tudo
 function efRenderTudo(){
   efRenderKpis(); efRenderLista(); efRenderEditor(); efRenderCatalogo(); efRenderListas();
 }
+
+// Função do módulo: ef render listas
 function efRenderListas(){
   document.getElementById("ef-dl-epis").innerHTML = EF.catalogo.map(c=>`<option value="${escHtml(c.desc)}">`).join("");
   const setores = new Set(); EF.combos.forEach(c=>setores.add(c.setor)); EF.cargos.forEach(g=>g.setores.forEach(s=>setores.add(s.setor)));
@@ -87,6 +96,8 @@ function efRenderListas(){
   const funcoes = new Set(); EF.combos.forEach(c=>funcoes.add(c.funcao)); EF.cargos.forEach(g=>funcoes.add(g.cargo));
   document.getElementById("ef-dl-funcoes").innerHTML = [...funcoes].sort((a,b)=>a.localeCompare(b,"pt-BR")).map(s=>`<option value="${escHtml(s)}">`).join("");
 }
+
+// Função do módulo: ef render kpis
 function efRenderKpis(){
   const setores = new Set(); EF.itens.forEach(i=>setores.add(efN(i.setor)));
   let semColabs = 0; EF.itens.forEach(i=>{ if(!i.rows) semColabs += i.n; });
@@ -94,19 +105,29 @@ function efRenderKpis(){
   const k = (cls,n,r)=>`<div class="dm-kpi ${cls}"><span class="dm-kpi-ic">${ic}</span><div><b>${n}</b><span>${r}</span></div></div>`;
   document.getElementById("ef-kpis").innerHTML = k("", setores.size, "Setores") + k("terra", EF.combos.size, "Setor + função com lista") + k(semColabs?"verm":"", semColabs.toLocaleString("pt-BR"), "Colaboradores sem lista") + k("amb", EF.catalogo.length, "EPIs no catálogo");
 }
+
+// Função do módulo: ef mostrar aba
 function efMostrarAba(a){
   EF.aba = a;
   document.querySelectorAll("#ef-abas button").forEach(b=>b.classList.toggle("active", b.dataset.a===a));
   document.getElementById("ef-painel-funcoes").style.display = a==="funcoes" ? "" : "none";
   document.getElementById("ef-painel-catalogo").style.display = a==="catalogo" ? "" : "none";
 }
+
+// Função do módulo: ef trocar lista
 function efTrocarLista(l){
   EF.lista = l;
   document.querySelectorAll("#ef-seg button").forEach(b=>b.classList.toggle("active", b.dataset.l===l));
   efRenderLista();
 }
+
+// Função do módulo: ef filtrar lista
 function efFiltrarLista(v){ EF.busca = v; efRenderLista(); }
+
+// Função do módulo: ef alternar setor
 function efAlternarSetor(sn){ if(EF.abertos.has(sn)) EF.abertos.delete(sn); else EF.abertos.add(sn); efRenderLista(); }
+
+// Função do módulo: ef render lista
 function efRenderLista(){
   const q = efN(EF.busca);
   const el = document.getElementById("ef-lista");
@@ -148,6 +169,7 @@ function efRenderLista(){
   el.innerHTML = html;
 }
 
+// Função do módulo: ef destinos de
 /* ---- Editor ---- */
 function efDestinosDe(funcao, principalKey){
   const destinos = new Map();
@@ -159,6 +181,8 @@ function efDestinosDe(funcao, principalKey){
     return {key:k, setor:d.setor, n:d.n, tem, nItens: tem ? EF.combos.get(k).rows.length : 0, checked:false};
   }).sort((a,b)=>(a.tem-b.tem) || b.n-a.n || a.setor.localeCompare(b.setor,"pt-BR"));
 }
+
+// Função do módulo: ef selecionar
 function efSelecionar(k){
   const key = String(k).slice(2);
   const it = EF.itens.get(key); if(!it) return;
@@ -166,6 +190,8 @@ function efSelecionar(k){
   EF.edit = {modo:"combo", tem:!!it.rows, funcao:it.funcao, principal:{setor:it.setor, key}, linhas:(it.rows||[]).map(r=>({descricao:r.descricao, ca:r.ca||""})), destinos:efDestinosDe(it.funcao, key), setorTxt:"", funcaoTxt:""};
   efRenderLista(); efRenderEditor();
 }
+
+// Função do módulo: ef nova manual
 function efNovaManual(){
   efMostrarAba("funcoes");
   EF.sel = null;
@@ -173,6 +199,8 @@ function efNovaManual(){
   efRenderLista(); efRenderEditor();
   const f = document.getElementById("ef-man-setor"); if(f) f.focus();
 }
+
+// Função do módulo: ef render editor
 function efRenderEditor(){
   const el = document.getElementById("ef-editor");
   const ed = EF.edit;
@@ -205,6 +233,8 @@ function efRenderEditor(){
     <div class="ef-rodape"><span class="aviso" id="ef-aviso"></span><button type="button" class="btn-secondary" onclick="efCancelar()">Cancelar</button><button type="button" class="btn-primary inline" id="ef-salvar" onclick="efSalvar()">Salvar lista</button></div>`;
   efRenderLinhas(); efAtualizarAviso();
 }
+
+// Função do módulo: ef render linhas
 function efRenderLinhas(){
   const ed = EF.edit; if(!ed) return;
   const el = document.getElementById("ef-linhas");
@@ -218,14 +248,24 @@ function efRenderLinhas(){
       <span class="acoes"><button type="button" class="ef-btn-ic" title="Subir" ${i===0?"disabled":""} onclick="efMover(${i},-1)">↑</button><button type="button" class="ef-btn-ic" title="Descer" ${i===ed.linhas.length-1?"disabled":""} onclick="efMover(${i},1)">↓</button><button type="button" class="ef-btn-ic del" title="Remover" onclick="efDelLinha(${i})">×</button></span></div>`;
   }).join("");
 }
+
+// Função do módulo: ef add linha
 function efAddLinha(){ EF.edit.linhas.push({descricao:"", ca:""}); efRenderLinhas(); const ins = document.querySelectorAll("#ef-linhas .ef-linha input"); if(ins.length>=2) ins[ins.length-2].focus(); }
+
+// Função do módulo: ef del linha
 function efDelLinha(i){ EF.edit.linhas.splice(i,1); efRenderLinhas(); }
+
+// Função do módulo: ef mover
 function efMover(i, d){ const a = EF.edit.linhas; const j = i+d; if(j<0||j>=a.length) return; [a[i],a[j]] = [a[j],a[i]]; efRenderLinhas(); }
+
+// Função do módulo: ef ao escolher epi
 function efAoEscolherEpi(i){
   const l = EF.edit.linhas[i];
   const c = EF.catalogo.find(x=>efN(x.desc)===efN(l.descricao));
   if(c){ l.descricao = c.desc; if(!String(l.ca||"").trim() && c.cas.length===1) l.ca = c.cas[0]; efRenderLinhas(); }
 }
+
+// Função do módulo: ef copiar de
 function efCopiarDe(key){
   if(!key) return;
   const c = EF.combos.get(key); if(!c) return;
@@ -233,7 +273,11 @@ function efCopiarDe(key){
   EF.edit.linhas = c.rows.map(r=>({descricao:r.descricao, ca:r.ca||""}));
   efRenderEditor();
 }
+
+// Função do módulo: ef marcar dest
 function efMarcarDest(modo){ EF.edit.destinos.forEach(d=>{ d.checked = modo==="sem" ? !d.tem : false; }); efRenderEditor(); }
+
+// Função do módulo: ef atualizar aviso
 function efAtualizarAviso(){
   const ed = EF.edit, el = document.getElementById("ef-aviso"); if(!ed||!el) return;
   const marcados = ed.destinos.filter(d=>d.checked);
@@ -242,8 +286,14 @@ function efAtualizarAviso(){
   el.style.color = "var(--areia-esc)";
   el.textContent = marcados.length ? "Será aplicada também em "+marcados.length+" setor"+(marcados.length===1?"":"es")+(subst?" ("+subst+" com lista substituída)":"")+(colabs?" · passa a cobrir "+colabs.toLocaleString("pt-BR")+" colaboradores":"")+"." : "";
 }
+
+// Função do módulo: ef cancelar
 function efCancelar(){ EF.edit = null; EF.sel = null; efRenderLista(); efRenderEditor(); }
+
+// Função do módulo: ef aviso
 function efAviso(msg, erro){ const el = document.getElementById("ef-aviso"); if(el){ el.style.color = erro ? "var(--vermelho)" : "var(--verde-esc)"; el.textContent = msg; } }
+
+// Função do módulo: ef salvar
 async function efSalvar(){
   const ed = EF.edit; if(!ed) return;
   let funcao = ed.funcao, alvos = [];
@@ -290,6 +340,8 @@ async function efSalvar(){
   efAviso("Lista salva em "+alvos.length+" setor"+(alvos.length===1?"":"es")+".", false);
   mostrarToast("Lista de EPI salva.");
 }
+
+// Função do módulo: ef excluir lista
 async function efExcluirLista(){
   const ed = EF.edit; if(!ed || ed.modo!=="combo") return;
   const c = EF.combos.get(ed.principal.key); if(!c) return;
@@ -301,6 +353,7 @@ async function efExcluirLista(){
   mostrarToast("Lista excluída.");
 }
 
+// Função do módulo: ef render catalogo
 /* ---- Catálogo (C.A em lote) ---- */
 function efRenderCatalogo(){
   const el = document.getElementById("ef-catalogo"); if(!el) return;
@@ -311,6 +364,8 @@ function efRenderCatalogo(){
       <td>${c.n} combinaç${c.n===1?"ão":"ões"}</td>
       <td><button type="button" class="small-btn" style="white-space:nowrap;" onclick="efAplicarCatalogo(${i})">Aplicar a todas</button></td></tr>`).join("") + `</tbody></table>`;
 }
+
+// Função do módulo: ef aplicar catalogo
 async function efAplicarCatalogo(i){
   const c = EF.catalogo[i]; if(!c) return;
   const desc = c.novoDesc.trim(), ca = c.novoCa.trim();
@@ -326,6 +381,7 @@ async function efAplicarCatalogo(i){
   mostrarToast("EPI e C.A atualizados em todas as funções.");
 }
 
+// Desenha na tela: render opcoes demandas
 /* ---- Gestão de Demandas: opções (categoria/tipo) e fluxos (colunas do Kanban) ---- */
 function renderOpcoesDemandas(){
   ["categoria","area","tipo_atividade"].forEach(tipo=>{
@@ -340,6 +396,8 @@ function renderOpcoesDemandas(){
     `).join("") : '<span class="estrutura-vazio">Nenhum item cadastrado.</span>';
   });
 }
+
+// Função do módulo: add opcao demanda
 async function addOpcaoDemanda(tipo){
   const input = document.getElementById("novo-item-dem-"+tipo);
   const valor = input.value.trim();
@@ -352,6 +410,8 @@ async function addOpcaoDemanda(tipo){
   renderOpcoesDemandas();
   popularFiltrosDemandas();
 }
+
+// Remove/cancela: remover opcao demanda
 async function removerOpcaoDemanda(tipo, idx){
   const valor = DEMANDAS_OPCOES[tipo][idx];
   if(!confirm("Remover este item?")) return;
@@ -362,6 +422,7 @@ async function removerOpcaoDemanda(tipo, idx){
   popularFiltrosDemandas();
 }
 
+// Desenha na tela: render tipos demanda config
 /* ---- Tipos de demanda: fluxo automático + tempo estimado padrão ---- */
 function renderTiposDemandaConfig(){
   const selNovo = document.getElementById("novo-tipo-fluxo");
@@ -383,6 +444,8 @@ function renderTiposDemandaConfig(){
     </tr>`;
   }).join("");
 }
+
+// Função do módulo: add tipo demanda config
 async function addTipoDemandaConfig(){
   const nome = document.getElementById("novo-tipo-nome").value.trim();
   const fluxoId = Number(document.getElementById("novo-tipo-fluxo").value);
@@ -401,6 +464,8 @@ async function addTipoDemandaConfig(){
   renderTiposDemandaConfig();
   mostrarToast("Tipo de demanda adicionado.");
 }
+
+// Atualiza: atualizar tipo demanda config
 async function atualizarTipoDemandaConfig(id, campo, valor){
   const t = DEMANDAS_TIPOS_CONFIG.find(x=>x.id===id);
   if(!t) return;
@@ -412,6 +477,8 @@ async function atualizarTipoDemandaConfig(id, campo, valor){
   if(error){ alert("Erro ao atualizar: "+error.message); return; }
   mostrarToast("Configuração atualizada.");
 }
+
+// Remove/cancela: remover tipo demanda config
 async function removerTipoDemandaConfig(id){
   if(!confirm("Remover este tipo de demanda? Demandas já criadas com esse tipo não serão alteradas.")) return;
   const { error } = await sb.from("demandas_tipos_config").delete().eq("id", id);
@@ -420,6 +487,7 @@ async function removerTipoDemandaConfig(id){
   renderTiposDemandaConfig();
 }
 
+// Desenha na tela: render grupos checklist
 /* ---- Gestão do Checklist de Inspeção (Parte 1: grupos + itens) ---- */
 function renderGruposChecklist(){
   const wrap = document.getElementById("lista-grupos-checklist");
@@ -435,6 +503,8 @@ function renderGruposChecklist(){
   const selNovoItem = document.getElementById("novo-item-checklist-grupo");
   if(selNovoItem) selNovoItem.innerHTML = grupos.map(g=>`<option value="${g.id}">${g.nome}</option>`).join("") || '<option value="">Cadastre um grupo primeiro</option>';
 }
+
+// Função do módulo: add grupo checklist
 async function addGrupoChecklist(){
   const input = document.getElementById("novo-grupo-checklist-nome");
   const nome = input.value.trim();
@@ -448,6 +518,8 @@ async function addGrupoChecklist(){
   renderItensChecklistConfig();
   mostrarToast("Grupo adicionado.");
 }
+
+// Remove/cancela: remover grupo checklist
 async function removerGrupoChecklist(id){
   const qtd = CHECKLIST_ITENS_CONFIG.filter(i=>i.grupoId===id).length;
   if(!confirm(qtd ? `Remover este grupo e seus ${qtd} item(ns)?` : "Remover este grupo?")) return;
@@ -458,6 +530,8 @@ async function removerGrupoChecklist(id){
   renderGruposChecklist();
   renderItensChecklistConfig();
 }
+
+// Desenha na tela: render itens checklist config
 function renderItensChecklistConfig(){
   const tbody = document.getElementById("tbl-itens-checklist-config");
   if(!tbody) return;
@@ -478,6 +552,8 @@ function renderItensChecklistConfig(){
     </tr>`;
   }).join("");
 }
+
+// Função do módulo: add item checklist
 async function addItemChecklist(){
   const grupoId = Number(document.getElementById("novo-item-checklist-grupo").value);
   const titulo = document.getElementById("novo-item-checklist-titulo").value.trim();
@@ -499,6 +575,8 @@ async function addItemChecklist(){
   renderItensChecklistConfig();
   mostrarToast("Item adicionado.");
 }
+
+// Atualiza: atualizar item checklist config
 async function atualizarItemChecklistConfig(id, campo, valor){
   const item = CHECKLIST_ITENS_CONFIG.find(i=>i.id===id);
   if(!item) return;
@@ -510,6 +588,8 @@ async function atualizarItemChecklistConfig(id, campo, valor){
   mostrarToast("Item atualizado.");
   renderGruposChecklist();
 }
+
+// Remove/cancela: remover item checklist
 async function removerItemChecklist(id){
   if(!confirm("Remover este item do checklist?")) return;
   const { error } = await sb.from("checklist_itens_config").delete().eq("id", id);
@@ -519,6 +599,7 @@ async function removerItemChecklist(id){
   renderItensChecklistConfig();
 }
 
+// Desenha na tela: render motivos agenda gestao
 /* ---- Gestão dos motivos de visita da Agenda ---- */
 function renderMotivosAgendaGestao(){
   const wrap = document.getElementById("lista-motivos-agenda");
@@ -530,6 +611,8 @@ function renderMotivosAgendaGestao(){
       <button type="button" class="del-btn" onclick="removerMotivoAgenda(${m.id})">Remover</button>
     </div>`).join("") : '<span class="estrutura-vazio">Nenhum motivo cadastrado.</span>';
 }
+
+// Função do módulo: add motivo agenda
 async function addMotivoAgenda(){
   const input = document.getElementById("novo-motivo-agenda");
   const valor = input.value.trim();
@@ -544,6 +627,8 @@ async function addMotivoAgenda(){
   popularMotivosAgenda();
   mostrarToast("Motivo de visita adicionado.");
 }
+
+// Remove/cancela: remover motivo agenda
 async function removerMotivoAgenda(id){
   if(!confirm("Remover este motivo da lista? As visitas já lançadas não são alteradas.")) return;
   const { error } = await sb.from("agenda_motivos").delete().eq("id", id);
@@ -553,6 +638,7 @@ async function removerMotivoAgenda(id){
   popularMotivosAgenda();
 }
 
+// Desenha na tela: render tipos ocorrencia gestao
 /* ---- Gestão dos Tipos de Ocorrência (Parte 3) ---- */
 function renderTiposOcorrenciaGestao(){
   const wrap = document.getElementById("lista-tipos-ocorrencia");
@@ -565,6 +651,8 @@ function renderTiposOcorrenciaGestao(){
     </div>
   `).join("") : '<span class="estrutura-vazio">Nenhum tipo cadastrado.</span>';
 }
+
+// Função do módulo: add tipo ocorrencia
 async function addTipoOcorrencia(){
   const input = document.getElementById("novo-tipo-ocorrencia");
   const valor = input.value.trim();
@@ -578,6 +666,8 @@ async function addTipoOcorrencia(){
   renderTiposOcorrenciaGestao();
   mostrarToast("Tipo de ocorrência adicionado.");
 }
+
+// Remove/cancela: remover tipo ocorrencia
 async function removerTipoOcorrencia(id){
   if(!confirm("Remover este tipo de ocorrência?")) return;
   const { error } = await sb.from("ocorrencias_tipos").delete().eq("id", id);
@@ -586,6 +676,7 @@ async function removerTipoOcorrencia(id){
   renderTiposOcorrenciaGestao();
 }
 
+// Função do módulo: criar fluxo
 async function criarFluxo(){
   const input = document.getElementById("novo-fluxo-nome");
   const nome = input.value.trim();
@@ -599,6 +690,8 @@ async function criarFluxo(){
   popularFiltrosDemandas();
   mostrarToast("Fluxo criado. Adicione etapas a ele abaixo.");
 }
+
+// Remove/cancela: remover fluxo
 async function removerFluxo(id){
   if(!confirm("Remover este fluxo e todas as suas etapas? Demandas nesse fluxo perderão a referência.")) return;
   const { error } = await sb.from("fluxos").delete().eq("id", id);
@@ -610,6 +703,8 @@ async function removerFluxo(id){
   popularFiltrosDemandas();
   renderVisaoAtivaDemandas();
 }
+
+// Função do módulo: add etapa fluxo
 async function addEtapaFluxo(fluxoId){
   const input = document.getElementById("nova-etapa-"+fluxoId);
   const nome = input.value.trim();
@@ -625,6 +720,8 @@ async function addEtapaFluxo(fluxoId){
   renderFluxosConfig();
   renderVisaoAtivaDemandas();
 }
+
+// Remove/cancela: remover etapa fluxo
 async function removerEtapaFluxo(etapaId){
   const temDemandas = DEMANDAS.some(d=>d.etapaId===etapaId);
   const msg = temDemandas ? "Existem demandas nessa etapa. Remover mesmo assim? Elas ficarão sem etapa definida." : "Remover esta etapa?";
@@ -635,6 +732,8 @@ async function removerEtapaFluxo(etapaId){
   renderFluxosConfig();
   renderVisaoAtivaDemandas();
 }
+
+// Função do módulo: mudar cor etapa
 async function mudarCorEtapa(etapaId, cor){
   const e = FLUXO_ETAPAS.find(x=>x.id===etapaId);
   if(e) e.cor = cor;
@@ -643,6 +742,8 @@ async function mudarCorEtapa(etapaId, cor){
   const { error } = await sb.from("fluxo_etapas").update({cor}).eq("id", etapaId);
   if(error) console.error("[Supabase] cor etapa:", error);
 }
+
+// Função do módulo: mover etapa
 async function moverEtapa(etapaId, direcao){
   const e = FLUXO_ETAPAS.find(x=>x.id===etapaId);
   if(!e) return;
@@ -659,6 +760,8 @@ async function moverEtapa(etapaId, direcao){
     sb.from("fluxo_etapas").update({ordem:alvo.ordem}).eq("id", alvo.id)
   ]);
 }
+
+// Desenha na tela: render fluxos config
 function renderFluxosConfig(){
   const wrap = document.getElementById("lista-fluxos-config");
   if(!wrap) return;

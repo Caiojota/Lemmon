@@ -1,26 +1,8 @@
 /* =====================================================================
-   RELATÓRIO VISTORIAL — lista, checklist, inconformidades, ocorrências, plano de ação, assinatura e PDF
+   RELATÓRIO VISTORIAL (visão do técnico) — checklist, inconformidades, ocorrências, plano de ação, assinatura, PDF e configurações de GUT
    ===================================================================== */
-let VIST_REL = [], VIST_CFG = {tipos:[], riscos:[], gutItens:[], gutClasses:[]};
-let VIST_ATUAL = null, VIST_TAB = "checklist", VIST_FILTRO = "todos", VIST_BUSCA = "";
-let VIST_ACOES = [], VIST_ACOES_TS = 0, VIST_PDF = null, VIST_JAN = null, vistSaveTimer = null, VIST_LOJAS = null;
-const VIST_PRAZOS = [1,7,15,30];
-const VIST_STATUS_INC = ["Notificado","Em andamento","Solucionado (a verificar)","Concluído","Não resolvido"];
-const VIST_URL_PUBLICA = "https://caiojota.github.io/Platafroma-Lemon/";
-const VIST_TOKEN_DIAS = 60;
-const VIST_ICO = {
-  inc:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>',
-  oc:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v1"/></svg>',
-  cam:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l1.6-2.4h6.8L17 8h3a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1Z"/><circle cx="12" cy="13" r="3.6"/></svg>',
-  check:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m4 12.5 5 5L20 6.5"/></svg>'
-};
-const vN = n => String(n).padStart(4,"0");
-const vNorm = s => String(s||"").normalize("NFD").replace(/[̀-ͯ]/g,"").toUpperCase().replace(/\s+/g," ").trim();
-const vEsc = s => escHtml(String(s==null?"":s));
-const vHoje = () => dataISOLocal(new Date());
-/* ---------- códigos (C / I / O), aparelho, assinatura validada, indicadores ---------- */
-const vCod = (o, n)=> (o||"I") + vN(n||0);
-let VIST_ITENS = [], VIST_LCARDS = [], VIST_MODO = "rel", VIST_PUN = "", VIST_PAINEL = null, VIST_PFIL = "abertas";
+
+// Função do módulo: vist device id
 function vistDeviceId(){
   try{
     let d = localStorage.getItem("vist_dev_id");
@@ -28,6 +10,8 @@ function vistDeviceId(){
     return d;
   }catch(e){ return "sem-armazenamento"; }
 }
+
+// Função do módulo: v sha
 async function vSha(txt){
   try{
     if(window.crypto && crypto.subtle){
@@ -39,17 +23,23 @@ async function vSha(txt){
   for(let i=0;i<s.length;i++){ const c = s.charCodeAt(i); h1 = Math.imul(h1^c, 16777619)>>>0; h2 = Math.imul(h2+c, 2654435761)>>>0; }
   return ("f"+h1.toString(16).padStart(8,"0")+h2.toString(16).padStart(8,"0")).padEnd(64,"0");
 }
+
+// Função do módulo: vist meta aparelho
 async function vistMetaAparelho(){
   const n = navigator, s = screen || {};
   const fp = (await vSha(JSON.stringify([n.userAgent||"", n.platform||"", n.language||"", (s.width||0)+"x"+(s.height||0), n.hardwareConcurrency||0, n.maxTouchPoints||0]))).slice(0,16);
   return {id:vistDeviceId(), fp};
 }
+
+// Função do módulo: vist hash conteudo
 async function vistHashConteudo(r){
   const ck = (r.checklist||[]).map(g=>[g.grupo, g.itens.map(i=>[i.id, i.r||"", (i.t||"").trim(), (i.f||[]).length])]);
   const ii = (r.inc||[]).filter(x=>x.origem!=="C").map(x=>[x.id, x.tipo, x.local, x.risco_desvio, x.gut_classe, x.data_limite]);
   const oo = (r.oc||[]).map(x=>[x.id, x.tipo, x.descricao, x.colaborador_matricula||""]);
   return await vSha(JSON.stringify([r.id, r.codigo, ck, ii, oo]));
 }
+
+// Função do módulo: vist coletar assinatura
 async function vistColetarAssinatura(quem, pessoa, img){
   const r = VIST_ATUAL;
   const geo = await capturarGeolocalizacaoObrigatoria();
@@ -60,6 +50,8 @@ async function vistColetarAssinatura(quem, pessoa, img){
   const hash = await vSha(JSON.stringify([r.codigo, quem, pessoa.nome, pessoa.doc, em, geo, aparelho.id, aparelho.fp, conteudo, imgHash]));
   return {quem, nome:pessoa.nome, doc:pessoa.doc||"", cargo:pessoa.cargo||"", em, geo, aparelho, conteudo, imgHash, hash};
 }
+
+// Função do módulo: vist assinaturas validas
 async function vistAssinaturasValidas(r){
   const atual = await vistHashConteudo(r);
   const t = !!(r.assinaturaImg && r.assinaturaMeta && r.assinaturaMeta.conteudo===atual);
@@ -67,24 +59,31 @@ async function vistAssinaturasValidas(r){
   const feitoT = !!(r.assinaturaImg && r.assinaturaMeta), feitoL = !!(r.assinaturaLoja && r.assinaturaLoja.img);
   return {t, l, feitoT, feitoL, atual, ok:t&&l};
 }
+
+// Função do módulo: vist contar check
 function vistContarCheck(r){
   const c = {C:0, CA:0, NC:0, t:0};
   (r.checklist||[]).forEach(g=>g.itens.forEach(i=>{ if(i.r){ c[i.r]++; c.t++; } }));
   return c;
 }
-const vistConf = c => { const t = c.C+c.CA+c.NC; return t ? Math.round(c.C/t*100) : 0; };
+
+// Função do módulo: vist hist conf
 function vistHistConf(r, ck){
   const l = ((r.painel&&r.painel.relatorios)||[]).filter(x=>x.id!==r.id).map(x=>{ const t = (x.c||0)+(x.ca||0)+(x.nc||0); return {id:x.id, data:x.data, pct:t?Math.round(x.c/t*100):null}; }).filter(x=>x.pct!==null);
   l.push({id:r.id, data:r.data, pct:vistConf(ck)});
   l.sort((a,b)=>String(a.data).localeCompare(String(b.data)) || a.id-b.id);
   return l.slice(-8);
 }
+
+// Função do módulo: vist donut svg
 function vistDonutSvg(c, ca, nc, size){
   const t = c+ca+nc, R = 40, C = 2*Math.PI*R; let off = 0;
   const seg = (v,col)=>{ if(!v||!t) return ""; const len = v/t*C; const s = `<circle cx="50" cy="50" r="${R}" fill="none" stroke="${col}" stroke-width="16" stroke-dasharray="${len.toFixed(2)} ${(C-len).toFixed(2)}" stroke-dashoffset="${(-off).toFixed(2)}" transform="rotate(-90 50 50)"/>`; off += len; return s; };
   const pct = t ? Math.round(c/t*100) : 0;
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="${size}" height="${size}" font-family="Arial,sans-serif"><circle cx="50" cy="50" r="${R}" fill="none" stroke="#e7e1d6" stroke-width="16"/>${seg(c,"#16a34a")}${seg(ca,"#f59e0b")}${seg(nc,"#dc2626")}<text x="50" y="50" text-anchor="middle" dominant-baseline="central" font-size="20" font-weight="800" fill="#1a1a1a">${t?pct+"%":"—"}</text></svg>`;
 }
+
+// Função do módulo: vist tendencia svg
 function vistTendenciaSvg(h, w, hh){
   const W = 360, H = 130, pl = 28, pb = 22, pt = 12, pr = 6, n = Math.max(h.length,1), gap = (W-pl-pr)/n, bw = Math.min(34, gap*.62);
   const dim = hh ? `width="${w}" height="${hh}"` : `width="${w}" style="height:auto"`;
@@ -96,9 +95,13 @@ function vistTendenciaSvg(h, w, hh){
   });
   return s + "</svg>";
 }
+
+// Função do módulo: vist legenda
 function vistLegenda(c, ca, nc){
   return `<div class="vt-leg"><span><i style="background:#16a34a"></i>Conforme (C): <b>${c}</b></span><span><i style="background:#f59e0b"></i>C/ advertência (C/A): <b>${ca}</b></span><span><i style="background:#dc2626"></i>Não conforme (N/C): <b>${nc}</b></span></div>`;
 }
+
+// Função do módulo: vist meta resumo
 function vistMetaResumo(m){
   if(!m) return "";
   const g = m.geo ? `${Number(m.geo.lat).toFixed(5)}, ${Number(m.geo.lng).toFixed(5)} (±${m.geo.precisao}m)` : "—";
@@ -106,10 +109,16 @@ function vistMetaResumo(m){
   return `<div class="vt-meta">🕒 ${vDataHora(m.em)}<br>📍 ${mapa?`<a href="${mapa}" target="_blank" rel="noopener">${g}</a>`:g}<br>📱 ID do aparelho <span class="mono">${vEsc((m.aparelho&&m.aparelho.id||"").slice(0,13))}</span><br>🔐 <span class="mono">${vEsc((m.hash||"").slice(0,24))}…</span></div>`;
 }
 
+// Função do módulo: v add dias
 function vAddDias(iso, n){ const d = new Date(iso+"T12:00:00"); d.setDate(d.getDate()+n); return dataISOLocal(d); }
+
+// Função do módulo: v data hora
 function vDataHora(iso){ if(!iso) return ""; const d = new Date(iso); return d.toLocaleDateString("pt-BR")+" às "+d.toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"}); }
+
+// Função do módulo: v pode ver todos
 function vPodeVerTodos(){ return ehAdminOuCoordenador(); }
 
+// Função do módulo: vist carregar config
 /* ---------- carga de dados ---------- */
 async function vistCarregarConfig(){
   const [a,b,c,d] = await Promise.all([
@@ -120,6 +129,8 @@ async function vistCarregarConfig(){
   ]);
   VIST_CFG.tipos = a.data||[]; VIST_CFG.riscos = b.data||[]; VIST_CFG.gutItens = c.data||[]; VIST_CFG.gutClasses = d.data||[];
 }
+
+// Função do módulo: vist map rel
 function vistMapRel(r){
   return {id:r.id, unidade:r.unidade, data:r.data, tecnicoId:r.tecnico_id, tecnicoNome:r.tecnico_nome||"", registro:r.tecnico_registro||"", cargo:r.tecnico_cargo||"",
     agendaId:r.agenda_id, status:r.status, checklist:r.checklist||[], geoInicio:r.geo_inicio||null, assinaturaNome:r.assinatura_nome||"", assinaturaImg:r.assinatura_img||null, assinaturaMeta:r.assinatura_meta||null, assinaturaLoja:r.assinatura_loja||null,
@@ -127,6 +138,8 @@ function vistMapRel(r){
     numero:r.numero||null, codigo:r.codigo||"", token:r.token||"", tokenExpira:r.token_expira||null, assinadoEm:r.assinado_em||null,
     finalizadoEm:r.finalizado_em||null, criadoEm:r.created_at, itensTotal:r.itens_total||0, itensResp:r.itens_resp||0, nInc:0, nOc:0, nNC:0};
 }
+
+// Função do módulo: vist carregar lista
 async function vistCarregarLista(){
   const cols = "id,numero,codigo,unidade,data,tecnico_id,tecnico_nome,agenda_id,status,itens_total,itens_resp,finalizado_em,created_at,assinado_em,n_c,n_ca,n_nc";
   const [r, i, o] = await Promise.all([
@@ -142,6 +155,7 @@ async function vistCarregarLista(){
   (o.data||[]).forEach(x=>{ if(porId[x.relatorio_id]) porId[x.relatorio_id].nOc++; });
 }
 
+// Função do módulo: vist visitas ativas
 /* ---------- visita ativa (check-in feito, check-out pendente) ---------- */
 function vistVisitasAtivas(){
   if(!currentUser) return [];
@@ -149,6 +163,7 @@ function vistVisitasAtivas(){
   return AGENDA.filter(v=>v.usuarioId===currentUser.id && v.data===h && v.status==="Aprovado" && v.checkin && !v.checkout);
 }
 
+// Inicializa: init inspecoes
 /* ---------- tela inicial: lista ---------- */
 async function initInspecoes(){
   vistGarantirDom();
@@ -156,8 +171,14 @@ async function initInspecoes(){
   await vistCarregarLista();
   vistRenderLista();
 }
+
+// Função do módulo: vist filtro
 function vistFiltro(f){ VIST_FILTRO = f; vistRenderLista(); }
+
+// Função do módulo: vist buscar
 function vistBuscar(v){ VIST_BUSCA = v; vistRenderLista(true); }
+
+// Função do módulo: vist card rel
 function vistCardRel(r){
   const fin = r.status==="Finalizado";
   const pct = r.itensTotal ? Math.round(r.itensResp/r.itensTotal*100) : 0;
@@ -168,6 +189,8 @@ function vistCardRel(r){
     ${fin ? "" : `<div class="vt-prog"><i style="width:${pct}%"></i></div>`}
   </div>`;
 }
+
+// Função do módulo: vist lojas resumo
 function vistLojasResumo(){
   const hoje = vHoje(), m = {};
   VIST_REL.forEach(r=>{ const o = m[r.unidade] || (m[r.unidade] = {unidade:r.unidade, n:0, rasc:0, ult:null, conf:null}); o.n++; if(r.status!=="Finalizado") o.rasc++;
@@ -175,9 +198,17 @@ function vistLojasResumo(){
   Object.values(m).forEach(o=>{ const it = VIST_ITENS.filter(x=>x.unidade===o.unidade && x.status!=="Concluído"); o.abertas = it.length; o.venc = it.filter(x=>x.data_limite && x.data_limite<hoje).length; });
   return Object.values(m).sort((a,b)=>a.unidade.localeCompare(b.unidade,"pt-BR"));
 }
+
+// Função do módulo: vist abrir loja
 function vistAbrirLoja(i){ VIST_PUN = VIST_LCARDS[i].unidade; VIST_PAINEL = null; VIST_FILTRO = "todos"; vistRenderLista(); window.scrollTo(0,0); }
+
+// Função do módulo: vist voltar lojas
 function vistVoltarLojas(){ VIST_PUN = ""; VIST_PAINEL = null; vistRenderLista(); }
+
+// Função do módulo: vist novo loja
 function vistNovoLoja(){ vistNovo(VIST_PUN); }
+
+// Função do módulo: vist render lista
 function vistRenderLista(manterFoco){
   const wrap = document.getElementById("vt-lista"); if(!wrap) return;
   const ck = document.getElementById("vt-aviso-ck");
@@ -203,29 +234,37 @@ function vistRenderLista(manterFoco){
     <div class="vt-loja-k"><div class="${o.conf===null?"":o.conf>=90?"ok":o.conf>=70?"md":"al"}"><b>${o.conf===null?"—":o.conf+"%"}</b><span>Conformidade</span></div><div class="${o.abertas?"al":""}"><b>${o.abertas}</b><span>Em aberto</span></div><div class="${o.venc?"al":""}"><b>${o.venc}</b><span>Vencidos</span></div></div></div>`).join("");
 }
 
+// Função do módulo: vist iniciais
 /* ---------- código do relatório: 3 letras da unidade + nº (0001) + ano + iniciais do técnico + mês ---------- */
 function vistIniciais(nome){
   const p = vNorm(nome).split(" ").filter(w=>w && !["DE","DA","DO","DAS","DOS","E"].includes(w));
   if(!p.length) return "XX";
   return (p[0][0] + (p.length>1 ? p[p.length-1][0] : "")).replace(/[^A-Z]/g,"");
 }
+
+// Função do módulo: vist codigo
 function vistCodigo(unidade, numero, data, tecnico){
   const letras = vNorm(unidade).replace(/[^A-Z]/g,"").slice(0,3).padEnd(3,"X");
   return letras + vN(numero) + String(data).slice(0,4) + vistIniciais(tecnico) + String(data).slice(5,7);
 }
 
+// Função do módulo: vist visitas hoje
 /* ---------- novo relatório ---------- */
 function vistVisitasHoje(){
   if(!currentUser) return [];
   const h = vHoje();
   return AGENDA.filter(v=>v.usuarioId===currentUser.id && v.data===h && v.status==="Aprovado" && !calEhLocalTrabalho(v.unidade));
 }
+
+// Função do módulo: vist bloqueio checkin
 // só bloqueia quando há visita aprovada hoje (fora local de trabalho) sem check-in feito
 function vistBloqueioCheckin(){
   const vis = vistVisitasHoje().filter(v=>!v.checkout);
   if(!vis.length) return false;
   return !vis.some(v=>v.checkin);
 }
+
+// Função do módulo: vist novo
 async function vistNovo(un){
   if(vistBloqueioCheckin()){ alert("Você tem uma visita agendada para hoje. Faça o check-in dela (página Início) para iniciar o relatório vistorial."); return; }
   const ativas = vistVisitasAtivas();
@@ -242,10 +281,14 @@ async function vistNovo(un){
   const rod = `<button type="button" class="vt-btn-x" onclick="vistFecharJanela('vt-jan-nova')" aria-label="Cancelar">×</button><button type="button" class="vt-btn-check" onclick="vistConfirmarNova()">${VIST_ICO.check} INICIAR</button>`;
   vistJanela("vt-jan-nova","#00733f",VIST_ICO.check,"Novo relatório vistorial","Sem check-in pendente: escolha a unidade",corpo,rod);
 }
+
+// Função do módulo: vist confirmar nova
 function vistConfirmarNova(){
   const un = document.getElementById("vn-un").value; if(!un){ alert("Escolha a unidade."); return; }
   vistFecharJanela("vt-jan-nova"); vistCriarRelatorio(un, null, null);
 }
+
+// Função do módulo: vist criar relatorio
 async function vistCriarRelatorio(unidade, agendaId, geo){
   if(!CHECKLIST_GRUPOS.length || !CHECKLIST_ITENS_CONFIG.length){ if(!confirm("O checklist ainda não tem itens cadastrados (Gestão › Relatório Vistorial). Iniciar mesmo assim?")) return; }
   const checklist = CHECKLIST_GRUPOS.slice().sort((a,b)=>a.ordem-b.ordem).map(g=>({
@@ -269,6 +312,7 @@ async function vistCriarRelatorio(unidade, agendaId, geo){
   vistAbrir(data.id);
 }
 
+// Função do módulo: vist garantir dom
 /* ---------- abrir / fechar o editor ---------- */
 function vistGarantirDom(){
   if(document.getElementById("vt-editor")) return;
@@ -292,6 +336,8 @@ function vistGarantirDom(){
   </div>`;
   while(d.firstChild) document.body.appendChild(d.firstChild);
 }
+
+// Função do módulo: vist abrir
 async function vistAbrir(id){
   vistGarantirDom();
   mostrarToast("Abrindo relatório...");
@@ -315,6 +361,8 @@ async function vistAbrir(id){
   document.getElementById("vt-corpo").scrollTop = 0;
   vistRenderEditor();
 }
+
+// Função do módulo: vist fechar editor
 async function vistFecharEditor(){
   if(vistSaveTimer){ clearTimeout(vistSaveTimer); await vistSalvarAgora(); }
   document.getElementById("vt-editor").classList.remove("aberta");
@@ -323,8 +371,14 @@ async function vistFecharEditor(){
   await vistCarregarLista(); vistRenderLista();
   if(typeof renderInicio==="function") try{ renderInicio(); }catch(e){}
 }
+
+// Função do módulo: vist ro
 function vistRO(){ return !!VIST_ATUAL && VIST_ATUAL.status==="Finalizado"; }
+
+// Função do módulo: vist contar resp
 function vistContarResp(r){ let t=0, ok=0; (r.checklist||[]).forEach(g=>g.itens.forEach(i=>{ t++; if(i.r) ok++; })); return {t, ok}; }
+
+// Função do módulo: vist render editor
 function vistRenderEditor(){
   const r = VIST_ATUAL; if(!r) return;
   document.getElementById("vt-eh-un").textContent = r.unidade;
@@ -347,9 +401,14 @@ function vistRenderEditor(){
   else if(VIST_TAB==="lanc") vistRenderLanc();
   else vistRenderEmitir();
 }
+
+// Função do módulo: vist tab
 function vistTab(t){ VIST_TAB = t; vistRenderEditor(); document.getElementById("vt-corpo").scrollTop = 0; }
+
+// Função do módulo: vist status save
 function vistStatusSave(t){ const e = document.getElementById("vt-salvo"); if(e) e.textContent = t; }
 
+// Função do módulo: vist render checklist
 /* ---------- checklist ---------- */
 function vistRenderChecklist(){
   const r = VIST_ATUAL, ro = vistRO();
@@ -361,6 +420,8 @@ function vistRenderChecklist(){
       <div class="vt-grupo-itens">${g.itens.map((it,ii)=>vistItemHtml(gi,ii,ro)).join("")}</div></div>`;
   }).join("");
 }
+
+// Função do módulo: vist item html
 function vistItemHtml(gi, ii, ro){
   const it = VIST_ATUAL.checklist[gi].itens[ii];
   const b = (k,l,cls)=>`<button type="button" class="vt-r ${cls} ${it.r===k?"on":""}" ${ro?"disabled":""} onclick="vistResp(${gi},${ii},'${k}')">${l}</button>`;
@@ -376,6 +437,8 @@ function vistItemHtml(gi, ii, ro){
     ${evFalta ? '<div class="vt-ev-obrig">Este item exige foto de evidência.</div>' : (it.ev && !it.r ? '<div class="vt-ev-obrig" style="color:var(--areia-esc)">Item com evidência obrigatória se C/A ou N/C.</div>' : "")}
   </div>`;
 }
+
+// Função do módulo: vist re item
 function vistReItem(gi, ii){
   const el = document.getElementById("vi-"+gi+"-"+ii); if(!el) return;
   const tmp = document.createElement("div"); tmp.innerHTML = vistItemHtml(gi, ii, vistRO());
@@ -383,6 +446,8 @@ function vistReItem(gi, ii){
   const g = VIST_ATUAL.checklist[gi]; const n = document.getElementById("vg-n-"+gi);
   if(n) n.textContent = g.itens.filter(i=>i.r).length+"/"+g.itens.length;
 }
+
+// Função do módulo: vist resp
 function vistResp(gi, ii, k){
   if(vistRO()) return;
   const it = VIST_ATUAL.checklist[gi].itens[ii];
@@ -391,16 +456,26 @@ function vistResp(gi, ii, k){
   vistReItem(gi, ii); vistAgendarSalvar();
   if(it.r==="CA"||it.r==="NC"){ const ta = document.querySelector("#vi-"+gi+"-"+ii+" textarea"); if(ta && !ta.value) ta.focus(); }
 }
+
+// Função do módulo: vist txt
 function vistTxt(gi, ii, ta){
   const it = VIST_ATUAL.checklist[gi].itens[ii]; it.t = ta.value;
   ta.classList.toggle("falta", !ta.value.trim());
   vistAgendarSalvar();
 }
+
+// Função do módulo: vist foto add
 function vistFotoAdd(gi, ii){
   vistEscolherFoto(url=>{ const it = VIST_ATUAL.checklist[gi].itens[ii]; (it.f = it.f||[]).push(url); vistReItem(gi, ii); vistAgendarSalvar(); });
 }
+
+// Função do módulo: vist foto del
 function vistFotoDel(gi, ii, fi){ const it = VIST_ATUAL.checklist[gi].itens[ii]; it.f.splice(fi,1); vistReItem(gi, ii); vistAgendarSalvar(); }
+
+// Função do módulo: vist agendar salvar
 function vistAgendarSalvar(){ vistStatusSave("Salvando…"); clearTimeout(vistSaveTimer); vistSaveTimer = setTimeout(vistSalvarAgora, 700); }
+
+// Função do módulo: vist salvar agora
 async function vistSalvarAgora(){
   vistSaveTimer = null;
   const r = VIST_ATUAL; if(!r || r.status==="Finalizado") return;
@@ -410,6 +485,7 @@ async function vistSalvarAgora(){
   if(error) console.error("[vist] salvar:", error);
 }
 
+// Função do módulo: vist comprimir
 /* ---------- câmera / foto ---------- */
 function vistComprimir(file, max=1000, q=.68){
   return new Promise((res, rej)=>{
@@ -423,19 +499,25 @@ function vistComprimir(file, max=1000, q=.68){
     img.src = url;
   });
 }
+
+// Função do módulo: vist escolher foto
 function vistEscolherFoto(cb){
   const inp = document.createElement("input"); inp.type = "file"; inp.accept = "image/*"; inp.setAttribute("capture","environment");
   inp.onchange = async ()=>{ const f = inp.files && inp.files[0]; if(!f) return; try{ cb(await vistComprimir(f)); }catch(e){ alert("Não foi possível ler a imagem."); } };
   inp.click();
 }
 
+// Função do módulo: vist classe
 /* ---------- classes GUT ---------- */
 function vistClasse(score){
   const cl = VIST_CFG.gutClasses.slice().sort((a,b)=>b.min_score-a.min_score).find(c=>score>=c.min_score);
   return cl || {nome:"—", cor:"#000000", min_score:0};
 }
+
+// Função do módulo: vist gut label
 function vistGutLabel(eixo, valor){ const it = VIST_CFG.gutItens.find(x=>x.eixo===eixo && x.valor===Number(valor)); return it ? it.rotulo : ""; }
 
+// Função do módulo: vist janela
 /* ---------- janela flutuante genérica ---------- */
 function vistJanela(id, cor, icone, titulo, sub, corpo, rodape, alta){
   vistFecharJanela(id);
@@ -445,8 +527,11 @@ function vistJanela(id, cor, icone, titulo, sub, corpo, rodape, alta){
   document.body.appendChild(bg);
   return bg;
 }
+
+// Função do módulo: vist fechar janela
 function vistFecharJanela(id){ const e = document.getElementById(id); if(e) e.remove(); }
 
+// Função do módulo: vist abrir inc
 /* ---------- INCONFORMIDADE ---------- */
 async function vistAbrirInc(editId){
   const r = VIST_ATUAL; if(!r || vistRO()) return;
@@ -485,27 +570,41 @@ async function vistAbrirInc(editId){
   vistJanela("vt-jan-inc","#d97706",VIST_ICO.inc, ed?"Editar inconformidade":"Nova inconformidade", vEsc(r.unidade)+" · "+formatarDataBR(r.data), corpo, rod);
   vistRenderChipsRisco(); vistAtualizaLimite(); vistRenderFotoInc(); vistAtualizaGut(); vistRenderAcoesJan();
 }
+
+// Função do módulo: vist toggle pan
 function vistTogglePan(){ const p = document.getElementById("vi-multi-pan"); p.style.display = p.style.display==="none" ? "block" : "none"; }
+
+// Função do módulo: vist toggle risco
 function vistToggleRisco(cb){
   const a = VIST_JAN.d.riscos; const i = a.indexOf(cb.value);
   if(cb.checked && i<0) a.push(cb.value); if(!cb.checked && i>=0) a.splice(i,1);
   vistRenderChipsRisco();
 }
+
+// Função do módulo: vist render chips risco
 function vistRenderChipsRisco(){
   const a = VIST_JAN.d.riscos;
   document.getElementById("vi-multi-t").textContent = a.length ? a.length+" selecionado"+(a.length>1?"s":"") : "Selecione os riscos expostos...";
   document.getElementById("vi-chips").innerHTML = a.map(x=>`<span>${vEsc(x)}</span>`).join("");
 }
+
+// Função do módulo: vist atualiza limite
 function vistAtualizaLimite(){
   const p = Number(VIST_JAN.d.prazo); const el = document.getElementById("vi-limite");
   el.textContent = p ? formatarDataBR(vAddDias(VIST_ATUAL.data, p)) : "—";
 }
+
+// Função do módulo: vist render foto inc
 function vistRenderFotoInc(){
   const f = VIST_JAN.d.foto, el = document.getElementById("vi-foto");
   el.innerHTML = f ? `<div class="vt-fotos"><div class="vt-foto" style="width:110px;height:110px"><img src="${f}" alt=""><button type="button" onclick="VIST_JAN.d.foto=null; vistRenderFotoInc()" aria-label="Remover">×</button></div><button type="button" class="vt-addfoto" onclick="vistFotoInc()">${VIST_ICO.cam}<span>Trocar</span></button></div>`
     : `<button type="button" class="vt-addfoto largo" onclick="vistFotoInc()">${VIST_ICO.cam}<span>+ Evidência (tirar foto)</span></button>`;
 }
+
+// Função do módulo: vist foto inc
 function vistFotoInc(){ vistEscolherFoto(url=>{ VIST_JAN.d.foto = url; vistRenderFotoInc(); }); }
+
+// Função do módulo: vist atualiza gut
 function vistAtualizaGut(){
   const d = VIST_JAN.d, el = document.getElementById("vi-gut-res");
   if(d.g && d.u && d.t){
@@ -513,16 +612,24 @@ function vistAtualizaGut(){
     el.innerHTML = `<span class="vt-gut-sc">${d.g} × ${d.u} × ${d.t} = ${sc}</span><span class="vt-gut-cl" style="background:${vEsc(cl.cor)}">${vEsc(cl.nome)}</span>`;
   } else el.innerHTML = '<span class="vt-gut-sc" style="font-weight:600;color:var(--areia-esc)">Selecione G, U e T para ver o resultado.</span>';
 }
+
+// Função do módulo: vist render acoes jan
 function vistRenderAcoesJan(){
   const el = document.getElementById("vi-acoes") || document.getElementById("vo-acoes"); if(!el) return;
   el.innerHTML = VIST_JAN.acoes.map((a,i)=>`<div class="vt-acao-l"><div><b>${formatarDataBR(a.data)}</b>${vEsc(a.descricao)}</div><button type="button" onclick="vistRemAcao(${i})" aria-label="Remover">×</button></div>`).join("");
 }
+
+// Função do módulo: vist rem acao
 function vistRemAcao(i){ const a = VIST_JAN.acoes[i]; if(a._salva) VIST_JAN.acoesRem.push(a); VIST_JAN.acoes.splice(i,1); vistRenderAcoesJan(); }
+
+// Função do módulo: vist cancelar jan
 function vistCancelarJan(id){
   const d = VIST_JAN && VIST_JAN.d; const sujo = d && (d.local||d.risco||d.descricao||d.foto||(VIST_JAN.acoes||[]).length) && !VIST_JAN.editId;
   if(sujo && !confirm("Descartar este lançamento?")) return;
   VIST_JAN = null; vistFecharJanela(id);
 }
+
+// Função do módulo: vist confirmar inc
 async function vistConfirmarInc(){
   const r = VIST_ATUAL, d = VIST_JAN.d;
   const falta = [];
@@ -553,6 +660,7 @@ async function vistConfirmarInc(){
   vistRenderEditor(); mostrarToast("Inconformidade "+vCod("I",linha.numero)+" adicionada.");
 }
 
+// Função do módulo: vist abrir acao
 /* ---------- PLANO DE AÇÃO ---------- */
 function vistAbrirAcao(){
   const corpo = `<div class="vt-campo"><label class="rot">Descrição da ação</label><textarea id="va-desc" rows="4" placeholder="O que precisa ser feito?"></textarea></div>
@@ -561,11 +669,15 @@ function vistAbrirAcao(){
   const rod = `<button type="button" class="vt-btn-x" onclick="vistFecharJanela('vt-jan-acao')" aria-label="Cancelar">×</button><button type="button" class="vt-btn-check" onclick="vistConfirmarAcao()">${VIST_ICO.check} ADICIONAR</button>`;
   vistJanela("vt-jan-acao","#00733f",VIST_ICO.check,"Plano de ação","Tarefa vinculada a este item",corpo,rod,true);
 }
+
+// Função do módulo: vist confirmar acao
 function vistConfirmarAcao(){
   const desc = document.getElementById("va-desc").value.trim(), data = document.getElementById("va-data").value;
   if(!desc || !data){ alert("Informe a descrição e a data da ação."); return; }
   VIST_JAN.acoes.push({descricao:desc, data}); vistFecharJanela("vt-jan-acao"); vistRenderAcoesJan();
 }
+
+// Função do módulo: vist persistir acoes
 async function vistPersistirAcoes(origem, origemId, refTxt){
   const r = VIST_ATUAL;
   for(const a of (VIST_JAN.acoesRem||[])){
@@ -588,6 +700,7 @@ async function vistPersistirAcoes(origem, origemId, refTxt){
   VIST_ACOES_TS = 0;
 }
 
+// Função do módulo: vist abrir oc
 /* ---------- OCORRÊNCIA ---------- */
 function vistAbrirOc(editId){
   const r = VIST_ATUAL; if(!r || vistRO()) return;
@@ -608,11 +721,15 @@ function vistAbrirOc(editId){
   vistJanela("vt-jan-oc","#2563eb",VIST_ICO.oc, ed?"Editar ocorrência":"Nova ocorrência", vEsc(r.unidade)+" · "+formatarDataBR(r.data), corpo, rod);
   vistRenderColab(); vistRenderAcoesJan();
 }
+
+// Função do módulo: vist render colab
 function vistRenderColab(){
   const c = VIST_JAN.d.colab, el = document.getElementById("vo-colab");
   el.innerHTML = c ? `<div class="vt-colab"><div><b>${vEsc(c.nome)}</b><small>Matrícula ${vEsc(c.matricula)} · ${vEsc([c.cargo,c.setor].filter(Boolean).join(" · "))}</small></div><button type="button" class="vt-chip" onclick="vistAbrirBuscaColab()">Trocar</button><button type="button" class="vt-chip" onclick="VIST_JAN.d.colab=null; vistRenderColab()">×</button></div>`
     : `<button type="button" class="vt-acao-add" style="border-color:#2563eb;background:#eef4ff;color:#1d4ed8" onclick="vistAbrirBuscaColab()">+ Adicionar colaborador</button>`;
 }
+
+// Função do módulo: vist loja da unidade
 async function vistLojaDaUnidade(unidade){
   if(!VIST_LOJAS){ const { data } = await sb.rpc("vist_lojas"); VIST_LOJAS = (data||[]).map(x=>x.loja); }
   const u = vNorm(unidade).replace(/[^A-Z0-9 ]/g," ").replace(/\s+/g," ").trim();
@@ -620,7 +737,8 @@ async function vistLojaDaUnidade(unidade){
   if(!m) m = VIST_LOJAS.find(l=>{ const n = vNorm(l).replace(/[^A-Z0-9 ]/g," ").replace(/\s+/g," ").trim(); return n.length>3 && (u.includes(n) || n.includes(u)); });
   return m || null;
 }
-let vistBuscaTimer = null;
+
+// Função do módulo: vist abrir busca colab
 async function vistAbrirBuscaColab(){
   const loja = await vistLojaDaUnidade(VIST_ATUAL.unidade);
   VIST_JAN.loja = loja;
@@ -631,11 +749,17 @@ async function vistAbrirBuscaColab(){
   vistRenderFiltroLoja(); vistBuscarColab();
   setTimeout(()=>{ const q = document.getElementById("vb-q"); if(q) q.focus(); }, 120);
 }
+
+// Função do módulo: vist render filtro loja
 function vistRenderFiltroLoja(){
   const l = VIST_JAN.loja, el = document.getElementById("vb-filtro");
   el.innerHTML = l ? `<span class="vt-chip on">Loja: ${vEsc(l)} <b style="cursor:pointer;margin-left:6px" onclick="VIST_JAN.loja=null; vistRenderFiltroLoja(); vistBuscarColab()">×</b></span>` : '<span class="vt-chip">Todas as lojas</span>';
 }
+
+// Função do módulo: vist busca debounce
 function vistBuscaDebounce(){ clearTimeout(vistBuscaTimer); vistBuscaTimer = setTimeout(vistBuscarColab, 280); }
+
+// Função do módulo: vist buscar colab
 async function vistBuscarColab(){
   const q = (document.getElementById("vb-q")||{}).value || "";
   const res = document.getElementById("vb-res"); if(!res) return;
@@ -646,6 +770,8 @@ async function vistBuscarColab(){
   res.innerHTML = (data||[]).length ? data.map((c,i)=>`<button type="button" onclick="vistEscolherColab(${i})"><b>${vEsc(c.nome)}</b><small>Matrícula ${vEsc(c.matricula)} · ${vEsc([c.cargo,c.setor,c.loja].filter(Boolean).join(" · "))}</small></button>`).join("")
     : '<div style="color:var(--areia-esc);font-size:13px;padding:8px">Nenhum colaborador encontrado.</div>';
 }
+
+// Função do módulo: vist escolher colab
 function vistEscolherColab(i){
   const c = VIST_JAN._res[i];
   if(VIST_JAN.modo==="assin"){
@@ -656,6 +782,8 @@ function vistEscolherColab(i){
   VIST_JAN.d.colab = {matricula:c.matricula, nome:c.nome, cargo:c.cargo, setor:c.setor};
   vistFecharJanela("vt-jan-colab"); vistRenderColab();
 }
+
+// Função do módulo: vist confirmar oc
 async function vistConfirmarOc(){
   const r = VIST_ATUAL, d = VIST_JAN.d;
   if(!d.tipo || !d.descricao.trim()){ alert("Informe o tipo e a descrição da ocorrência."); return; }
@@ -680,6 +808,7 @@ async function vistConfirmarOc(){
   vistRenderEditor(); mostrarToast("Ocorrência "+vCod("O",linha.numero)+" adicionada.");
 }
 
+// Função do módulo: vist render lanc
 /* ---------- aba de lançamentos ---------- */
 function vistRenderLanc(){
   const r = VIST_ATUAL, ro = vistRO(), el = document.getElementById("vt-corpo-in");
@@ -704,11 +833,17 @@ function vistRenderLanc(){
   el.innerHTML = `${pendHtml}<div class="vt-sec">Inconformidades (${r.inc.length})</div>${incs||'<div class="vt-vazio" style="padding:22px">Nenhuma inconformidade lançada.'+(ro?"":"<br>Use o botão laranja flutuante.")+"</div>"}
     <div class="vt-sec" style="margin-top:18px">Ocorrências (${r.oc.length})</div>${ocs||'<div class="vt-vazio" style="padding:22px">Nenhuma ocorrência lançada.'+(ro?"":"<br>Use o botão azul flutuante.")+"</div>"}`;
 }
+
+// Função do módulo: vist decl html
 function vistDeclHtml(x){
   if(!x.declarado_em) return "";
   return `<div class="vt-ver loja">🏪 Resolvido pela loja em ${vDataHora(x.declarado_em)}, por <b>${vEsc(x.declarado_nome||"")}</b> (matrícula ${vEsc(x.declarado_matricula||"—")}).${x.declarado_obs?"<br>“"+vEsc(x.declarado_obs)+"”":""}${x.declarado_foto?`<br><img src="${x.declarado_foto}" alt="Foto da correção" class="vt-mini">`:""}</div>`;
 }
+
+// Função do módulo: vist pend nao verif
 function vistPendNaoVerif(r){ return (r.pend||[]).filter(x=>x.verificado_relatorio_id!==r.id && !(x.status==="Concluído" && x.resolvido_por==="loja")).length; }
+
+// Função do módulo: vist verificar
 async function vistVerificar(id, st){
   const r = VIST_ATUAL;
   const { data, error } = await sb.rpc("vist_verificar", {p_id:id, p_status:st, p_rel:r.id});
@@ -716,6 +851,8 @@ async function vistVerificar(id, st){
   const x = (r.pend||[]).find(i=>i.id===id); if(x){ x.status = st; x.verificado_relatorio_id = r.id; x.verificado_em = new Date().toISOString(); }
   vistRenderEditor(); mostrarToast("Item "+(st==="Concluído"?"confirmado como concluído":"marcado como "+st.toLowerCase())+".");
 }
+
+// Função do módulo: vist ciente
 async function vistCiente(id){
   const r = VIST_ATUAL;
   const { data, error } = await sb.rpc("vist_ciente", {p_id:id, p_rel:r.id});
@@ -723,6 +860,8 @@ async function vistCiente(id){
   const x = (r.pend||[]).find(i=>i.id===id); if(x){ x.reportado_relatorio_id = r.id; x.declarado_foto = null; }
   vistRenderEditor(); mostrarToast("Ciente registrado. A foto foi descartada.");
 }
+
+// Função do módulo: vist mudar status
 async function vistMudarStatus(id, st){
   const concl = st==="Concluído";
   const upd = {status:st, resolvido_por:concl?"tecnico":null, resolvido_em:concl?new Date().toISOString():null, reportado_relatorio_id:null};
@@ -735,6 +874,8 @@ async function vistMudarStatus(id, st){
   mostrarToast("Status atualizado para "+st+".");
   if(vistRO()) vistRenderEditor();
 }
+
+// Função do módulo: vist excluir
 async function vistExcluir(tipo, id){
   if(!confirm("Excluir este lançamento?")) return;
   const r = VIST_ATUAL, origem = tipo==="inc" ? "inconformidade" : "ocorrencia";
@@ -747,6 +888,7 @@ async function vistExcluir(tipo, id){
   vistRenderEditor();
 }
 
+// Função do módulo: vist pendencias
 /* ---------- aba assinar e emitir ---------- */
 function vistPendencias(r){
   const p = [];
@@ -757,6 +899,8 @@ function vistPendencias(r){
   }));
   return p;
 }
+
+// Função do módulo: vist render emitir
 async function vistRenderEmitir(){
   const r = VIST_ATUAL, el = document.getElementById("vt-corpo-in");
   const pend = vistPendencias(r), c = vistContarResp(r), v = await vistAssinaturasValidas(r);
@@ -781,11 +925,14 @@ async function vistRenderEmitir(){
     <button type="button" class="vt-btn-gr" ${libera ? "" : "disabled"} onclick="vistAbrirPrevia()">Emitir relatório</button>
     ${!libera ? `<div style="text-align:center;font-size:12px;color:var(--areia-esc);margin-top:8px">${pend.length?"Complete o checklist; ":""}${v.t?"":"assinatura do técnico pendente; "}${v.l?"":"assinatura da loja pendente; "}para liberar a emissão.</div>`:""}`;
 }
+
+// Função do módulo: vist ir item
 function vistIrItem(gi, ii){
   VIST_TAB = "checklist"; vistRenderEditor();
   const e = document.getElementById("vi-"+gi+"-"+ii); if(e){ const g = e.closest(".vt-grupo"); if(g) g.classList.remove("fechado"); e.scrollIntoView({block:"center"}); e.style.outline = "3px solid #dc2626"; setTimeout(()=>e.style.outline="",1800); }
 }
-let vistPad = null;
+
+// Função do módulo: vist abrir assinatura
 function vistAbrirAssinatura(quem, colab){
   const nome = quem==="loja" ? colab.nome : VIST_ATUAL.tecnicoNome;
   const corpo = `<div style="font-size:12.5px;color:var(--areia-esc);margin-bottom:8px">${quem==="loja"?"<b>"+vEsc(colab.nome)+"</b> (matrícula "+vEsc(colab.matricula)+"), assine":"Assine"} dentro do quadro abaixo. Ao confirmar, a plataforma registra a data/hora, a localização e a identificação do aparelho.</div>
@@ -803,13 +950,19 @@ function vistAbrirAssinatura(quem, colab){
   const fim = ()=>{ if(vistPad) vistPad.last = null; };
   cv.addEventListener("pointerup", fim); cv.addEventListener("pointercancel", fim); cv.addEventListener("pointerleave", fim);
 }
+
+// Função do módulo: vist pad limpar
 function vistPadLimpar(){ if(!vistPad) return; vistPad.ctx.clearRect(0,0,vistPad.cv.width,vistPad.cv.height); vistPad.desenhou = false; }
+
+// Função do módulo: vist novo token
 async function vistNovoToken(){
   if(!confirm("Gerar um novo token? O token impresso nos PDFs já emitidos deixa de valer e o prazo recomeça (60 dias).")) return;
   const { data, error } = await sb.rpc("vist_novo_token", {p_rel:VIST_ATUAL.id});
   if(error || !data){ alert("Não foi possível gerar um novo token."); return; }
   VIST_ATUAL.token = data.token; VIST_ATUAL.tokenExpira = data.expira; vistRenderEditor(); mostrarToast("Novo token gerado.");
 }
+
+// Função do módulo: vist assinar
 async function vistAssinar(){
   const r = VIST_ATUAL;
   if(!vistPad || !vistPad.desenhou){ alert("Faça a assinatura no quadro antes de confirmar."); return; }
@@ -834,6 +987,7 @@ async function vistAssinar(){
   vistPad = null; vistFecharJanela("vt-jan-ass"); vistRenderEmitir();
 }
 
+// Função do módulo: vist pend html
 function vistPendHtml(r, ro){
   const l = r.pend||[]; if(!l.length) return "";
   return `<div class="vt-sec">Pendências de relatórios anteriores (${l.length})</div>`+l.map(x=>{
@@ -849,6 +1003,7 @@ function vistPendHtml(r, ro){
   }).join("");
 }
 
+// Função do módulo: vist render estrategica
 function vistRenderEstrategica(){
   const r = VIST_ATUAL, el = document.getElementById("vt-corpo-in");
   const ck = vistContarCheck(r), conf = vistConf(ck), hoje = vHoje();
@@ -901,17 +1056,20 @@ function vistRenderEstrategica(){
       ${ehAdminOuCoordenador() ? `<button type="button" class="vt-btn-sec" style="margin-top:12px" onclick="vistNovoToken()">Gerar novo token (invalida o anterior)</button>` : ""}</div>`;
 }
 
+// Função do módulo: vist colher assinatura loja
 function vistColherAssinaturaLoja(){
   VIST_JAN = {d:{}, modo:"assin"};
   vistAbrirBuscaColab();
 }
 
+// Função do módulo: vist reservar codigos c
 async function vistReservarCodigosC(rel){
   const { data:n0 } = await sb.rpc("vist_proximo_numero2", {p_unidade:rel.unidade, p_origem:"C"});
   let n = n0 || 1;
   rel.checklist.forEach(g=>g.itens.forEach(it=>{ if(it.r==="CA"||it.r==="NC") it.cod = n++; else delete it.cod; }));
 }
 
+// Função do módulo: vist render painel
 async function vistRenderPainel(){
   const el = document.getElementById("vt-painel"); if(!el || !VIST_PUN) return;
   const un = VIST_PUN;
@@ -973,10 +1131,13 @@ async function vistRenderPainel(){
     ${cards || '<div class="vt-vazio" style="padding:22px">Nenhum item neste filtro.</div>'}` : listaRel);
 }
 
+// Função do módulo: vist painel un
 function vistPainelUn(u){ VIST_PUN = u; VIST_PAINEL = null; vistRenderLista(); }
 
+// Função do módulo: vist modo
 function vistModo(m){ VIST_MODO = m; vistRenderLista(); }
 
+// Função do módulo: vist folha blocos
 /* ---------- relatório em folhas A4 ---------- */
 function vistFolhaBlocos(r){
   const B = [];
@@ -1074,6 +1235,8 @@ function vistFolhaBlocos(r){
     <div class="vr-autent">Emitido em ${vDataHora(r.finalizadoEm||new Date().toISOString())}${r.autenticidade?` · Código de autenticidade do relatório: <span class="mono">${vEsc(r.autenticidade)}</span>`:""}</div>`});
   return B;
 }
+
+// Função do módulo: vist montar folhas
 function vistMontarFolhas(r){
   const blocos = vistFolhaBlocos(r);
   const zoom = parseFloat(getComputedStyle(document.documentElement).zoom) || 1;
@@ -1110,6 +1273,7 @@ function vistMontarFolhas(r){
   return {folhas, wrap, avisos};
 }
 
+// Função do módulo: vist relatorio para emitir
 /* ---------- prévia, finalização e PDF ---------- */
 async function vistRelatorioParaEmitir(){
   const r = VIST_ATUAL;
@@ -1121,6 +1285,8 @@ async function vistRelatorioParaEmitir(){
   rel.autenticidade = await vSha(JSON.stringify([(r.assinaturaMeta||{}).hash, (r.assinaturaLoja||{}).hash, atual, fim, r.codigo]));
   return rel;
 }
+
+// Função do módulo: vist abrir previa
 async function vistAbrirPrevia(){
   const r = VIST_ATUAL; if(!r) return;
   const v = await vistAssinaturasValidas(r);
@@ -1142,7 +1308,11 @@ async function vistAbrirPrevia(){
   });
   wrap.remove();
 }
+
+// Função do módulo: vist fechar previa
 function vistFecharPrevia(){ document.getElementById("vt-previa").classList.remove("aberta"); if(VIST_ATUAL && !vistRO()) document.getElementById("vt-fabs").classList.add("on"); }
+
+// Função do módulo: vist gerar pdf
 async function vistGerarPdf(rel){
   if(typeof html2canvas!=="function" || !(window.jspdf && window.jspdf.jsPDF)) throw new Error("Biblioteca de PDF indisponível.");
   const { folhas, wrap, avisos } = vistMontarFolhas(rel);
@@ -1157,6 +1327,8 @@ async function vistGerarPdf(rel){
     return {blob:doc.output("blob"), nome:(rel.codigo ? "relatorio-vistorial_"+rel.codigo : "relatorio-vistorial_"+slug+"_"+rel.data)+".pdf", avisos};
   } finally { wrap.remove(); }
 }
+
+// Função do módulo: vist finalizar
 async function vistFinalizar(){
   const r = VIST_ATUAL; if(!r) return;
   if(!confirm("Finalizar o relatório? Depois de emitido não poderá mais ser editado e as fotos serão descartadas da plataforma (elas ficam apenas no PDF).")) return;
@@ -1191,16 +1363,22 @@ async function vistFinalizar(){
   await vistAbrir(r.id);
   vistMostrarEntrega();
 }
+
+// Função do módulo: vist mostrar entrega
 function vistMostrarEntrega(){
   const corpo = `<div style="text-align:center;padding:6px 0 14px"><div style="font-size:42px;line-height:1">✅</div><div style="font-weight:800;font-size:17px;color:var(--verde-esc);margin:8px 0 4px">Relatório emitido</div>
     <div style="font-size:13px;color:var(--areia-esc)">As fotos foram descartadas da plataforma. Guarde o PDF agora: compartilhe ou salve em downloads.</div></div>
     <div style="display:flex;flex-direction:column;gap:10px"><button type="button" class="vt-btn-gr" onclick="vistCompartilhar()">Compartilhar PDF</button><button type="button" class="vt-btn-sec" onclick="vistBaixar()">Salvar em downloads</button></div>`;
   vistJanela("vt-jan-entrega","#00733f",VIST_ICO.check,"Relatório vistorial",vEsc(VIST_ATUAL.unidade),corpo,`<button type="button" class="vt-btn-x" style="width:100%;color:var(--marrom-esc);border-color:var(--areia-esc);font-size:15px" onclick="vistFecharJanela('vt-jan-entrega')">Fechar</button>`,true);
 }
+
+// Função do módulo: vist baixar
 function vistBaixar(){
   if(!VIST_PDF) return; const a = document.createElement("a"); a.href = URL.createObjectURL(VIST_PDF.blob); a.download = VIST_PDF.nome; document.body.appendChild(a); a.click();
   setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); }, 4000); mostrarToast("PDF salvo em downloads.");
 }
+
+// Função do módulo: vist compartilhar
 async function vistCompartilhar(){
   if(!VIST_PDF) return;
   const file = new File([VIST_PDF.blob], VIST_PDF.nome, {type:"application/pdf"});
@@ -1209,12 +1387,15 @@ async function vistCompartilhar(){
   }catch(e){ if(e && e.name==="AbortError") return; }
   vistBaixar(); mostrarToast("Compartilhamento indisponível neste aparelho; o PDF foi baixado.");
 }
+
+// Função do módulo: vist baixar sem fotos
 async function vistBaixarSemFotos(){
   const r = VIST_ATUAL; mostrarToast("Gerando PDF...");
   try{ VIST_PDF = await vistGerarPdf({...r}); vistBaixar(); }
   catch(e){ console.error(e); alert("Não foi possível gerar o PDF."); }
 }
 
+// Função do módulo: vist bloqueia checkout
 /* ---------- check-out só depois do relatório finalizado ---------- */
 async function vistBloqueiaCheckout(visitaId){
   const vv = AGENDA.find(x=>x.id===visitaId); if(vv && calEhLocalTrabalho(vv.unidade)) return false;
@@ -1228,6 +1409,7 @@ async function vistBloqueiaCheckout(visitaId){
   return true;
 }
 
+// Função do módulo: vist carregar acoes
 /* ---------- Início: card de planos de ação ---------- */
 async function vistCarregarAcoes(){
   if(!currentUser) return;
@@ -1235,24 +1417,87 @@ async function vistCarregarAcoes(){
   if(error){ return; }
   VIST_ACOES = data||[]; VIST_ACOES_TS = Date.now();
 }
-async function renderInicioPlanos(){
-  const el = document.getElementById("inicio-planos"); if(!el) return;
-  if(Date.now()-VIST_ACOES_TS > 30000) await vistCarregarAcoes();
-  const l = VIST_ACOES.filter(a=>!a.concluida).sort((a,b)=>a.data<b.data?-1:1).slice(0,8);
-  if(!l.length){ el.innerHTML = vazioInicio("Nenhum plano de ação pendente."); return; }
-  const h = vHoje();
-  el.innerHTML = l.map(a=>{
-    const atras = a.data < h, hoje = a.data===h;
-    const cor = atras ? "#c62828" : hoje ? "#e08a00" : "#2e7d32";
-    const rot = atras ? "Atrasada" : hoje ? "Hoje" : formatarDataBR(a.data).slice(0,5);
-    return `<div class="vp-it"><button type="button" class="vp-ck" title="Marcar como concluída" onclick="vistConcluirAcao(${a.id})">✓</button>
-      <div class="vp-tx"><b>${vEsc(a.descricao.slice(0,90))}</b><small>${vEsc(a.ref||(a.origem==="ocorrencia"?"Ocorrência":"Inconformidade"))} · ${vEsc(a.unidade||"")}</small></div><span class="vp-dt" style="color:${cor}">${rot}</span></div>`;
-  }).join("");
-}
+
+// Função do módulo: vist concluir acao
 async function vistConcluirAcao(id){
   const { error } = await sb.from("vist_acoes").update({concluida:true, concluida_em:new Date().toISOString()}).eq("id", id);
   if(error){ alert("Não foi possível concluir a ação."); return; }
   VIST_ACOES = VIST_ACOES.filter(a=>a.id!==id); renderInicioPlanos(); mostrarToast("Plano de ação concluído.");
 }
 
+// Função do módulo: vist gestao init
+async function vistGestaoInit(){
+  await vistCarregarConfig(); vistGestaoRender();
+}
+
+// Função do módulo: vist gestao render
+function vistGestaoRender(){
+  ["tipos","riscos"].forEach(k=>{
+    const m = VG_TABELAS[k], el = document.getElementById(m.box); if(!el) return;
+    const l = VIST_CFG[m.cfg];
+    el.innerHTML = l.length ? l.map(x=>`<div class="vg-lin"><input type="text" value="${vEsc(x.nome)}" onchange="vistGestaoRen('${k}',${x.id},this.value)"><button type="button" class="del-btn" onclick="vistGestaoDel('${k}',${x.id})">Remover</button></div>`).join("") : '<span class="estrutura-vazio">Nada cadastrado.</span>';
+  });
+  const g3 = document.getElementById("vg-gut"); if(g3){
+    const nomes = {G:"Gravidade", U:"Urgência", T:"Tendência"};
+    g3.innerHTML = ["G","U","T"].map(e=>`<div><h5>${nomes[e]}</h5><div class="vg-lista">${VIST_CFG.gutItens.filter(x=>x.eixo===e).sort((a,b)=>b.valor-a.valor).map(x=>`<div class="vg-lin"><span class="vg-val">${x.valor}</span><input type="text" value="${vEsc(x.rotulo)}" onchange="vistGestaoGutRot(${x.id},this.value)"></div>`).join("")}</div></div>`).join("");
+  }
+  const cl = document.getElementById("vg-classes"); if(cl){
+    cl.innerHTML = VIST_CFG.gutClasses.map(c=>`<div class="vg-lin"><span style="font-size:11px;font-weight:800;color:var(--areia-esc)">A partir de</span><input type="number" min="0" max="125" value="${c.min_score}" onchange="vistGestaoClasse(${c.id},'min_score',this.value)"><input type="text" value="${vEsc(c.nome)}" onchange="vistGestaoClasse(${c.id},'nome',this.value)"><input type="color" value="${vEsc(c.cor)}" onchange="vistGestaoClasse(${c.id},'cor',this.value)" title="Cor do retângulo"><button type="button" class="del-btn" onclick="vistGestaoClasseDel(${c.id})">Remover</button></div>`).join("");
+  }
+}
+
+// Função do módulo: vist gestao add
+async function vistGestaoAdd(k){
+  const m = VG_TABELAS[k], inp = document.getElementById(m.box+"-novo"), nome = inp.value.trim(); if(!nome) return;
+  const ordem = VIST_CFG[m.cfg].length ? Math.max(...VIST_CFG[m.cfg].map(x=>x.ordem||0))+1 : 1;
+  const { data, error } = await sb.from(m.t).insert({nome, ordem}).select().single();
+  if(error){ alert("Erro ao adicionar: "+error.message); return; }
+  VIST_CFG[m.cfg].push(data); inp.value = ""; vistGestaoRender();
+}
+
+// Função do módulo: vist gestao ren
+async function vistGestaoRen(k, id, v){
+  v = v.trim(); if(!v) { vistGestaoRender(); return; }
+  const { error } = await sb.from(VG_TABELAS[k].t).update({nome:v}).eq("id", id);
+  if(error) alert("Erro ao renomear: "+error.message); else { const x = VIST_CFG[VG_TABELAS[k].cfg].find(i=>i.id===id); if(x) x.nome = v; mostrarToast("Salvo."); }
+}
+
+// Função do módulo: vist gestao del
+async function vistGestaoDel(k, id){
+  if(!confirm("Remover este item da lista? Relatórios já emitidos não são afetados.")) return;
+  const { error } = await sb.from(VG_TABELAS[k].t).delete().eq("id", id);
+  if(error){ alert("Erro ao remover: "+error.message); return; }
+  VIST_CFG[VG_TABELAS[k].cfg] = VIST_CFG[VG_TABELAS[k].cfg].filter(i=>i.id!==id); vistGestaoRender();
+}
+
+// Função do módulo: vist gestao gut rot
+async function vistGestaoGutRot(id, v){
+  v = v.trim(); if(!v){ vistGestaoRender(); return; }
+  const { error } = await sb.from("vist_gut_itens").update({rotulo:v}).eq("id", id);
+  if(error) alert("Erro ao salvar: "+error.message); else { const x = VIST_CFG.gutItens.find(i=>i.id===id); if(x) x.rotulo = v; mostrarToast("Salvo."); }
+}
+
+// Função do módulo: vist gestao classe
+async function vistGestaoClasse(id, campo, v){
+  const val = campo==="min_score" ? Number(v) : String(v).trim(); if(campo==="nome" && !val){ vistGestaoRender(); return; }
+  const { error } = await sb.from("vist_gut_classes").update({[campo]:val}).eq("id", id);
+  if(error){ alert("Erro ao salvar: "+error.message); return; }
+  const x = VIST_CFG.gutClasses.find(i=>i.id===id); if(x) x[campo] = val;
+  VIST_CFG.gutClasses.sort((a,b)=>b.min_score-a.min_score); mostrarToast("Salvo."); if(campo==="min_score") vistGestaoRender();
+}
+
+// Função do módulo: vist gestao classe add
+async function vistGestaoClasseAdd(){
+  const { data, error } = await sb.from("vist_gut_classes").insert({min_score:0, nome:"NOVA CLASSE", cor:"#444444", ordem:VIST_CFG.gutClasses.length+1}).select().single();
+  if(error){ alert("Erro: "+error.message); return; }
+  VIST_CFG.gutClasses.push(data); VIST_CFG.gutClasses.sort((a,b)=>b.min_score-a.min_score); vistGestaoRender();
+}
+
+// Função do módulo: vist gestao classe del
+async function vistGestaoClasseDel(id){
+  if(!confirm("Remover esta classe de resultado?")) return;
+  const { error } = await sb.from("vist_gut_classes").delete().eq("id", id);
+  if(error){ alert("Erro: "+error.message); return; }
+  VIST_CFG.gutClasses = VIST_CFG.gutClasses.filter(c=>c.id!==id); vistGestaoRender();
+}
 

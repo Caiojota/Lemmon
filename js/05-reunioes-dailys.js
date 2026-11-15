@@ -1,20 +1,24 @@
 /* =====================================================================
-   REUNIÕES — Reuniões (com tipos) e Dailys
+   REUNIÕES E DAILYS
    ===================================================================== */
-let REUNIOES = [], REUNIOES_TIPOS = [];
-let rnFiltro = {quando:"proximas"};
-let rnEdit = null;
-let rnSubAtual = "reunioes";
 
+// Função do módulo: avatar mini
 function avatarMini(nome){
   return `<span class="av" style="background:${corAvatarPorNome(nome)};" title="${escHtml(nome)}">${iniciaisTexto(nome)}</span>`;
 }
+
+// Função do módulo: nome usuario por id
 function nomeUsuarioPorId(id){ const u = USUARIOS.find(x=>x.id===id); return u ? u.nome : "—"; }
+
+// Função do módulo: usuarios ativos ordenados
 function usuariosAtivosOrdenados(){
   return USUARIOS.filter(u=>u.ativo!==false).slice().sort((a,b)=>cmpPtBr(a.nome,b.nome));
 }
+
+// Função do módulo: hhmm
 function hhmm(t){ return t ? String(t).slice(0,5) : ""; }
 
+// Converte do formato do banco para o do app:: map reuniao from db
 function mapReuniaoFromDb(r){
   return {
     id:r.id, tipoId:r.tipo_id, titulo:r.titulo, data:r.data, horaInicio:hhmm(r.hora_inicio), horaFim:hhmm(r.hora_fim),
@@ -23,6 +27,8 @@ function mapReuniaoFromDb(r){
     encaminhamentos:Array.isArray(r.encaminhamentos)?r.encaminhamentos:[], criadoPor:r.criado_por
   };
 }
+
+// Inicializa: init reunioes
 async function initReunioes(){
   const btnTipos = document.getElementById("btn-gerenciar-tipos");
   if(btnTipos) btnTipos.style.display = ehAdminOuCoordenador() ? "" : "none";
@@ -38,6 +44,8 @@ async function initReunioes(){
   renderReunioes();
   mostrarSubReunioes(rnSubAtual);
 }
+
+// Preenche: popular filtro tipos reuniao
 function popularFiltroTiposReuniao(){
   const sel = document.getElementById("rn-f-tipo");
   if(!sel) return;
@@ -45,6 +53,8 @@ function popularFiltroTiposReuniao(){
   sel.innerHTML = '<option value="">Todos os tipos</option>' + REUNIOES_TIPOS.map(t=>`<option value="${t.id}">${escHtml(t.nome)}</option>`).join("");
   if(REUNIOES_TIPOS.some(t=>String(t.id)===atual)) sel.value = atual;
 }
+
+// Troca para a sub-tela: mostrar sub reunioes
 function mostrarSubReunioes(sub){
   rnSubAtual = sub;
   document.querySelectorAll("#view-reunioes .insp-tab").forEach(b=>b.classList.toggle("active", b.dataset.sub===sub));
@@ -53,15 +63,21 @@ function mostrarSubReunioes(sub){
   document.getElementById("btn-nova-reuniao").style.display = sub==="reunioes" ? "" : "none";
   if(sub==="dailys") initDailys();
 }
+
+// Função do módulo: filtrar reunioes quando
 function filtrarReunioesQuando(q){
   rnFiltro.quando = q;
   document.querySelectorAll("#rn-seg button").forEach(b=>b.classList.toggle("active", b.dataset.q===q));
   renderReunioes();
 }
+
+// Função do módulo: rotulo mes reuniao
 function rotuloMesReuniao(iso){
   const s = new Date(iso+"T00:00:00").toLocaleDateString("pt-BR",{month:"long", year:"numeric"});
   return s.charAt(0).toUpperCase()+s.slice(1);
 }
+
+// Função do módulo: reuniao item html
 function reuniaoItemHtml(r, hoje){
   const tipo = REUNIOES_TIPOS.find(t=>t.id===r.tipoId);
   const cor = tipo ? tipo.cor : "#9f8167";
@@ -90,6 +106,8 @@ function reuniaoItemHtml(r, hoje){
     <div class="rn-lado"><span class="rn-status ${r.status}">${r.status}</span>${lado}</div>
   </div>`;
 }
+
+// Desenha na tela: render reunioes
 function renderReunioes(){
   const wrap = document.getElementById("rn-lista");
   if(!wrap) return;
@@ -119,6 +137,7 @@ function renderReunioes(){
   wrap.innerHTML = html.join("");
 }
 
+// Abre: abrir modal reuniao
 /* ---- Modal da reunião ---- */
 function abrirModalReuniao(id){
   const r = id ? REUNIOES.find(x=>x.id===id) : null;
@@ -152,10 +171,14 @@ function abrirModalReuniao(id){
   document.getElementById("modal-reuniao").style.display = "flex";
   if(!r) setTimeout(()=>document.getElementById("rn-titulo").focus(), 50);
 }
+
+// Fecha: fechar modal reuniao
 function fecharModalReuniao(){
   document.getElementById("modal-reuniao").style.display = "none";
   if(document.getElementById("modal-demanda").style.display!=="flex") document.body.style.overflow = "";
 }
+
+// Atualiza: atualizar chips reuniao
 function atualizarChipsReuniao(){
   const tipo = REUNIOES_TIPOS.find(t=>String(t.id)===document.getElementById("rn-tipo").value);
   const data = document.getElementById("rn-data").value;
@@ -167,6 +190,8 @@ function atualizarChipsReuniao(){
   chips.push(`<span class="dm-chip">${rnEdit.participantes.size} convocado${rnEdit.participantes.size===1?"":"s"}</span>`);
   document.getElementById("rn-chips").innerHTML = chips.join("");
 }
+
+// Desenha na tela: render participantes reuniao
 function renderParticipantesReuniao(){
   const us = usuariosAtivosOrdenados();
   document.getElementById("rn-part").innerHTML =
@@ -176,6 +201,8 @@ function renderParticipantesReuniao(){
       <input type="checkbox" ${rnEdit.presentes.has(u.id)?"checked":""} onchange="rnTogglePart('${u.id}','p',this.checked)">`).join("");
   atualizarChipsReuniao();
 }
+
+// Função do módulo: rn toggle part
 function rnTogglePart(uid, tipo, marcado){
   if(tipo==="c"){
     if(marcado) rnEdit.participantes.add(uid); else { rnEdit.participantes.delete(uid); rnEdit.presentes.delete(uid); }
@@ -184,10 +211,14 @@ function rnTogglePart(uid, tipo, marcado){
   }
   renderParticipantesReuniao();
 }
+
+// Função do módulo: rn convocar todos
 function rnConvocarTodos(){
   usuariosAtivosOrdenados().forEach(u=>rnEdit.participantes.add(u.id));
   renderParticipantesReuniao();
 }
+
+// Desenha na tela: render encaminhamentos reuniao
 function renderEncaminhamentosReuniao(){
   const us = usuariosAtivosOrdenados();
   const opts = '<option value="">Responsável</option>' + us.map(u=>`<option value="${u.id}">${escHtml(u.nome)}</option>`).join("");
@@ -201,12 +232,17 @@ function renderEncaminhamentosReuniao(){
     <button type="button" class="rn-x" title="Remover" onclick="rnEncDel(${i})">×</button>
   </div>`).join("");
 }
+
+// Função do módulo: rn enc set
 function rnEncSet(i, campo, valor){ if(rnEdit.encaminhamentos[i]) rnEdit.encaminhamentos[i][campo] = valor; }
+
+// Função do módulo: rn enc add
 function rnEncAdd(){ rnEdit.encaminhamentos.push({txt:"", respId:"", prazo:"", feito:false}); renderEncaminhamentosReuniao(); const ins = document.querySelectorAll("#rn-enc .rn-enc-lin input[type=text]"); if(ins.length) ins[ins.length-1].focus(); }
+
+// Função do módulo: rn enc del
 function rnEncDel(i){ rnEdit.encaminhamentos.splice(i,1); renderEncaminhamentosReuniao(); }
-document.addEventListener("DOMContentLoaded", ()=>{
-  ["rn-tipo","rn-data","rn-status"].forEach(id=>{ const el = document.getElementById(id); if(el) el.addEventListener("change", ()=>{ if(rnEdit) atualizarChipsReuniao(); }); });
-});
+
+// Salva no banco: salvar reuniao
 async function salvarReuniao(ev){
   ev.preventDefault();
   const id = document.getElementById("rn-id").value;
@@ -249,6 +285,8 @@ async function salvarReuniao(ev){
   mostrarToast(id ? "Reunião atualizada." : "Reunião criada.");
   return false;
 }
+
+// Remove/cancela: remover reuniao
 async function removerReuniao(){
   const id = Number(document.getElementById("rn-id").value);
   if(!id || !confirm("Remover esta reunião?")) return;
@@ -260,12 +298,15 @@ async function removerReuniao(){
   renderReunioes();
 }
 
+// Abre: abrir tipos reuniao
 /* ---- Tipos de reunião ---- */
 function abrirTiposReuniao(){
   renderTiposReuniao();
   document.getElementById("rn-tipo-add").style.display = ehAdminOuCoordenador() ? "flex" : "none";
   document.getElementById("modal-reuniao-tipos").style.display = "flex";
 }
+
+// Desenha na tela: render tipos reuniao
 function renderTiposReuniao(){
   const el = document.getElementById("rn-tipos-lista");
   const pode = ehAdminOuCoordenador();
@@ -275,6 +316,8 @@ function renderTiposReuniao(){
     return `<div class="rn-tipo-lin"><i style="background:${escHtml(t.cor)};"></i><span>${escHtml(t.nome)}</span><small style="color:var(--areia-esc); font-weight:500;">${n} reunião${n===1?"":"ões"}</small>${pode?`<button type="button" class="rn-x" title="Remover tipo" onclick="removerTipoReuniao(${t.id})">×</button>`:""}</div>`;
   }).join("");
 }
+
+// Função do módulo: add tipo reuniao
 async function addTipoReuniao(){
   const inp = document.getElementById("rn-tipo-nome");
   const nome = inp.value.trim();
@@ -288,6 +331,8 @@ async function addTipoReuniao(){
   inp.value = "";
   renderTiposReuniao(); popularFiltroTiposReuniao(); renderReunioes();
 }
+
+// Remove/cancela: remover tipo reuniao
 async function removerTipoReuniao(id){
   const t = REUNIOES_TIPOS.find(x=>x.id===id);
   if(!t || !confirm('Remover o tipo "'+t.nome+'"? As reuniões que o usam ficam sem tipo.')) return;
@@ -298,35 +343,28 @@ async function removerTipoReuniao(id){
   renderTiposReuniao(); popularFiltroTiposReuniao(); renderReunioes();
 }
 
-/* =====================================================================
-   DAILYS — reunião diária: prioridades, achados, demandas travadas
-   ===================================================================== */
-let dlData = null;          // dia aberto (AAAA-MM-DD)
-let dlItens = [];           // itens do dia aberto e do dia útil anterior
-let dlPresencas = [];       // ids presentes no dia aberto
-let dlContagem = {};        // data -> nº de itens (tira de dias)
-let dlVerTodasSug = false;
-const DL_SECOES = {
-  prioridade:{tit:"Prioridades do dia", dica:"O que precisa andar hoje. Marque conforme a equipe for entregando.",
-    ic:'<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5 21V4M5 4h11l-2 4 2 4H5"/></svg>'},
-  achado:{tit:"Achados do dia anterior", dica:"O que a equipe encontrou ontem: desvios, aprendizados, ocorrências e novidades das unidades.",
-    ic:'<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>'},
-  bloqueio:{tit:"Demandas travadas", dica:"O que está parado e quem pode destravar. O sistema sugere demandas atrasadas ou aguardando alguém.",
-    ic:'<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="m5.6 5.6 12.8 12.8"/></svg>'},
-  outro:{tit:"Outros assuntos e avisos", dica:"Avisos gerais, férias, treinamentos, cobranças e qualquer coisa fora das pautas acima.",
-    ic:'<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16v11H8l-4 4V5Z"/></svg>'}
-};
+// Função do módulo: eh fim de semana iso
 function ehFimDeSemanaISO(iso){ const d = new Date(iso+"T00:00:00").getDay(); return d===0 || d===6; }
+
+// Função do módulo: dia util anterior
 function diaUtilAnterior(iso){ let d = somarDiasISO(iso,-1); while(ehFimDeSemanaISO(d)) d = somarDiasISO(d,-1); return d; }
+
+// Função do módulo: dia util seguinte
 function diaUtilSeguinte(iso){ let d = somarDiasISO(iso,1); while(ehFimDeSemanaISO(d)) d = somarDiasISO(d,1); return d; }
+
+// Função do módulo: rotulo dia curto daily
 function rotuloDiaCurtoDaily(iso){
   const d = new Date(iso+"T00:00:00");
   return d.toLocaleDateString("pt-BR",{weekday:"long"}).split("-")[0] + ", " + formatarDataBR(iso).slice(0,5);
 }
+
+// Inicializa: init dailys
 async function initDailys(){
   if(!dlData) dlData = dataISOLocal(new Date());
   await carregarDaily();
 }
+
+// Função do módulo: carregar daily
 async function carregarDaily(){
   const prev = diaUtilAnterior(dlData);
   const desde = somarDiasISO(dataISOLocal(new Date()), -20);
@@ -343,20 +381,34 @@ async function carregarDaily(){
   (rc.data||[]).forEach(r=>{ dlContagem[r.data] = (dlContagem[r.data]||0)+1; });
   renderDailyCompleta();
 }
+
+// Desenha na tela: render daily completa
 function renderDailyCompleta(){
   renderDailyNav(); renderDailyPresencas();
   ["prioridade","achado","bloqueio","outro"].forEach(renderDailySecao);
   renderDailyRodape();
 }
+
+// Função do módulo: dl itens do dia
 function dlItensDoDia(secao){ return dlItens.filter(i=>i.data===dlData && i.secao===secao); }
+
+// Função do módulo: dl ir
 async function dlIr(iso){
   if(!iso) return;
   dlData = iso; dlVerTodasSug = false;
   await carregarDaily();
 }
+
+// Função do módulo: dl ir anterior
 function dlIrAnterior(){ return dlIr(diaUtilAnterior(dlData)); }
+
+// Função do módulo: dl ir seguinte
 function dlIrSeguinte(){ return dlIr(diaUtilSeguinte(dlData)); }
+
+// Função do módulo: dl ir hoje
 function dlIrHoje(){ return dlIr(dataISOLocal(new Date())); }
+
+// Desenha na tela: render daily nav
 function renderDailyNav(){
   const hoje = dataISOLocal(new Date());
   const prev = diaUtilAnterior(dlData);
@@ -379,14 +431,20 @@ function renderDailyNav(){
     ${dlData!==hoje?`<button type="button" class="dl-hoje" onclick="dlIrHoje()">Hoje</button>`:""}
     <div class="dl-tira">${pills}</div>`;
 }
+
+// Função do módulo: usuarios daily
 function usuariosDaily(){
   return usuariosAtivosOrdenados().filter(u=>(u.modulos||[]).includes("reunioes"));
 }
+
+// Desenha na tela: render daily presencas
 function renderDailyPresencas(){
   const us = usuariosDaily();
   document.getElementById("dl-pres").innerHTML = `<span class="dl-pres-tit">Presentes ${dlPresencas.length}/${us.length}</span>` +
     us.map(u=>`<button type="button" class="${dlPresencas.includes(u.id)?"on":""}" onclick="dlTogglePresenca('${u.id}')">${avatarMini(u.nome)}${escHtml(u.nome.split(" ")[0])}</button>`).join("");
 }
+
+// Função do módulo: dl toggle presenca
 async function dlTogglePresenca(uid){
   const dia = dlData;
   if(dlPresencas.includes(uid)){
@@ -400,14 +458,22 @@ async function dlTogglePresenca(uid){
   }
   if(dia===dlData){ renderDailyPresencas(); renderDailyRodape(); }
 }
+
+// Função do módulo: opcoes usuarios daily
 function opcoesUsuariosDaily(rotulo){
   return `<option value="">${rotulo}</option>` + usuariosAtivosOrdenados().map(u=>`<option value="${u.id}">${escHtml(u.nome)}</option>`).join("");
 }
+
+// Função do módulo: opcoes demandas daily
 function opcoesDemandasDaily(){
   const ativas = DEMANDAS.filter(d=>!demandaConcluida(d) && !d.entregueEm).slice().sort((a,b)=>b.id-a.id);
   return '<option value="">Demanda relacionada (opcional)</option>' + ativas.map(d=>`<option value="${d.id}">#${d.id} — ${escHtml(d.demanda.slice(0,55))}</option>`).join("");
 }
+
+// Função do módulo: dl pode apagar
 function dlPodeApagar(i){ return ehAdminOuCoordenador() || (!!currentUser && i.criado_por===currentUser.id); }
+
+// Função do módulo: dl item html
 function dlItemHtml(i){
   const dem = i.demanda_id ? DEMANDAS.find(d=>d.id===i.demanda_id) : null;
   const tags = [];
@@ -422,6 +488,8 @@ function dlItemHtml(i){
     ${dlPodeApagar(i)?`<button type="button" class="rn-x" title="Remover" onclick="dlRemover(${i.id})">×</button>`:""}
   </div>`;
 }
+
+// Função do módulo: demandas travadas daily
 function demandasTravadasDaily(){
   const hoje = dataISOLocal(new Date());
   const ja = new Set(dlItensDoDia("bloqueio").map(i=>i.demanda_id).filter(Boolean));
@@ -435,6 +503,8 @@ function demandasTravadasDaily(){
     return {d, motivos, peso};
   }).filter(x=>x.motivos.length).sort((a,b)=>b.peso-a.peso);
 }
+
+// Desenha na tela: render daily secao
 function renderDailySecao(secao){
   const el = document.getElementById("dl-card-"+secao);
   if(!el) return;
@@ -474,6 +544,8 @@ function renderDailySecao(secao){
     <p class="dl-dica">${cfg.dica}</p>${extra}
     <div class="dl-itens">${itens.length ? itens.map(dlItemHtml).join("") : `<div class="dl-vazio">${vazio}</div>`}</div>${add}`;
 }
+
+// Função do módulo: dl inserir
 async function dlInserir(obj){
   const { data, error } = await sb.from("dailys_itens").insert({data:dlData, ...obj}).select().single();
   if(error){ alert("Erro ao salvar o item da daily: "+error.message); return null; }
@@ -481,6 +553,8 @@ async function dlInserir(obj){
   dlContagem[dlData] = (dlContagem[dlData]||0)+1;
   return data;
 }
+
+// Função do módulo: dl adicionar
 async function dlAdicionar(secao){
   const v = id=>{ const el = document.getElementById(id); return el ? el.value : ""; };
   const texto = v("dl-in-"+secao+"-tx").trim();
@@ -494,6 +568,8 @@ async function dlAdicionar(secao){
   if(!ok) return;
   renderDailySecao(secao); renderDailyRodape(); renderDailyNav();
 }
+
+// Função do módulo: dl trazer pendentes
 async function dlTrazerPendentes(){
   const prev = diaUtilAnterior(dlData);
   const hoje = dlItensDoDia("prioridade");
@@ -506,6 +582,8 @@ async function dlTrazerPendentes(){
   dlContagem[dlData] = (dlContagem[dlData]||0)+(data||[]).length;
   renderDailySecao("prioridade"); renderDailyRodape(); renderDailyNav();
 }
+
+// Função do módulo: dl levar bloqueio
 async function dlLevarBloqueio(demandaId){
   const x = demandasTravadasDaily().find(s=>s.d.id===demandaId);
   if(!x) return;
@@ -513,6 +591,8 @@ async function dlLevarBloqueio(demandaId){
   if(!ok) return;
   renderDailySecao("bloqueio"); renderDailyRodape(); renderDailyNav();
 }
+
+// Função do módulo: dl marcar
 async function dlMarcar(id, feito){
   const i = dlItens.find(x=>x.id===id);
   if(!i) return;
@@ -521,6 +601,8 @@ async function dlMarcar(id, feito){
   i.feito = feito;
   renderDailySecao(i.secao); renderDailyRodape();
 }
+
+// Função do módulo: dl remover
 async function dlRemover(id){
   const i = dlItens.find(x=>x.id===id);
   if(!i || !confirm("Remover este item da daily?")) return;
@@ -530,6 +612,8 @@ async function dlRemover(id){
   if(i.data===dlData) dlContagem[dlData] = Math.max(0,(dlContagem[dlData]||1)-1);
   renderDailySecao(i.secao); renderDailyRodape(); renderDailyNav();
 }
+
+// Desenha na tela: render daily rodape
 function renderDailyRodape(){
   const p = dlItensDoDia("prioridade"), b = dlItensDoDia("bloqueio");
   const el = document.getElementById("dl-rodape");
@@ -539,6 +623,8 @@ function renderDailyRodape(){
     <span>· <b>${dlPresencas.length}</b> presente${dlPresencas.length===1?"":"s"}</span>
     <button type="button" class="btn-secondary" onclick="copiarResumoDaily()">Copiar resumo da daily</button>`;
 }
+
+// Função do módulo: resumo daily texto
 function resumoDailyTexto(){
   const longo = new Date(dlData+"T00:00:00").toLocaleDateString("pt-BR",{weekday:"long", day:"numeric", month:"long", year:"numeric"});
   const lin = [];
@@ -557,6 +643,8 @@ function resumoDailyTexto(){
   sec("Outros assuntos","outro", i=>"- "+i.texto);
   return lin.join("\n");
 }
+
+// Função do módulo: copiar resumo daily
 async function copiarResumoDaily(){
   const txt = resumoDailyTexto();
   try{

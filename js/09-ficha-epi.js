@@ -1,30 +1,11 @@
 /* =====================================================================
-   FICHA DE EPI — módulo dentro da plataforma:
-   ficha individual, impressão em lote e novo admitido (fora da base)
+   FICHA DE EPI — marcação por colaborador, lote, novos admitidos e auditoria
    ===================================================================== */
-const EPI_FRENTE_LINHAS = 14;   // linhas de lançamento na frente (EPIs da função + linhas em branco)
-const EPI_VERSO_LINHAS = 24;    // linhas de lançamento no verso (histórico), antes do desligamento
-let EPI_BASE = {colaboradores:[], epis:[], indiceEpis:new Map(), carregada:false, promessa:null};
-let fichaEpiIndividual = null;  // {colab, epis, historicoId}
-let fichaEpiNovo = null;
 
-function escHtml(s){
-  return String(s==null ? "" : s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
-}
-function cmpPtBr(a,b){ return String(a).localeCompare(String(b), "pt-BR"); }
-
-/* ---- Base (colaboradores + EPIs por função), carregada uma vez e mantida em memória ---- */
-async function buscarTodasLinhas(tabela, colunas){
-  const todas = [];
-  for(let de=0; ; de+=1000){
-    const { data, error } = await sb.from(tabela).select(colunas).order("id", {ascending:true}).range(de, de+999);
-    if(error) throw error;
-    todas.push(...(data||[]));
-    if(!data || data.length<1000) break;
-  }
-  return todas;
-}
+// Função do módulo: invalidar base epi
 function invalidarBaseEpi(){ EPI_BASE.carregada = false; EPI_BASE.promessa = null; }
+
+// Função do módulo: carregar base epi
 async function carregarBaseEpi(){
   if(EPI_BASE.carregada) return EPI_BASE;
   if(!EPI_BASE.promessa){
@@ -51,20 +32,28 @@ async function carregarBaseEpi(){
   }
   return EPI_BASE.promessa;
 }
+
+// Função do módulo: epis da funcao epi
 function episDaFuncaoEpi(setor, cargo){
   return EPI_BASE.indiceEpis.get(normalizarTextoComparacao(setor)+"|"+normalizarTextoComparacao(cargo)) || [];
 }
+
+// Função do módulo: lojas base epi
 function lojasBaseEpi(incluirUnidades){
   const mapa = new Map();
   EPI_BASE.colaboradores.forEach(c=>{ const k = normalizarTextoComparacao(c.loja); if(k && !mapa.has(k)) mapa.set(k, c.loja); });
   if(incluirUnidades) UNIDADES.forEach(u=>{ const k = normalizarTextoComparacao(u.nome); if(k && !mapa.has(k)) mapa.set(k, u.nome); });
   return [...mapa.values()].sort(cmpPtBr);
 }
+
+// Função do módulo: setores epi disponiveis
 function setoresEpiDisponiveis(){
   const mapa = new Map();
   EPI_BASE.epis.forEach(e=>{ const k = normalizarTextoComparacao(e.setor); if(k && !mapa.has(k)) mapa.set(k, e.setor); });
   return [...mapa.values()].sort(cmpPtBr);
 }
+
+// Função do módulo: funcoes epi do setor
 function funcoesEpiDoSetor(setor){
   const s = normalizarTextoComparacao(setor), mapa = new Map();
   EPI_BASE.epis.forEach(e=>{
@@ -74,6 +63,8 @@ function funcoesEpiDoSetor(setor){
   });
   return [...mapa.values()].sort(cmpPtBr);
 }
+
+// Preenche: preencher select epi
 function preencherSelectEpi(id, valores, rotuloVazio){
   const sel = document.getElementById(id);
   if(!sel) return;
@@ -82,6 +73,7 @@ function preencherSelectEpi(id, valores, rotuloVazio){
   if(valores.includes(atual)) sel.value = atual;
 }
 
+// Inicializa: init ficha epi
 /* ---- Entrada na aba e navegação entre sub-abas ---- */
 async function initFichaEpi(){
   const aviso = document.getElementById("fe-aviso-base");
@@ -105,6 +97,8 @@ async function initFichaEpi(){
   aoTrocarSetorNovoEpi();
   renderAdmitidosEpi();
 }
+
+// Troca para a sub-tela: mostrar sub ficha epi
 function mostrarSubFichaEpi(sub){
   document.querySelectorAll("#view-fichaEpi .insp-tab").forEach(b=>b.classList.remove("active"));
   document.querySelector('#view-fichaEpi .insp-tab[data-sub="'+sub+'"]').classList.add("active");
@@ -112,6 +106,8 @@ function mostrarSubFichaEpi(sub){
   document.getElementById("fichaEpi-sub-"+sub).classList.add("active");
   if(sub==="auditoria") initAuditoriaEpi();
 }
+
+// Função do módulo: ajustar abas ficha epi
 function ajustarAbasFichaEpi(){
   const tem = k => (currentUser.modulos||[]).includes(k);
   const abas = [...document.querySelectorAll("#view-fichaEpi .insp-tab")];
@@ -121,6 +117,7 @@ function ajustarAbasFichaEpi(){
   else if(ativa.dataset.sub==="auditoria") initAuditoriaEpi();
 }
 
+// Função do módulo: imprimir folhas epi
 /* ---- Impressão: usa um contêiner próprio, fora do app, para sair só as folhas ---- */
 function imprimirFolhasEpi(html){
   const raiz = document.getElementById("epi-print-root");
@@ -134,16 +131,21 @@ function imprimirFolhasEpi(html){
   window.addEventListener("afterprint", limpar);
   setTimeout(()=>window.print(), 150);
 }
+
+// Função do módulo: imprimir previa epi
 function imprimirPreviaEpi(idContainer){
   const el = document.getElementById(idContainer);
   if(!el || !el.innerHTML.trim()){ alert("Gere a ficha antes de imprimir."); return; }
   imprimirFolhasEpi(el.innerHTML);
 }
 
+// Função do módulo: itens historico epi
 /* ---- Histórico de fichas (alimenta a aba Auditoria EPI) ---- */
 function itensHistoricoEpi(epis){
   return epis.map(e=>({descricao:e.descricao, ca:e.ca||null, jaEntregue:!!e.jaEntregue, dataEntrega:e.dataEntrega||null}));
 }
+
+// Função do módulo: registrar fichas no historico
 async function registrarFichasNoHistorico(lista){
   const linhas = lista.map(({colab, epis})=>({
     matricula: colab.matricula ? String(colab.matricula) : "", nome_colaborador: colab.nome||null, loja: colab.loja||null,
@@ -158,6 +160,7 @@ async function registrarFichasNoHistorico(lista){
   return {ok:true, qtd:gravadas.length, linhas:gravadas};
 }
 
+// Função do módulo: nova busca ficha epi
 /* ---- Ficha individual (por matrícula) ---- */
 function novaBuscaFichaEpi(){
   document.getElementById("fe-ind-previa").style.display = "none";
@@ -169,10 +172,14 @@ function novaBuscaFichaEpi(){
   campo.focus();
   fichaEpiIndividual = null;
 }
+
+// Função do módulo: voltar para marcacao epi
 function voltarParaMarcacaoEpi(){
   document.getElementById("fe-ind-previa").style.display = "none";
   document.getElementById("fe-ind-marcacao").style.display = "block";
 }
+
+// Função do módulo: buscar ficha epi
 async function buscarFichaEpi(){
   const matricula = document.getElementById("fe-ind-matricula").value.trim();
   const status = document.getElementById("fe-ind-status");
@@ -199,6 +206,8 @@ async function buscarFichaEpi(){
   document.getElementById("fe-ind-marcacao").style.display = "block";
   status.textContent = "";
 }
+
+// Desenha na tela: renderizar marcacao epis
 function renderizarMarcacaoEpis(colab, epis){
   document.getElementById("fe-ind-colab-info").innerHTML = `<b>${escHtml(colab.nome||"—")}</b> · matrícula ${escHtml(colab.matricula)} · ${escHtml(colab.loja||"—")} · ${escHtml(colab.setor||"—")} · ${escHtml(colab.cargo||"—")}`;
   const tbody = document.getElementById("fe-ind-marcacao-tbody");
@@ -215,6 +224,8 @@ function renderizarMarcacaoEpis(colab, epis){
     </tr>
   `).join("");
 }
+
+// Função do módulo: gerar ficha individual
 async function gerarFichaIndividual(){
   if(!fichaEpiIndividual) return;
   const { colab } = fichaEpiIndividual;
@@ -238,6 +249,7 @@ async function gerarFichaIndividual(){
   }
 }
 
+// Função do módulo: colaboradores do lote epi
 /* ---- Impressão em lote (por loja ou loja + setor) ---- */
 function colaboradoresDoLoteEpi(){
   const loja = document.getElementById("fe-lote-loja").value;
@@ -254,6 +266,8 @@ function colaboradoresDoLoteEpi(){
   lista.sort((a,b)=> cmpPtBr(a.colab.setor||"", b.colab.setor||"") || cmpPtBr(a.colab.nome||"", b.colab.nome||""));
   return {lista, total, semLista};
 }
+
+// Reage à ação:: ao trocar loja lote epi
 function aoTrocarLojaLoteEpi(){
   const loja = document.getElementById("fe-lote-loja").value;
   const lojaN = normalizarTextoComparacao(loja);
@@ -269,6 +283,8 @@ function aoTrocarLojaLoteEpi(){
   sel.innerHTML = '<option value="">Todos os setores (loja inteira)</option>' + [...mapa.values()].sort(cmpPtBr).map(s=>`<option value="${escHtml(s)}">${escHtml(s)}</option>`).join("");
   atualizarPreviaLoteEpi();
 }
+
+// Atualiza: atualizar previa lote epi
 function atualizarPreviaLoteEpi(){
   const resumo = document.getElementById("fe-lote-resumo");
   const btn = document.getElementById("fe-lote-btn");
@@ -295,6 +311,8 @@ function atualizarPreviaLoteEpi(){
       <td>${epis.length ? epis.length : '<span style="color:var(--terracota);">sem lista</span>'}</td>
     </tr>`).join("") : '<tr><td colspan="5" style="text-align:center; padding:14px; color:var(--areia-esc);">Nenhum colaborador encontrado com esse filtro.</td></tr>';
 }
+
+// Função do módulo: gerar lote epi
 async function gerarLoteEpi(){
   const { lista } = colaboradoresDoLoteEpi();
   if(!lista.length){ alert("Selecione uma loja com colaboradores na base."); return; }
@@ -315,12 +333,15 @@ async function gerarLoteEpi(){
   }
 }
 
+// Reage à ação:: ao trocar setor novo epi
 /* ---- Novo admitido (fora da base): matrícula em aberto ---- */
 function aoTrocarSetorNovoEpi(){
   const setor = document.getElementById("fe-novo-setor").value;
   preencherSelectEpi("fe-novo-funcao", setor ? funcoesEpiDoSetor(setor) : [], setor ? "Selecione..." : "Selecione o setor primeiro");
   atualizarNovoEpi();
 }
+
+// Atualiza: atualizar novo epi
 function atualizarNovoEpi(){
   const loja = document.getElementById("fe-novo-loja").value;
   const setor = document.getElementById("fe-novo-setor").value;
@@ -333,6 +354,8 @@ function atualizarNovoEpi(){
     ? "<b>"+epis.length+" EPI(s)</b> cadastrado(s) para esta função: "+epis.map(e=>escHtml(e.descricao)).join(" · ")
     : "Nenhum EPI cadastrado para esta função — a ficha sairá com as linhas em branco.";
 }
+
+// Limpa: limpar novo epi
 function limparNovoEpi(){
   ["fe-novo-loja","fe-novo-setor"].forEach(id=>{ document.getElementById(id).value = ""; });
   document.getElementById("fe-novo-nome").value = "";
@@ -341,6 +364,8 @@ function limparNovoEpi(){
   document.getElementById("fe-novo-previa").style.display = "none";
   fichaEpiNovo = null;
 }
+
+// Função do módulo: gerar ficha novo epi
 async function gerarFichaNovoEpi(){
   const loja = document.getElementById("fe-novo-loja").value;
   const setor = document.getElementById("fe-novo-setor").value;
@@ -359,30 +384,31 @@ async function gerarFichaNovoEpi(){
   await registrarFichasNoHistorico([{colab, epis}]);
 }
 
-/* ---- Novos admitidos por planilha: importação → fila do técnico → baixar (sai da fila sozinha) ---- */
-let ADM_PREVIA = [];
-let ADM_SEL = new Set();
-const ADM_COLUNAS = {
-  nome:["NOME","COLABORADOR","NOMECOLABORADOR","NOMECOMPLETO","FUNCIONARIO"],
-  loja:["LOJA","UNIDADE","FILIAL"],
-  setor:["SETOR","DEPARTAMENTO","AREA"],
-  funcao:["FUNCAO","CARGO"],
-  admissao:["ADMISSAO","DATAADMISSAO","DATADEADMISSAO"]
-};
+// Função do módulo: chave cabecalho adm
 function chaveCabecalhoAdm(s){ return normalizarTextoComparacao(s).replace(/[^A-Z0-9]/g,""); }
+
+// Função do módulo: baixar modelo admitidos
 function baixarModeloAdmitidos(){
   const ws = XLSX.utils.aoa_to_sheet([["Nome","Loja","Setor","Função"],["Maria da Silva","Barra","Padaria","Padeiro"]]);
   const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Novos admitidos");
   XLSX.writeFile(wb, "modelo_novos_admitidos.xlsx");
 }
+
+// Limpa: limpar previa admitidos
 function limparPreviaAdmitidos(){
   ADM_PREVIA = [];
   const f = document.getElementById("fe-adm-arquivo"); if(f) f.value = "";
   document.getElementById("fe-adm-previa").style.display = "none";
   document.getElementById("fe-adm-status").textContent = "";
 }
+
+// Função do módulo: unidade por nome epi
 function unidadePorNomeEpi(nome){ const k = normalizarTextoComparacao(nome); return UNIDADES.find(u=>normalizarTextoComparacao(u.nome)===k) || null; }
+
+// Função do módulo: valor canonico epi
 function valorCanonicoEpi(valor, lista){ const k = normalizarTextoComparacao(valor); return lista.find(v=>normalizarTextoComparacao(v)===k) || valor; }
+
+// Função do módulo: ler planilha admitidos
 async function lerPlanilhaAdmitidos(){
   const status = document.getElementById("fe-adm-status");
   const file = document.getElementById("fe-adm-arquivo").files[0];
@@ -443,6 +469,8 @@ async function lerPlanilhaAdmitidos(){
     status.style.color = "var(--vermelho)"; status.textContent = "Não foi possível ler a planilha: "+(e && e.message ? e.message : e);
   }
 }
+
+// Função do módulo: enviar admitidos
 async function enviarAdmitidos(){
   if(!ehAdminOuCoordenador()) return;
   const validas = ADM_PREVIA.filter(r=>!r.erros.length);
@@ -467,6 +495,8 @@ async function enviarAdmitidos(){
     if(gravadas.length) mostrarToast(gravadas.length+" ficha(s) enviada(s) para os técnicos responsáveis.");
   } finally { btn.disabled = false; }
 }
+
+// Função do módulo: avisar tecnicos admitidos
 // um aviso por técnico (loja sem técnico vinculado: avisa administradores e coordenadores)
 async function avisarTecnicosAdmitidos(registros, lote){
   const grupos = new Map();
@@ -484,6 +514,8 @@ async function avisarTecnicosAdmitidos(registros, lote){
     for(const uid of dest){ if(uid!==currentUser.id) await criarNotificacao(uid, "epi_admitidos", titulo, msg, "epi_admitidos", a ? a.id : lote); }
   }
 }
+
+// Função do módulo: fila admitidos do usuario
 // fila do usuário: o técnico vê as lojas sob sua responsabilidade; administrador e coordenador veem todas
 function filaAdmitidosDoUsuario(){
   if(!currentUser) return [];
@@ -492,6 +524,8 @@ function filaAdmitidosDoUsuario(){
   const eu = normalizarTextoComparacao(currentUser.nome);
   return EPI_NOVOS.filter(r=>lojas.has(normalizarTextoComparacao(r.loja)) || (r.tecnico && normalizarTextoComparacao(r.tecnico)===eu));
 }
+
+// Desenha na tela: render admitidos epi
 function renderAdmitidosEpi(){
   const tbody = document.getElementById("fe-adm-tbody");
   if(!tbody || !currentUser) return;
@@ -515,12 +549,20 @@ function renderAdmitidosEpi(){
     <td>${escHtml(r.nome)}</td><td>${escHtml(r.loja)}</td><td>${escHtml(r.setor)}</td><td>${escHtml(r.funcao)}</td><td>${escHtml(r.tecnico||"—")}</td><td>${r.criadoEm ? dataBR(String(r.criadoEm).slice(0,10)) : "—"}</td></tr>`).join("")
     : '<tr><td colspan="7" style="text-align:center; padding:16px; color:var(--areia-esc);">Nenhuma ficha aguardando download.</td></tr>';
 }
+
+// Alterna (mostra/esconde): alternar admitido
 function alternarAdmitido(id, on){ if(on) ADM_SEL.add(id); else ADM_SEL.delete(id); renderAdmitidosEpi(); }
+
+// Função do módulo: selecionar todos admitidos
 function selecionarTodosAdmitidos(on){ ADM_SEL = on ? new Set(filaAdmitidosDoUsuario().map(r=>r.id)) : new Set(); renderAdmitidosEpi(); }
+
+// Abre: abrir ficha epi novos admitidos
 function abrirFichaEpiNovosAdmitidos(){
   irParaView("fichaEpi");
   mostrarSubFichaEpi("admitidos");
 }
+
+// Função do módulo: baixar admitidos
 // baixar = gerar as fichas (frente e verso, matrícula em branco), registrar no histórico e tirar da fila
 async function baixarAdmitidos(){
   const fila = filaAdmitidosDoUsuario();
@@ -547,6 +589,8 @@ async function baixarAdmitidos(){
     renderAdmitidosEpi(); renderInicio();
   } finally { btn.disabled = false; }
 }
+
+// Função do módulo: resolver avisos epi se fila vazia
 // quando a fila do usuário zera, os avisos de fichas de novos admitidos dele ficam resolvidos
 async function resolverAvisosEpiSeFilaVazia(){
   if(filaAdmitidosDoUsuario().length) return;
@@ -557,6 +601,7 @@ async function resolverAvisosEpiSeFilaVazia(){
   }
 }
 
+// Desenha na tela: renderizar ficha epi html
 /* ---- Layout da ficha: duas folhas A4 (frente e verso) ---- */
 function renderizarFichaEpiHtml(colab, epis){
   const logo = HORTIFRUTI_LOGO_DATAURL;
@@ -647,6 +692,7 @@ function renderizarFichaEpiHtml(colab, epis){
   return frente + verso;
 }
 
+// Função do módulo: lojas sob responsabilidade
 /* =====================================================================
    AUDITORIA DE FICHAS DE EPI — histórico, habilitação e relatório em PDF
    ===================================================================== */
@@ -654,6 +700,8 @@ function lojasSobResponsabilidade(){
   if(!currentUser) return [];
   return UNIDADES.filter(u=> u.tecnicoResponsavel && normalizarTextoComparacao(u.tecnicoResponsavel)===normalizarTextoComparacao(currentUser.nome)).map(u=>u.nome);
 }
+
+// Função do módulo: dados filtrados auditoria epi
 function dadosFiltradosAuditoriaEpi(){
   const loja = document.getElementById("aud-f-loja")?.value;
   const status = document.getElementById("aud-f-status")?.value;
@@ -671,6 +719,8 @@ function dadosFiltradosAuditoriaEpi(){
     return true;
   });
 }
+
+// Preenche: popular filtros auditoria epi
 function popularFiltrosAuditoriaEpi(){
   const restringirPorResponsabilidade = !ehAdminOuCoordenador();
   const base = restringirPorResponsabilidade
@@ -678,14 +728,20 @@ function popularFiltrosAuditoriaEpi(){
     : EPI_FICHAS_IMPRESSAS;
   fillSelect("aud-f-loja", [...new Set(base.map(f=>f.loja).filter(Boolean))].sort());
 }
+
+// Limpa: limpar filtros auditoria epi
 function limparFiltrosAuditoriaEpi(){
   ["aud-f-loja","aud-f-status","aud-f-busca"].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=""; });
   renderAuditoriaEpi();
 }
+
+// Inicializa: init auditoria epi
 function initAuditoriaEpi(){
   popularFiltrosAuditoriaEpi();
   renderAuditoriaEpi();
 }
+
+// Desenha na tela: render auditoria epi
 function renderAuditoriaEpi(){
   const linhas = dadosFiltradosAuditoriaEpi().slice().sort((a,b)=> (b.impressaEm||"").localeCompare(a.impressaEm||""));
   document.getElementById("aud-kpi-total").textContent = linhas.length;
@@ -716,6 +772,8 @@ function renderAuditoriaEpi(){
     </tr>
   `).join("");
 }
+
+// Função do módulo: habilitar ficha epi
 async function habilitarFichaEpi(id){
   const { error } = await sb.from("epi_fichas_impressas").update({
     status_auditoria:"Habilitada", auditado_por: currentUser?currentUser.id:null, auditado_em: new Date().toISOString(), observacoes_auditoria: null
@@ -726,6 +784,8 @@ async function habilitarFichaEpi(id){
   mostrarToast("Ficha habilitada.");
   renderAuditoriaEpi();
 }
+
+// Função do módulo: marcar divergencia ficha epi
 async function marcarDivergenciaFichaEpi(id){
   const motivo = prompt("Descreva a divergência encontrada nesta ficha:");
   if(motivo===null) return;
@@ -739,6 +799,8 @@ async function marcarDivergenciaFichaEpi(id){
   mostrarToast("Divergência registrada.");
   renderAuditoriaEpi();
 }
+
+// Exporta: exportar relatorio auditoria epi
 function exportarRelatorioAuditoriaEpi(){
   const linhas = dadosFiltradosAuditoriaEpi().slice().sort((a,b)=> (a.loja||"").localeCompare(b.loja||""));
   if(!linhas.length){ alert("Não há fichas para gerar relatório com os filtros atuais."); return; }
@@ -794,9 +856,12 @@ function exportarRelatorioAuditoriaEpi(){
   doc.save("auditoria_epi_"+new Date().toISOString().slice(0,10)+".pdf");
 }
 
+// Inicializa: init gestao epi
 function initGestaoEpi(){
   atualizarKpisEpi();
 }
+
+// Atualiza: atualizar kpis epi
 async function atualizarKpisEpi(){
   const { count: qtdColab } = await sb.from("colaboradores").select("*", {count:"exact", head:true});
   const { data: combos } = await sb.from("epi_por_funcao").select("setor,funcao");
@@ -805,6 +870,8 @@ async function atualizarKpisEpi(){
   if(setColab) setColab.textContent = qtdColab || 0;
   if(setCombo) setCombo.textContent = new Set((combos||[]).map(c=>c.setor+"|"+c.funcao)).size;
 }
+
+// Função do módulo: parse lista epi por funcao sheet
 function parseListaEpiPorFuncaoSheet(sheet){
   const linhas = XLSX.utils.sheet_to_json(sheet, {header:1, defval:null});
   const registros = [];
@@ -828,6 +895,8 @@ function parseListaEpiPorFuncaoSheet(sheet){
   });
   return registros;
 }
+
+// Função do módulo: importar base epi
 async function importarBaseEpi(){
   const input = document.getElementById("epi-import-file");
   const status = document.getElementById("epi-import-status");
@@ -892,6 +961,7 @@ async function importarBaseEpi(){
   }
 }
 
+// Função do módulo: normalizar data importacao
 function normalizarDataImportacao(v){
   if(v == null || v === "") return null;
   if(v instanceof Date) return v.toISOString().slice(0,10);
@@ -906,214 +976,5 @@ function normalizarDataImportacao(v){
   const m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
   if(m) return m[3]+"-"+m[2].padStart(2,"0")+"-"+m[1].padStart(2,"0");
   return null;
-}
-async function importarBackupAtestados(){
-  const input = document.getElementById("sd-import-file");
-  const status = document.getElementById("sd-import-status");
-  const file = input.files[0];
-  if(!file){ status.style.color="var(--vermelho)"; status.textContent = "Selecione um arquivo primeiro."; return; }
-  status.style.color = "var(--areia-esc)";
-  status.textContent = "Lendo o arquivo...";
-  try{
-    const buf = await file.arrayBuffer();
-    const wb = XLSX.read(buf, {type:"array", cellDates:true});
-    let registros = [];
-    let mapaRegional = {};
-
-    if(wb.SheetNames.includes("REGIONAIS")){
-      const regs = XLSX.utils.sheet_to_json(wb.Sheets["REGIONAIS"], {defval:null});
-      regs.forEach(r=>{ if(r.Regional && r.Lojas) mapaRegional[r.Lojas] = r.Regional; });
-    }
-    if(wb.SheetNames.includes("Atestados")){
-      const rows = XLSX.utils.sheet_to_json(wb.Sheets["Atestados"], {defval:null});
-      registros = registros.concat(rows.filter(r=>r.Loja).map(r=>({
-        matricula: r.Matricula!=null ? String(r.Matricula) : null,
-        nome: r.Nome || null, loja: r.Loja || null, regional: mapaRegional[r.Loja] || null,
-        data_atestado: normalizarDataImportacao(r.Data), hospital: r.Hospital || null, especialidade: null,
-        motivo: r.Motivo || null, afastamento_inicio: normalizarDataImportacao(r.Inicio),
-        afastamento_fim: normalizarDataImportacao(r.Fim), duracao_dias: Number(r.Dias)||0,
-        tipo_atestado: r.Tipo || null, cid: r.CID || null, convenio: r.Convenio || null,
-        setor: r.Setor || null, funcao: r.Funcao || null
-      })));
-    }
-    if(wb.SheetNames.includes("BASE BOT")){
-      const rows = XLSX.utils.sheet_to_json(wb.Sheets["BASE BOT"], {defval:null});
-      registros = registros.concat(rows.filter(r=>r.loja).map(r=>({
-        matricula: null, nome: null, loja: r.loja || null, regional: mapaRegional[r.loja] || null,
-        data_atestado: normalizarDataImportacao(r.data_atestado), hospital: null, especialidade: null,
-        motivo: r.motivo || null, afastamento_inicio: normalizarDataImportacao(r.afastamento_inicio),
-        afastamento_fim: normalizarDataImportacao(r.afastamento_fim), duracao_dias: Number(r.dias)||0,
-        tipo_atestado: r.tipo || null, cid: r.cid || null, convenio: null, setor: null, funcao: null
-      })));
-    }
-
-    if(!registros.length){
-      status.style.color = "var(--vermelho)";
-      status.textContent = 'Não encontrei nenhuma aba reconhecida ("Atestados" ou "BASE BOT") nesse arquivo.';
-      return;
-    }
-
-    if(document.getElementById("sd-import-substituir").checked){
-      status.textContent = "Limpando a base atual...";
-      const { error: delError } = await sb.from("atestados").delete().neq("id", 0);
-      if(delError){ status.style.color="var(--vermelho)"; status.textContent = "Erro ao limpar a base: "+delError.message; return; }
-      ATESTADOS = [];
-    }
-
-    const LOTE = 500;
-    let inseridos = 0;
-    for(let i=0; i<registros.length; i+=LOTE){
-      const lote = registros.slice(i, i+LOTE);
-      status.textContent = "Importando... "+Math.min(i+LOTE, registros.length)+" de "+registros.length;
-      const { data, error } = await sb.from("atestados").insert(lote).select();
-      if(error){ status.style.color="var(--vermelho)"; status.textContent = "Erro ao importar (parou em "+inseridos+" registros): "+error.message; return; }
-      (data||[]).forEach(a=>{
-        ATESTADOS.push({
-          id:a.id, matricula:a.matricula, nome:a.nome, loja:a.loja, regional:a.regional,
-          dataAtestado:a.data_atestado, hospital:a.hospital, especialidade:a.especialidade, motivo:a.motivo,
-          afastamentoInicio:a.afastamento_inicio, afastamentoFim:a.afastamento_fim, duracaoDias:a.duracao_dias||0,
-          tipoAtestado:a.tipo_atestado, cid:a.cid, convenio:a.convenio, setor:a.setor, funcao:a.funcao
-        });
-      });
-      inseridos += lote.length;
-    }
-
-    status.style.color = "var(--verde-esc)";
-    status.textContent = inseridos+" registro(s) importado(s) com sucesso!";
-    input.value = "";
-    popularFiltrosSaude();
-    renderSaudeVisaoGeral();
-    renderSaudeRegistros();
-  }catch(e){
-    status.style.color = "var(--vermelho)";
-    status.textContent = "Erro ao processar o arquivo: "+e.message;
-  }
-}
-function mostrarSubSaude(sub){
-  document.querySelectorAll("#view-saude .insp-tab").forEach(b=>b.classList.remove("active"));
-  document.querySelector('#view-saude .insp-tab[data-sub="'+sub+'"]').classList.add("active");
-  document.querySelectorAll("#view-saude .insp-sub").forEach(s=>s.classList.remove("active"));
-  document.getElementById("saude-sub-"+sub).classList.add("active");
-  if(sub==="visao") renderSaudeVisaoGeral();
-  else renderSaudeRegistros();
-}
-function popularFiltrosSaude(){
-  fillSelect("sd-f-unidade", [...new Set(ATESTADOS.map(a=>a.loja).filter(Boolean))].sort());
-  fillSelect("sd-f-regional", [...new Set(ATESTADOS.map(a=>a.regional).filter(Boolean))].sort());
-  fillSelect("sd-f-tipo", [...new Set(ATESTADOS.map(a=>a.tipoAtestado).filter(Boolean))].sort());
-}
-function limparFiltrosSaude(){
-  ["sd-f-unidade","sd-f-regional","sd-f-tipo","sd-f-de","sd-f-ate"].forEach(id=>{
-    const el = document.getElementById(id); if(el) el.value = "";
-  });
-  renderSaudeVisaoGeral();
-}
-function dadosFiltradosSaude(){
-  const unidade = document.getElementById("sd-f-unidade")?.value;
-  const regional = document.getElementById("sd-f-regional")?.value;
-  const tipo = document.getElementById("sd-f-tipo")?.value;
-  const de = document.getElementById("sd-f-de")?.value;
-  const ate = document.getElementById("sd-f-ate")?.value;
-  return ATESTADOS.filter(a=>{
-    if(unidade && a.loja!==unidade) return false;
-    if(regional && a.regional!==regional) return false;
-    if(tipo && a.tipoAtestado!==tipo) return false;
-    if(de && (!a.dataAtestado || a.dataAtestado<de)) return false;
-    if(ate && (!a.dataAtestado || a.dataAtestado>ate)) return false;
-    return true;
-  });
-}
-function renderSaudeVisaoGeral(){
-  const dados = dadosFiltradosSaude();
-  document.getElementById("sd-kpi-total").textContent = dados.length;
-  const totalDias = dados.reduce((s,a)=>s+(a.duracaoDias||0),0);
-  document.getElementById("sd-kpi-dias").textContent = totalDias;
-  const colaboradores = new Set(dados.map(a=>a.matricula).filter(Boolean));
-  document.getElementById("sd-kpi-colaboradores").textContent = colaboradores.size;
-  document.getElementById("sd-kpi-media").textContent = dados.length ? (totalDias/dados.length).toFixed(1) : "0";
-
-  const porUnidade = {};
-  dados.forEach(a=>{ if(a.loja){ porUnidade[a.loja] = (porUnidade[a.loja]||0)+1; } });
-  const topUnidades = Object.entries(porUnidade).sort((a,b)=>b[1]-a[1]).slice(0,12);
-  criarChart("saudeUnidade", "chart-saude-unidade", {
-    type:"bar",
-    data:{ labels:topUnidades.map(u=>u[0]), datasets:[{label:"Registros", data:topUnidades.map(u=>u[1]), backgroundColor:"#00733f", borderRadius:6}]},
-    options:{indexAxis:"y", plugins:{legend:{display:false}}, scales:{x:{beginAtZero:true, ticks:{precision:0}}}}
-  });
-
-  const porRegional = {};
-  dados.forEach(a=>{ const r = a.regional||"Não mapeado"; porRegional[r] = (porRegional[r]||0)+1; });
-  criarChart("saudeRegional", "chart-saude-regional", {
-    type:"doughnut",
-    data:{ labels:Object.keys(porRegional), datasets:[{data:Object.values(porRegional), backgroundColor:["#00733f","#faa61a","#a15a33","#a35e8e","#24a076","#f06650","#54412f","#9f8167","#54be95"], borderWidth:2, borderColor:"#fffdfa"}]},
-    options:{plugins:{legend:{position:"bottom", labels:{font:{size:10}}}}}
-  });
-
-  const porMotivo = {};
-  dados.forEach(a=>{ const m = (a.motivo||"Não informado").toUpperCase(); if(m!=="NÃO INFORMADO"&&m!=="COMPARECIMENTO") porMotivo[m] = (porMotivo[m]||0)+1; });
-  const topMotivos = Object.entries(porMotivo).sort((a,b)=>b[1]-a[1]).slice(0,10);
-  criarChart("saudeMotivo", "chart-saude-motivo", {
-    type:"bar",
-    data:{ labels:topMotivos.map(m=>m[0]), datasets:[{label:"Registros", data:topMotivos.map(m=>m[1]), backgroundColor:"#ee3135", borderRadius:6}]},
-    options:{indexAxis:"y", plugins:{legend:{display:false}}, scales:{x:{beginAtZero:true, ticks:{precision:0}}}}
-  });
-
-  const porTipo = {};
-  dados.forEach(a=>{ const t = a.tipoAtestado||"Não informado"; porTipo[t] = (porTipo[t]||0)+1; });
-  const topTipos = Object.entries(porTipo).sort((a,b)=>b[1]-a[1]).slice(0,8);
-  criarChart("saudeTipo", "chart-saude-tipo", {
-    type:"doughnut",
-    data:{ labels:topTipos.map(t=>t[0]), datasets:[{data:topTipos.map(t=>t[1]), backgroundColor:["#faa61a","#00b262","#a15a33","#a35e8e","#f06650","#54be95","#9f8167","#54412f"], borderWidth:2, borderColor:"#fffdfa"}]},
-    options:{plugins:{legend:{position:"bottom", labels:{font:{size:10}}}}}
-  });
-}
-let ordenacaoSaudeRegistros = {campo:"data_atestado", dir:-1};
-function ordenarSaudeRegistros(campo){
-  if(ordenacaoSaudeRegistros.campo===campo) ordenacaoSaudeRegistros.dir *= -1;
-  else ordenacaoSaudeRegistros = {campo, dir:1};
-  renderSaudeRegistros();
-}
-function renderSaudeRegistros(){
-  const tbody = document.getElementById("tbl-saude-registros");
-  if(!tbody) return;
-  const busca = (document.getElementById("sd-busca")?.value||"").trim().toLowerCase();
-  let linhas = ATESTADOS.filter(a=>{
-    if(!busca) return true;
-    const alvo = [a.nome,a.motivo,a.loja,a.cid,a.setor,a.funcao].filter(Boolean).join(" ").toLowerCase();
-    return alvo.includes(busca);
-  });
-  const mapaCampo = {data_atestado:"dataAtestado", loja:"loja", regional:"regional", nome:"nome", setor:"setor", funcao:"funcao", tipo_atestado:"tipoAtestado", motivo:"motivo", cid:"cid", afastamento_inicio:"afastamentoInicio", afastamento_fim:"afastamentoFim", duracao_dias:"duracaoDias"};
-  const {campo, dir} = ordenacaoSaudeRegistros;
-  const chave = mapaCampo[campo]||campo;
-  linhas = linhas.slice().sort((a,b)=>{
-    let va = a[chave], vb = b[chave];
-    if(chave==="duracaoDias"){ va = Number(va)||0; vb = Number(vb)||0; }
-    else { va = (va||"").toString(); vb = (vb||"").toString(); }
-    if(va<vb) return -1*dir;
-    if(va>vb) return 1*dir;
-    return 0;
-  });
-
-  const contador = document.getElementById("sd-contador");
-  if(contador) contador.textContent = linhas.length+" registro(s) de "+ATESTADOS.length+" no total.";
-
-  if(!linhas.length){
-    tbody.innerHTML = `<tr><td colspan="12"><div class="lista-vazio"><b>Nenhum registro encontrado</b>Ajuste a busca para ver os resultados.</div></td></tr>`;
-    return;
-  }
-  tbody.innerHTML = linhas.map(a=>`<tr>
-    <td class="col-sticky" style="min-width:110px; max-width:110px;">${formataData(a.dataAtestado)}</td>
-    <td>${a.loja||"—"}</td>
-    <td>${a.regional||"—"}</td>
-    <td>${a.nome||"—"}</td>
-    <td>${a.setor||"—"}</td>
-    <td>${a.funcao||"—"}</td>
-    <td>${a.tipoAtestado||"—"}</td>
-    <td>${a.motivo||"—"}</td>
-    <td>${a.cid||"—"}</td>
-    <td>${formataData(a.afastamentoInicio)}</td>
-    <td>${formataData(a.afastamentoFim)}</td>
-    <td>${a.duracaoDias||0}</td>
-  </tr>`).join("");
 }
 

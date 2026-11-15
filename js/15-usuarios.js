@@ -1,4 +1,9 @@
 /* =====================================================================
+   USUÁRIOS & MÓDULOS
+   ===================================================================== */
+
+// Desenha na tela: render usuarios
+/* =====================================================================
    7) USUÁRIOS & MÓDULOS
    ===================================================================== */
 function renderUsuarios(){
@@ -20,8 +25,8 @@ function renderUsuarios(){
     </tr>`;
   });
 }
-let assinaturaTemp = null;
-let fotoUsuarioTemp = null;
+
+// Abre: abrir modal usuario
 function abrirModalUsuario(id){
   document.getElementById("form-usuario").reset();
   document.querySelectorAll(".us-mod").forEach(cb=>cb.checked=false);
@@ -72,6 +77,8 @@ function abrirModalUsuario(id){
   }
   document.getElementById("modal-usuario").style.display="flex";
 }
+
+// Reage ao evento:: on foto usuario change
 function onFotoUsuarioChange(input){
   const file = input.files[0];
   if(!file) return;
@@ -84,11 +91,15 @@ function onFotoUsuarioChange(input){
   };
   reader.readAsDataURL(file);
 }
+
+// Remove/cancela: remover foto usuario
 function removerFotoUsuario(){
   fotoUsuarioTemp = null;
   document.getElementById("us-foto-preview").style.display="none";
   document.getElementById("us-foto-remover").style.display="none";
 }
+
+// Reage ao evento:: on assinatura change
 function onAssinaturaChange(input){
   const file = input.files[0];
   if(!file) return;
@@ -101,17 +112,25 @@ function onAssinaturaChange(input){
   };
   reader.readAsDataURL(file);
 }
+
+// Remove/cancela: remover assinatura usuario
 function removerAssinaturaUsuario(){
   assinaturaTemp = null;
   document.getElementById("us-assinatura-preview").style.display="none";
   document.getElementById("us-assinatura-remover").style.display="none";
 }
+
+// Fecha: fechar modal usuario
 function fecharModalUsuario(){ document.getElementById("modal-usuario").style.display="none"; }
+
+// Aplica: aplicar modulos padrao
 function aplicarModulosPadrao(){
   const perfil = document.getElementById("us-perfil").value;
   const padrao = MODULOS_PADRAO[perfil]||[];
   document.querySelectorAll(".us-mod").forEach(cb=>{ cb.checked = padrao.includes(cb.value); });
 }
+
+// Salva no banco: salvar usuario
 async function salvarUsuario(ev){
   ev.preventDefault();
   const id = document.getElementById("us-id").value;
@@ -157,6 +176,8 @@ async function salvarUsuario(ev){
   renderUsuarios();
   return false;
 }
+
+// Alterna (mostra/esconde): alternar status usuario
 async function alternarStatusUsuario(id){
   const u = USUARIOS.find(x=>x.id===id);
   const novoStatus = !u.ativo;
@@ -166,17 +187,5 @@ async function alternarStatusUsuario(id){
   renderUsuarios();
   acaoPlataforma(u.ativo ? "Usuário reativado" : "Usuário desativado", u.nome, null, null);
   mostrarToast(u.ativo? "Usuário reativado.":"Usuário desativado.");
-}
-
-/* =====================================================================
-   8) UTILITÁRIOS
-   ===================================================================== */
-let toastTimer;
-function mostrarToast(msg){
-  const t = document.getElementById("toast");
-  t.textContent = msg;
-  t.style.display="block";
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(()=>{ t.style.display="none"; }, 3200);
 }
 

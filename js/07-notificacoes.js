@@ -1,17 +1,19 @@
 /* =====================================================================
    CENTRAL DE NOTIFICAÇÕES (sino no cabeçalho)
    ===================================================================== */
+
+// Alterna (mostra/esconde): toggle notificacoes
+/* =====================================================================
+   CENTRAL DE NOTIFICAÇÕES (sino no cabeçalho)
+   ===================================================================== */
 function toggleNotificacoes(){
   const dd = document.getElementById("notif-dropdown");
   const abrindo = dd.style.display === "none";
   dd.style.display = abrindo ? "block" : "none";
   if(abrindo) renderNotificacoes();
 }
-document.addEventListener("click", (e)=>{
-  const wrap = document.querySelector(".notif-wrap");
-  const dd = document.getElementById("notif-dropdown");
-  if(wrap && dd && !wrap.contains(e.target)) dd.style.display = "none";
-});
+
+// Função do módulo: tempo relativo notif
 function tempoRelativoNotif(iso){
   if(!iso) return "";
   const diffMs = Date.now() - new Date(iso).getTime();
@@ -22,6 +24,8 @@ function tempoRelativoNotif(iso){
   if(h<24) return h+"h";
   return Math.floor(h/24)+"d";
 }
+
+// Desenha na tela: render notificacoes
 function renderNotificacoes(){
   const badge = document.getElementById("notif-badge");
   const lista = document.getElementById("notif-lista");
@@ -40,6 +44,8 @@ function renderNotificacoes(){
     </div>
   `).join("");
 }
+
+// Abre: abrir notificacao
 async function abrirNotificacao(id){
   const n = NOTIFICACOES.find(x=>x.id===id);
   if(!n) return;
@@ -83,6 +89,8 @@ async function abrirNotificacao(id){
     if(av && av.referenciaTipo) abrirAviso(av.id); else irParaView("inicio");
   }
 }
+
+// Função do módulo: marcar todas notificacoes lidas
 async function marcarTodasNotificacoesLidas(){
   if(!currentUser) return;
   const idsNaoLidas = NOTIFICACOES.filter(n=>n.usuarioId===currentUser.id && !n.lida).map(n=>n.id);
@@ -91,6 +99,8 @@ async function marcarTodasNotificacoesLidas(){
   renderNotificacoes();
   await sb.from("notificacoes").update({lida:true}).in("id", idsNaoLidas);
 }
+
+// Limpa: limpar notificacoes
 async function limparNotificacoes(){
   if(!currentUser) return;
   const ids = NOTIFICACOES.filter(n=>n.usuarioId===currentUser.id && !n.dispensada).map(n=>n.id);
@@ -99,6 +109,8 @@ async function limparNotificacoes(){
   renderNotificacoes(); renderInicio();
   await sb.from("notificacoes").update({lida:true, dispensada:true}).in("id", ids);
 }
+
+// Função do módulo: criar notificacao
 async function criarNotificacao(usuarioId, tipo, titulo, mensagem, referenciaTipo, referenciaId){
   if(!usuarioId) return;
   const destinatario = USUARIOS.find(u=>u.id===usuarioId);
@@ -116,15 +128,21 @@ async function criarNotificacao(usuarioId, tipo, titulo, mensagem, referenciaTip
     renderNotificacoes();
   }
 }
+
+// Função do módulo: notificar admins coordenadores
 async function notificarAdminsCoordenadores(tipo, titulo, mensagem, refTipo, refId, excluir){
   const ex = new Set([...(excluir||[]), currentUser && currentUser.id]);   // quem fez a ação (e quem já foi avisado) fica de fora
   const destinatarios = USUARIOS.filter(u=> u.ativo!==false && (u.perfil==="Administrador"||u.perfil==="Coordenador") && !ex.has(u.id));
   for(const u of destinatarios){ await criarNotificacao(u.id, tipo, titulo, mensagem, refTipo, refId); }
 }
+
+// Função do módulo: acao plataforma
 // toda ação feita na plataforma chega para administradores e coordenadores
 function acaoPlataforma(titulo, mensagem, refTipo, refId, excluir){
   return notificarAdminsCoordenadores("acao_plataforma", titulo, (currentUser ? currentUser.nome+" · " : "")+(mensagem||""), refTipo||null, refId!=null ? refId : null, excluir);
 }
+
+// Função do módulo: notificar visitas
 // visitas: avisa o dono da visita (quando foi outra pessoa que agiu) e os gestores
 function notificarVisitas(vs, titulo){
   if(!vs || !vs.length) return;
@@ -134,6 +152,8 @@ function notificarVisitas(vs, titulo){
   donos.forEach(uid=>criarNotificacao(uid, "agenda_decisao", titulo, msg, "agenda", v0.id));
   acaoPlataforma(titulo, msg, "agenda", v0.id, donos);
 }
+
+// Função do módulo: gerar notificacoes prazo demandas
 async function gerarNotificacoesPrazoDemandas(){
   if(!currentUser) return;
   const minhas = DEMANDAS.filter(d=> d.responsavelUsuarioId===currentUser.id);
@@ -149,13 +169,3 @@ async function gerarNotificacoesPrazoDemandas(){
   }
 }
 
-/* =====================================================================
-   SAÚDE — visão geral e registros de atestados (dados reais do Supabase)
-   ===================================================================== */
-function initSaude(){
-  const cardImportar = document.getElementById("sd-card-importar");
-  if(cardImportar) cardImportar.style.display = ehAdminOuCoordenador() ? "block" : "none";
-  popularFiltrosSaude();
-  renderSaudeVisaoGeral();
-}
-/* ---- Gestão da base de EPI (colaboradores + EPI por função) ---- */

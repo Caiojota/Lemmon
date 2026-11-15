@@ -1,4 +1,9 @@
 /* =====================================================================
+   DEMANDAS — quadro kanban (estilo Jira/Planner)
+   ===================================================================== */
+
+// Inicializa: init demandas
+/* =====================================================================
    DEMANDAS — QUADRO KANBAN (ESTILO JIRA / MICROSOFT PLANNER)
    ===================================================================== */
 function initDemandas(){
@@ -11,6 +16,8 @@ function initDemandas(){
   if(tabAtraso) tabAtraso.style.display = ehAdminOuCoordenador() ? "inline-block" : "none";
   renderVisaoAtivaDemandas();
 }
+
+// Preenche: popular filtros demandas
 function popularFiltrosDemandas(){
   fillSelect("dem-f-categoria", DEMANDAS_OPCOES.categoria||[]);
   fillSelect("dem-f-area", DEMANDAS_OPCOES.area||[]);
@@ -20,18 +27,22 @@ function popularFiltrosDemandas(){
   fillSelect("dem-f-unidade", UNIDADES.map(u=>u.nome));
   renderFiltroRespDemandas();
 }
-// filtro por responsáveis: ícones dos usuários, dá para marcar mais de um (usuário padrão só enxerga as próprias demandas)
-let DEM_F_RESP = new Set();
+
+// Desenha na tela: render filtro resp demandas
 function renderFiltroRespDemandas(){
   const box = document.getElementById("dem-f-resp-av"); if(!box) return;
   if(!ehAdminOuCoordenador()){ box.style.display = "none"; DEM_F_RESP.clear(); return; }
   box.style.display = "";
   box.innerHTML = usuariosAtivosOrdenados().map(u=>`<button type="button" class="dm-resp-btn ${DEM_F_RESP.has(u.id)?"sel":""}" title="${escHtml(u.nome)}" aria-pressed="${DEM_F_RESP.has(u.id)}" onclick="alternarFiltroRespDemandas('${u.id}')">${avatarMiniAgenda(u.id,u.nome)}</button>`).join("");
 }
+
+// Alterna (mostra/esconde): alternar filtro resp demandas
 function alternarFiltroRespDemandas(id){
   if(DEM_F_RESP.has(id)) DEM_F_RESP.delete(id); else DEM_F_RESP.add(id);
   renderFiltroRespDemandas(); renderVisaoAtivaDemandas();
 }
+
+// Limpa: limpar filtros demandas
 function limparFiltrosDemandas(){
   ["dem-f-busca","dem-f-categoria","dem-f-area","dem-f-tipo-atividade","dem-f-tipo","dem-f-prioridade","dem-f-etapa","dem-f-unidade"].forEach(id=>{
     const el = document.getElementById(id); if(el) el.value = "";
@@ -39,13 +50,8 @@ function limparFiltrosDemandas(){
   DEM_F_RESP.clear(); renderFiltroRespDemandas();
   renderVisaoAtivaDemandas();
 }
-["dem-f-categoria","dem-f-area","dem-f-tipo-atividade","dem-f-tipo","dem-f-prioridade","dem-f-etapa","dem-f-unidade"].forEach(id=>{
-  document.addEventListener("DOMContentLoaded", ()=>{
-    const el = document.getElementById(id);
-    if(el) el.addEventListener("change", renderVisaoAtivaDemandas);
-  });
-});
 
+// Calcula: calcular controle prazo
 function calcularControlePrazo(dataLimite, entregueEm){
   if(!dataLimite) return {label:"Sem prazo", cor:"#9f8167"};
   if(entregueEm){
@@ -65,19 +71,23 @@ function calcularControlePrazo(dataLimite, entregueEm){
   if(dias <= 7) return {label:"Vence em 1 semana", cor:"#faa61a"};
   return {label:"Dentro do prazo", cor:"#00b262"};
 }
-// tempo de cronômetro acumulado por demanda (segundos) e barra "gasto x estimado do tipo"
-let DEMANDAS_TEMPO = {};
+
+// Função do módulo: carregar tempo demandas
 async function carregarTempoDemandas(){
   const { data, error } = await sb.from("demandas_sessoes").select("demanda_id,duracao_segundos,fim").not("fim","is",null).range(0, 49999);
   if(error){ console.error("[Supabase] tempo das demandas:", error); return; }
   const m = {}; (data||[]).forEach(r=>{ m[r.demanda_id] = (m[r.demanda_id]||0) + (r.duracao_segundos||0); });
   DEMANDAS_TEMPO = m;
 }
+
+// Função do módulo: tempo gasto demanda
 function tempoGastoDemanda(d){
   let t = DEMANDAS_TEMPO[d.id] || 0;
   if(typeof SESSAO_ATIVA!=="undefined" && SESSAO_ATIVA && SESSAO_ATIVA.demanda_id===d.id) t += Math.max(0, Math.floor((Date.now() - new Date(SESSAO_ATIVA.inicio).getTime())/1000));
   return t;
 }
+
+// Função do módulo: barra tempo html
 function barraTempoHtml(d, comTexto){
   const cfg = DEMANDAS_TIPOS_CONFIG.find(t=>t.nome===d.tipoDemanda);
   const est = cfg && cfg.tempoEstimadoHoras!=null ? cfg.tempoEstimadoHoras*3600 : 0;
@@ -88,6 +98,8 @@ function barraTempoHtml(d, comTexto){
   const txt = est ? formatarDuracao(gasto)+" de "+formatarDuracao(est) : formatarDuracao(gasto)+" (sem estimativa)";
   return `<span class="dm-prazo-bar" title="Tempo de cronômetro: ${txt}"><i style="width:${pct}%; background:${cor};"></i></span>`+(comTexto ? `<small class="dm-prazo-txt">${txt}</small>` : "");
 }
+
+// Função do módulo: barra prazo html
 // (antiga) barra fina: quanto do prazo (entrada → limite) já passou — não é mais usada nas demandas
 function barraPrazoHtml(d, comTexto){
   if(!d.dataLimite || !d.dataEntrada || d.entregueEm) return "";
@@ -100,26 +112,38 @@ function barraPrazoHtml(d, comTexto){
   const txt = rest<0 ? Math.abs(rest)+"d de atraso" : rest===0 ? "vence hoje" : rest+"d restante"+(rest>1?"s":"");
   return `<span class="dm-prazo-bar" title="${txt} · limite ${formatarDataBR(d.dataLimite)}"><i style="width:${pct}%; background:${cor};"></i></span>`+(comTexto ? `<small class="dm-prazo-txt">${txt}</small>` : "");
 }
+
+// Função do módulo: cor prioridade
 function corPrioridade(p){ return p==="Alta" ? "#ee3135" : p==="Baixa" ? "#00733f" : "#faa61a"; }
+
+// Função do módulo: iniciais texto
 function iniciaisTexto(nome){
   if(!nome) return "—";
   return nome.trim().split(/\s+/).slice(0,2).map(p=>p[0]).join("").toUpperCase();
 }
-const PALETA_AVATARES = ["#a15a33","#00733f","#a35e8e","#24a076","#f06650","#54412f","#9f8167","#54be95","#a35e8e","#f9b16b"];
+
+// Função do módulo: cor avatar por nome
 function corAvatarPorNome(nome){
   if(!nome) return "#9f8167";
   let hash = 0;
   for(let i=0; i<nome.length; i++) hash = nome.charCodeAt(i) + ((hash<<5)-hash);
   return PALETA_AVATARES[Math.abs(hash) % PALETA_AVATARES.length];
 }
+
+// Função do módulo: cor tipo demanda
 function corTipoDemanda(tipo){
   return corAvatarPorNome(tipo||"—");
 }
 
+// Função do módulo: norm busca dem
 function normBuscaDem(s){ return String(s||"").normalize("NFD").replace(/[̀-ͯ]/g,"").toLowerCase(); }
+
+// Função do módulo: demandas escopo usuario
 function demandasEscopoUsuario(){
   return DEMANDAS.filter(d=> ehAdminOuCoordenador() || (!!currentUser && d.responsavelUsuarioId===currentUser.id));
 }
+
+// Função do módulo: dados filtrados demandas
 function dadosFiltradosDemandas(){
   const cat = document.getElementById("dem-f-categoria")?.value;
   const area = document.getElementById("dem-f-area")?.value;
@@ -143,41 +167,54 @@ function dadosFiltradosDemandas(){
   });
 }
 
-
-let ordenacaoListaDemandas = {campo:"dataEntrada", dir:-1};
+// Função do módulo: nome etapa demanda
 function nomeEtapaDemanda(d){
   const e = FLUXO_ETAPAS.find(x=>x.id===d.etapaId);
   return e ? e.nome : "—";
 }
+
+// Função do módulo: cor etapa demanda
 function corEtapaDemanda(d){
   const e = FLUXO_ETAPAS.find(x=>x.id===d.etapaId);
   return e ? e.cor : "#9f8167";
 }
+
+// Função do módulo: demanda concluida
 function demandaConcluida(d){
   return nomeEtapaDemanda(d).toLowerCase().includes("conclu");
 }
+
+// Função do módulo: resolucao demanda
 function resolucaoDemanda(d){
   return demandaConcluida(d) ? "Concluído" : "Sem resolução";
 }
+
+// Função do módulo: formatar data br
 function formatarDataBR(iso){
   if(!iso) return "—";
   const soData = iso.split("T")[0];
   return soData.split("-").reverse().join("/");
 }
+
+// Função do módulo: dias para entrega
 function diasParaEntrega(d){
   if(!d.dataEntrada || !d.dataLimite) return null;
   const dif = Math.round((new Date(d.dataLimite+"T00:00:00") - new Date(d.dataEntrada+"T00:00:00"))/86400000);
   return dif;
 }
+
+// Função do módulo: demandas filhas
 function demandasFilhas(d){
   return DEMANDAS.filter(x=>x.demandaMaeId===d.id);
 }
-/* ---- Sub-demandas na lista: a demanda principal ganha uma seta que expande as filhas ---- */
-let DEM_EXPANDIDAS = new Set(), DEM_FILHAS_NA_LISTA = new Map(), demNivelLinha = 0;
+
+// Alterna (mostra/esconde): alternar sub demandas
 function alternarSubDemandas(id){
   if(DEM_EXPANDIDAS.has(id)) DEM_EXPANDIDAS.delete(id); else DEM_EXPANDIDAS.add(id);
   renderVisaoAtivaDemandas();
 }
+
+// Função do módulo: dem responsaveis lista
 // ícones dos responsáveis: quem responde pela demanda + quem responde pelas sub-demandas
 function demResponsaveisLista(d){
   const vistos = new Set(), lista = [];
@@ -188,18 +225,24 @@ function demResponsaveisLista(d){
   });
   return lista;
 }
+
+// Função do módulo: dem responsaveis html
 function demResponsaveisHtml(d){
   const l = demResponsaveisLista(d);
   if(!l.length) return "—";
   const MAX = 4;
   return `<span class="dm-resp-pilha" title="${escHtml(l.map(r=>r.nome).join(", "))}">` + l.slice(0,MAX).map(r=>avatarMiniAgenda(r.id, r.nome)).join("") + (l.length>MAX ? `<span class="dm-resp-mais">+${l.length-MAX}</span>` : "") + `</span>`;
 }
+
+// Função do módulo: dem prefixo linha
 function demPrefixoLinha(d){
   const nf = (DEM_FILHAS_NA_LISTA.get(d.id)||[]).length;
   const ind = demNivelLinha ? `<span class="dm-filha-ind" style="margin-left:${(demNivelLinha-1)*16}px;">↳</span>` : "";
   const seta = nf ? `<button type="button" class="dm-caret ${DEM_EXPANDIDAS.has(d.id)?"aberta":""}" title="${DEM_EXPANDIDAS.has(d.id)?"Recolher":"Mostrar"} as ${nf} sub-demanda${nf>1?"s":""}" aria-label="Sub-demandas" onclick="event.stopPropagation(); alternarSubDemandas(${d.id})">▸</button><span class="dm-subn" title="${nf} sub-demanda${nf>1?"s":""}">${nf}</span>` : "";
   return ind+seta;
 }
+
+// Função do módulo: html linhas demandas aninhadas
 function htmlLinhasDemandasAninhadas(linhas){
   const ids = new Set(linhas.map(d=>d.id));
   const temMae = d=>!!d.demandaMaeId && d.demandaMaeId!==d.id && ids.has(d.demandaMaeId);
@@ -217,6 +260,8 @@ function htmlLinhasDemandasAninhadas(linhas){
   demNivelLinha = 0;
   return saida.join("");
 }
+
+// Desenha na tela: render sub demandas modal
 function renderSubDemandasModal(d){
   const el = document.getElementById("dem-sub-lista"), btn = document.getElementById("btn-nova-sub");
   if(!el) return;
@@ -226,6 +271,8 @@ function renderSubDemandasModal(d){
   el.innerHTML = fs.length ? '<div class="estrutura-lista" style="max-height:170px;">' + fs.map(f=>`<div class="admin-item-row" style="cursor:pointer;" onclick="abrirModalDemanda(${f.id})"><span class="txt"><span class="jira-issue-key">#${f.id}</span> ${escHtml(f.demanda.slice(0,70))}</span><span class="jira-status-chip" style="background:${corEtapaDemanda(f)};">${escHtml(nomeEtapaDemanda(f))}</span></div>`).join("") + '</div>'
     : '<span class="estrutura-vazio">Nenhuma sub-demanda ainda.</span>';
 }
+
+// Função do módulo: nova sub demanda
 async function novaSubDemanda(){
   const maeId = Number(document.getElementById("dem-id").value);
   if(!maeId){ alert("Salve a demanda antes de criar sub-demandas."); return; }
@@ -242,11 +289,15 @@ async function novaSubDemanda(){
   atualizarCabecalhoJanelaDemanda();
   document.getElementById("dem-descricao").focus();
 }
+
+// Ordena a lista de: ordenar lista demandas
 function ordenarListaDemandas(campo){
   if(ordenacaoListaDemandas.campo===campo) ordenacaoListaDemandas.dir *= -1;
   else ordenacaoListaDemandas = {campo, dir:1};
   renderVisaoAtivaDemandas();
 }
+
+// Função do módulo: valor ordenacao demanda
 function valorOrdenacaoDemanda(d, campo){
   switch(campo){
     case "demanda": return d.demanda||"";
@@ -277,54 +328,26 @@ function valorOrdenacaoDemanda(d, campo){
     default: return "";
   }
 }
-let DEMANDAS_MSG_CONT = {};
-let demandasTodasColunas = false;
-let DEMANDAS_SEL = new Set();   // ids das demandas marcadas para alteração em lote
-const COLUNAS_DEMANDAS = [
-  {k:null, t:"", sel:true, cel:d=>`<input type="checkbox" class="dm-sel" ${DEMANDAS_SEL.has(d.id)?"checked":""} onchange="alternarSelecaoDemanda(${d.id}, this.checked)" aria-label="Selecionar demanda #${d.id}">`},
-  {k:"demanda", t:"Demanda", sticky:true, cel:d=>{
-    const n = DEMANDAS_MSG_CONT[d.id]||0;
-    const chat = n ? `<span class="dm-msgs-chip" title="${n} mensagem(ns) na conversa"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20.5l1.5-4.6A8 8 0 1 1 21 12Z"/></svg>${n}</span>` : "";
-    return demPrefixoLinha(d)+`<span class="jira-type-dot" style="background:${corTipoDemanda(d.tipoDemanda)};"></span><span class="jira-issue-key">#${d.id}</span>${chat}<span class="jira-issue-title">${escHtml(d.demanda)}</span>`;
-  }},
-  {k:"tipoDemanda", t:"Tipo de demanda", cel:d=>escHtml(d.tipoDemanda||"—")},
-  {k:"prioridade", t:"Prioridade", cel:d=>`<span class="jira-prioridade"><span class="flag ${d.prioridade==="Alta"?"alta":d.prioridade==="Baixa"?"baixa":"normal"}"></span>${escHtml(d.prioridade)}</span>`},
-  {k:"status", t:"Status", cel:d=>`<span class="jira-status-chip" style="background:${corEtapaDemanda(d)};">${escHtml(nomeEtapaDemanda(d))}</span>`},
-  {k:"prazo", t:"Prazo · tempo (cronômetro)", cel:d=>{ const p=calcularControlePrazo(d.dataLimite,d.entregueEm); return `<div class="dm-prazo-cel"><span class="jira-status-chip" style="background:${p.cor};">${p.label}</span>${barraTempoHtml(d, true)}</div>`; }},
-  {k:"dataLimite", t:"Data limite", cel:d=>formatarDataBR(d.dataLimite)},
-  {k:"aguardandoItem", t:"Aguardando", cel:d=>d.aguardandoItem ? `<span title="${escHtml(d.aguardandoResponsavel||"")}">${escHtml(d.aguardandoItem)}</span>` : "—"},
-  {k:"unidade", t:"Unidade", cel:d=>escHtml(d.unidade||"—")},
-  {k:"responsavel", t:"Responsáveis", cel:d=>demResponsaveisHtml(d)},
-  {k:"categoria", t:"Categoria", ext:true, cel:d=>escHtml(d.categoria||"—")},
-  {k:"area", t:"Área", ext:true, cel:d=>escHtml(d.area||"—")},
-  {k:"tipoAtividade", t:"Tipo de atividade", ext:true, cel:d=>escHtml(d.tipoAtividade||"—")},
-  {k:"dataEntrada", t:"Data de entrada", ext:true, cel:d=>formatarDataBR(d.dataEntrada)},
-  {k:"diasEntrega", t:"Tempo p/ entrega (dias)", ext:true, cel:d=>{ const x=diasParaEntrega(d); return x!=null?x:"—"; }},
-  {k:"tempoEstimado", t:"Tempo estimado", ext:true, cel:d=>escHtml(d.tempoEstimado||"—")},
-  {k:"aguardandoResponsavel", t:"Aguardando (resp.)", ext:true, cel:d=>escHtml(d.aguardandoResponsavel||"—")},
-  {k:"agendadoPara", t:"Agendado para", ext:true, cel:d=>formatarDataBR(d.agendadoPara)},
-  {k:"entregueEm", t:"Entregue em", ext:true, cel:d=>formatarDataBR(d.entregueEm)},
-  {k:"satisfacaoEntrega", t:"Satisf. da entrega", ext:true, cel:d=>escHtml(d.satisfacaoEntrega||"—")},
-  {k:"saldoAnterior", t:"Saldo anterior", ext:true, cel:d=>escHtml(d.saldoAnterior||"—")},
-  {k:"tempoGasto", t:"Tempo gasto", ext:true, cel:d=>escHtml(d.tempoGasto||"—")},
-  {k:"emailRelacionado", t:"Título de e-mail", ext:true, cel:d=>escHtml(d.emailRelacionado||"—")},
-  {k:"comentarios", t:"Comentários", ext:true, cel:d=>`<span title="${escHtml(d.comentarios||"")}">${escHtml((d.comentarios||"—").slice(0,30))}</span>`},
-  {k:"aprovacaoQualidade", t:"Aprovação qualidade", ext:true, cel:d=>escHtml(d.aprovacaoQualidade||"—")},
-  {k:"demandaMae", t:"Demanda mãe", ext:true, cel:d=>d.demandaMaeId ? "#"+d.demandaMaeId : "—"},
-  {k:null, t:"Demanda filha", ext:true, cel:d=>{ const f=demandasFilhas(d); return f.length ? f.map(x=>"#"+x.id).join(", ") : "—"; }}
-];
+
+// Função do módulo: montar cabecalhos demandas
 function montarCabecalhosDemandas(){
   const h = COLUNAS_DEMANDAS.map(c=> c.sel
     ? `<th class="col-sel"><input type="checkbox" class="dm-sel-todos" onchange="selecionarTodasDemandas(this.checked)" title="Selecionar todas as demandas da lista" aria-label="Selecionar todas"></th>`
     : `<th class="${c.sticky?"col-sticky":""} ${c.ext?"col-ext":""}"${c.k?` onclick="ordenarListaDemandas('${c.k}')"`:""}>${c.t}</th>`).join("");
   ["tr-cabecalho-demandas","tr-cabecalho-demandas-concluidas"].forEach(id=>{ const el=document.getElementById(id); if(el) el.innerHTML = h; });
 }
+
+// Aplica: aplicar colunas demandas
 function aplicarColunasDemandas(){
   ["tabela-demandas-ativas","tabela-demandas-concluidas"].forEach(id=>{ const t=document.getElementById(id); if(t) t.classList.toggle("compacta", !demandasTodasColunas); });
   const b = document.getElementById("btn-dem-colunas");
   if(b){ b.textContent = demandasTodasColunas ? "Mostrar menos colunas" : "Mostrar todas as colunas"; b.classList.toggle("on", demandasTodasColunas); }
 }
+
+// Alterna (mostra/esconde): alternar colunas demandas
 function alternarColunasDemandas(){ demandasTodasColunas = !demandasTodasColunas; aplicarColunasDemandas(); }
+
+// Função do módulo: linha demanda html
 function linhaDemandaHtml(d){
   const prioClasse = d.prioridade==="Alta" ? "alta" : d.prioridade==="Baixa" ? "baixa" : "normal";
   return `<tr class="pr-${prioClasse} ${DEMANDAS_SEL.has(d.id)?"sel":""} ${demNivelLinha?"dm-filha":""}" data-id="${d.id}" onclick="abrirModalDemanda(${d.id})">` +
@@ -333,6 +356,7 @@ function linhaDemandaHtml(d){
       : `<td class="${c.sticky?"col-sticky":""} ${c.ext?"col-ext":""}">${c.cel(d)}</td>`).join("") + `</tr>`;
 }
 
+// Ordena a lista de: ordenar linhas
 function ordenarLinhas(linhas){
   const {campo, dir} = ordenacaoListaDemandas;
   return linhas.slice().sort((a,b)=>{
@@ -342,6 +366,8 @@ function ordenarLinhas(linhas){
     return 0;
   });
 }
+
+// Desenha na tela: render kpis demandas
 function renderKpisDemandas(){
   const el = document.getElementById("dm-kpis");
   if(!el) return;
@@ -366,12 +392,16 @@ function renderKpisDemandas(){
   const r = document.getElementById("dm-resumo");
   if(r) r.textContent = ehAdminOuCoordenador() ? "Visão da equipe: todas as demandas, com prazos, responsáveis e a conversa de cada uma." : "Suas demandas, com prazos e a conversa de cada uma.";
 }
+
+// Desenha na tela: render visao ativa demandas
 function renderVisaoAtivaDemandas(){
   const sub = document.querySelector("#view-demandas .insp-tab.active")?.dataset.sub || "ativas";
   renderKpisDemandas();
   if(sub==="concluidas") renderListaDemandasConcluidas();
   else renderListaDemandas();
 }
+
+// Desenha na tela: render lista demandas
 function renderListaDemandas(){
   const tbody = document.getElementById("tbl-lista-demandas");
   if(!tbody) return;
@@ -383,6 +413,8 @@ function renderListaDemandas(){
   tbody.innerHTML = htmlLinhasDemandasAninhadas(linhas);
   sincronizarSelecaoDemandas();
 }
+
+// Desenha na tela: render lista demandas concluidas
 function renderListaDemandasConcluidas(){
   const tbody = document.getElementById("tbl-lista-demandas-concluidas");
   if(!tbody) return;
@@ -395,18 +427,25 @@ function renderListaDemandasConcluidas(){
   sincronizarSelecaoDemandas();
 }
 
+// Função do módulo: sub demandas ativa
 /* ---- Seleção múltipla e alteração em lote ---- */
 function subDemandasAtiva(){ return document.querySelector("#view-demandas .insp-tab.active")?.dataset.sub || "ativas"; }
+
+// Função do módulo: ids demandas visiveis
 function idsDemandasVisiveis(){   // só as linhas que estão na tela (sub-demandas recolhidas não entram na seleção)
   const tb = document.getElementById(subDemandasAtiva()==="concluidas" ? "tbl-lista-demandas-concluidas" : "tbl-lista-demandas");
   return tb ? [...tb.querySelectorAll("tr[data-id]")].map(tr=>Number(tr.dataset.id)) : [];
 }
+
+// Alterna (mostra/esconde): alternar selecao demanda
 function alternarSelecaoDemanda(id, on){
   if(on) DEMANDAS_SEL.add(id); else DEMANDAS_SEL.delete(id);
   const tr = document.querySelector('#view-demandas tr[data-id="'+id+'"]');
   if(tr) tr.classList.toggle("sel", !!on);
   sincronizarSelecaoDemandas();
 }
+
+// Função do módulo: selecionar todas demandas
 function selecionarTodasDemandas(on){
   idsDemandasVisiveis().forEach(id=>{ if(on) DEMANDAS_SEL.add(id); else DEMANDAS_SEL.delete(id); });
   document.querySelectorAll("#view-demandas tbody tr[data-id]").forEach(tr=>{
@@ -416,7 +455,11 @@ function selecionarTodasDemandas(on){
   });
   sincronizarSelecaoDemandas();
 }
+
+// Limpa: limpar selecao demandas
 function limparSelecaoDemandas(){ DEMANDAS_SEL.clear(); selecionarTodasDemandas(false); }
+
+// Função do módulo: sincronizar selecao demandas
 // mantém o checkbox do cabeçalho e a barra de ações coerentes com a seleção
 function sincronizarSelecaoDemandas(){
   const existentes = new Set(DEMANDAS.map(d=>d.id));
@@ -440,9 +483,13 @@ function sincronizarSelecaoDemandas(){
       </span>`;
   });
 }
+
+// Função do módulo: opcoes lote
 function opcoesLote(lista, rotuloVazio){
   return `<option value="">${rotuloVazio||"— manter —"}</option>` + lista.map(v=>`<option value="${escHtml(v)}">${escHtml(v)}</option>`).join("");
 }
+
+// Abre: abrir modal lote demandas
 function abrirModalLoteDemandas(){
   const sel = DEMANDAS.filter(d=>DEMANDAS_SEL.has(d.id));
   if(!sel.length) return;
@@ -474,7 +521,11 @@ function abrirModalLoteDemandas(){
   document.getElementById("lote-btn-excluir").style.display = ehAdminOuCoordenador() ? "inline-block" : "none";
   document.getElementById("modal-dem-lote").style.display = "flex";
 }
+
+// Fecha: fechar modal lote demandas
 function fecharModalLoteDemandas(){ document.getElementById("modal-dem-lote").style.display = "none"; }
+
+// Aplica: aplicar lote demandas
 async function aplicarLoteDemandas(ev){
   if(ev) ev.preventDefault();
   const sel = DEMANDAS.filter(d=>DEMANDAS_SEL.has(d.id));
@@ -544,6 +595,8 @@ async function aplicarLoteDemandas(ev){
   mostrarToast(falhas.length ? ok+" alterada(s); "+falhas.length+" com erro (continuam selecionadas)." : ok+" demanda"+(ok===1?"":"s")+" atualizada"+(ok===1?"":"s")+".");
   return false;
 }
+
+// Remove/cancela: excluir lote demandas
 async function excluirLoteDemandas(){
   if(!ehAdminOuCoordenador()) return;
   const sel = DEMANDAS.filter(d=>DEMANDAS_SEL.has(d.id));
@@ -561,6 +614,8 @@ async function excluirLoteDemandas(){
   acaoPlataforma(ids.length+" demanda"+(ids.length===1?"":"s")+" excluída"+(ids.length===1?"":"s"), "", null, null);
   mostrarToast(ids.length+" demanda"+(ids.length===1?"":"s")+" excluída"+(ids.length===1?"":"s")+".");
 }
+
+// Troca para a sub-tela: mostrar sub demandas
 function mostrarSubDemandas(sub){
   document.querySelectorAll("#view-demandas .insp-tab").forEach(b=>b.classList.remove("active"));
   const abaDm = document.querySelector('#view-demandas .insp-tab[data-sub="'+sub+'"]'); if(abaDm) abaDm.classList.add("active");
@@ -581,6 +636,8 @@ function mostrarSubDemandas(sub){
   else if(sub==="indicadores") renderIndicadoresDemandas();
   renderKpisDemandas();
 }
+
+// Função do módulo: carregar contagem mensagens demandas
 async function carregarContagemMensagensDemandas(){
   try{
     const { data, error } = await sb.from("demandas_mensagens").select("demanda_id").range(0, 19999);
@@ -590,25 +647,8 @@ async function carregarContagemMensagensDemandas(){
     renderVisaoAtivaDemandas();
   }catch(e){ console.error("[Supabase] demandas_mensagens:", e); }
 }
-document.addEventListener("DOMContentLoaded", ()=>{
-  const b = document.getElementById("dem-f-busca");
-  if(b) b.addEventListener("input", renderVisaoAtivaDemandas);
-  const f = document.getElementById("form-demanda");
-  if(f) f.addEventListener("change", atualizarCabecalhoJanelaDemanda);
-  const inp = document.getElementById("dem-chat-input");
-  if(inp){
-    inp.addEventListener("keydown", e=>{ if(e.key==="Enter" && !e.shiftKey && !e.isComposing){ e.preventDefault(); enviarMensagemDemanda(); } });
-    inp.addEventListener("input", ()=>{ inp.style.height="auto"; inp.style.height = Math.min(inp.scrollHeight,120)+"px"; });
-  }
-});
-document.addEventListener("keydown", e=>{
-  if(e.key!=="Escape") return;
-  const dem = document.getElementById("modal-demanda");
-  const reu = document.getElementById("modal-reuniao");
-  if(dem && dem.style.display==="flex") fecharModalDemanda();
-  else if(reu && reu.style.display==="flex") fecharModalReuniao();
-});
 
+// Desenha na tela: render indicadores demandas
 function renderIndicadoresDemandas(){
   if(!ehAdminOuCoordenador()) return;
   const todas = DEMANDAS.slice();
@@ -703,6 +743,8 @@ function renderIndicadoresDemandas(){
     options:{plugins:{legend:{position:"bottom"}}, scales:{y:{beginAtZero:true, ticks:{precision:0}}}}
   });
 }
+
+// Desenha na tela: render demandas em atraso
 function renderDemandasEmAtraso(){
   const todas = DEMANDAS.slice();
   const ativas = todas.filter(d=>!demandaConcluida(d));
@@ -725,12 +767,22 @@ function renderDemandasEmAtraso(){
     return `<tr onclick="abrirModalDemanda(${d.id})" style="cursor:pointer;"><td>#${d.id} — ${d.demanda}</td><td>${d.categoria||"—"}</td><td>${d.area||"—"}</td><td>${d.responsavel||"—"}</td><td>${formatarDataBR(d.dataLimite)}</td><td><b style="color:var(--vermelho);">${d.diasAtraso}</b></td></tr>`;
   }).join("");
 }
+
+// Função do módulo: eh administrador
 function ehAdministrador(){ return !!currentUser && currentUser.perfil==="Administrador"; }
+
+// Função do módulo: eh admin ou coordenador
 function ehAdminOuCoordenador(){ return !!currentUser && (currentUser.perfil==="Administrador" || currentUser.perfil==="Coordenador"); }
+
+// Função do módulo: eh responsavel da demanda
 function ehResponsavelDaDemanda(d){ return !!currentUser && !!d && d.responsavelUsuarioId===currentUser.id; }
+
+// Função do módulo: etapa selecionada eh conclusao
 function etapaSelecionadaEhConclusao(){
   return !!document.getElementById("dem-entregue-em")?.value;
 }
+
+// Aplica: aplicar permissoes modal demanda
 function aplicarPermissoesModalDemanda(d){
   const admin = ehAdministrador();
   const podeClassificar = true;
@@ -754,11 +806,14 @@ function aplicarPermissoesModalDemanda(d){
   const podeLancar = ehAdminOuCoordenador() || responsavel;
   document.querySelectorAll("#dem-timer-box .dm-ts-form input, #dem-timer-box .dm-ts-form button").forEach(el=>{ el.disabled = !podeLancar; });
 }
+
+// Aplica: aplicar permissao criacao demandas
 function aplicarPermissaoCriacaoDemandas(){
   const btnNova = document.getElementById("btn-nova-demanda");
   if(btnNova) btnNova.style.display = "inline-flex";
 }
 
+// Função do módulo: formatar duracao
 function formatarDuracao(seg){
   seg = Math.max(0, Math.round(seg||0));
   const h = Math.floor(seg/3600), m = Math.floor((seg%3600)/60), s = seg%60;
@@ -766,15 +821,21 @@ function formatarDuracao(seg){
   if(m) return m+"min "+s+"s";
   return s+"s";
 }
+
+// Função do módulo: segundos gastos total
 function segundosGastosTotal(){
   let total = sessoesModalAtual.filter(s=>s.fim).reduce((acc,s)=>acc+(s.duracao_segundos||0),0);
   if(sessaoAbertaModalAtual) total += Math.floor((Date.now() - new Date(sessaoAbertaModalAtual.inicio).getTime())/1000);
   return total;
 }
+
+// Função do módulo: config tipo demanda atual
 function configTipoDemandaAtual(){
   const nome = document.getElementById("dem-tipo").value;
   return DEMANDAS_TIPOS_CONFIG.find(t=>t.nome===nome);
 }
+
+// Atualiza: atualizar display tempo demanda
 function atualizarDisplayTempoDemanda(){
   const segGasto = segundosGastosTotal();
   document.getElementById("dem-tempo-gasto-display").textContent = formatarDuracao(segGasto);
@@ -796,6 +857,8 @@ function atualizarDisplayTempoDemanda(){
     elRestante.style.color = "var(--marrom-esc)";
   }
 }
+
+// Desenha na tela: render historico sessoes modal
 function renderHistoricoSessoesModal(){
   const wrap = document.getElementById("dem-historico-sessoes");
   if(!wrap) return;
@@ -812,6 +875,8 @@ function renderHistoricoSessoesModal(){
     return `<div class="dm-ts-it"><span class="tx" title="${escHtml((u?u.nome:"—")+" · "+quando+" ("+dur+")")}">${escHtml(u?primeiroNomeAgenda(u.nome):"—")} · ${quando} · <b>${dur}</b></span>${podeRemover ? `<button type="button" title="Remover lançamento" onclick="removerSessaoDemanda(${s.id})">×</button>` : ""}</div>`;
   }).join("");
 }
+
+// Função do módulo: adicionar timesheet demanda
 // time sheet: lançamento manual de horas (dia + início + término)
 async function adicionarTimesheetDemanda(){
   const id = Number(document.getElementById("dem-id").value);
@@ -832,6 +897,8 @@ async function adicionarTimesheetDemanda(){
   renderHistoricoSessoesModal(); atualizarDisplayTempoDemanda();
   mostrarToast("Horas lançadas no time sheet.");
 }
+
+// Remove/cancela: remover sessao demanda
 async function removerSessaoDemanda(sid){
   const s = sessoesModalAtual.find(x=>x.id===sid);
   if(!s || !confirm("Remover este lançamento de horas?")) return;
@@ -841,12 +908,16 @@ async function removerSessaoDemanda(sid){
   sessoesModalAtual = sessoesModalAtual.filter(x=>x.id!==sid);
   renderHistoricoSessoesModal(); atualizarDisplayTempoDemanda();
 }
+
+// Função do módulo: carregar sessoes modal demanda
 async function carregarSessoesModalDemanda(demandaId){
   const { data, error } = await sb.from("demandas_sessoes").select("*").eq("demanda_id", demandaId).order("inicio", {ascending:false});
   if(error){ console.error("[Supabase] demandas_sessoes:", error); sessoesModalAtual = []; sessaoAbertaModalAtual = null; return; }
   sessaoAbertaModalAtual = (data||[]).find(s=>!s.fim) || null;
   sessoesModalAtual = (data||[]).filter(s=>s.fim);
 }
+
+// Alterna (mostra/esconde): toggle timer demanda
 async function toggleTimerDemanda(){
   const id = Number(document.getElementById("dem-id").value);
   if(!id){ alert("Salve a demanda antes de usar o cronômetro."); return; }
@@ -875,14 +946,16 @@ async function toggleTimerDemanda(){
   atualizarDisplayTempoDemanda();
   renderInicio();
 }
-/* ---- Sessão em andamento (aparece na página inicial) ---- */
-let SESSAO_ATIVA = null, relogioSessaoId = null;
+
+// Função do módulo: carregar sessao ativa
 async function carregarSessaoAtiva(){
   if(!currentUser) return;
   const { data, error } = await sb.from("demandas_sessoes").select("*").eq("usuario_id", currentUser.id).is("fim", null).order("inicio", {ascending:false}).limit(1);
   if(error){ console.error("[Supabase] sessão ativa:", error); return; }
   SESSAO_ATIVA = (data && data[0]) || null;
 }
+
+// Função do módulo: finalizar sessao demanda
 // encerra a sessão: grava o fim e registra a atividade no calendário (com horário de início e término)
 async function finalizarSessaoDemanda(sess){
   const fimIso = new Date().toISOString();
@@ -895,6 +968,8 @@ async function finalizarSessaoDemanda(sess){
   await registrarSessaoNoCalendario(fechada);
   return fechada;
 }
+
+// Função do módulo: registrar sessao no calendario
 async function registrarSessaoNoCalendario(sess){
   const ini = new Date(sess.inicio), fim = new Date(sess.fim);
   if(fim-ini < 60000) return;                                   // menos de 1 minuto: não vira evento
@@ -910,6 +985,8 @@ async function registrarSessaoNoCalendario(sess){
   if(error){ console.error("[Supabase] calendario (sessão):", error); return; }
   (data||[]).forEach(r=>CAL_EVENTOS.push(mapEventoCalFromDb(r)));
 }
+
+// Função do módulo: pausar sessao inicio
 async function pausarSessaoInicio(){
   if(!SESSAO_ATIVA) return;
   const sess = SESSAO_ATIVA;
@@ -924,10 +1001,14 @@ async function pausarSessaoInicio(){
   renderInicio();
   mostrarToast("Cronômetro pausado e registrado no calendário.");
 }
+
+// Função do módulo: relogio sessao texto
 function relogioSessaoTexto(){
   const s = Math.max(0, Math.floor((Date.now() - new Date(SESSAO_ATIVA.inicio).getTime())/1000));
   return String(Math.floor(s/3600)).padStart(2,"0")+":"+String(Math.floor((s%3600)/60)).padStart(2,"0")+":"+String(s%60).padStart(2,"0");
 }
+
+// Desenha na tela: render inicio sessao
 function renderInicioSessao(){
   const el = document.getElementById("inicio-sessao");
   if(!el) return;
@@ -953,6 +1034,7 @@ function renderInicioSessao(){
   }, 1000);
 }
 
+// Reage à ação:: ao trocar tipo demanda
 function aoTrocarTipoDemanda(){
   const cfg = configTipoDemandaAtual();
   const fluxoId = cfg && cfg.fluxoId ? cfg.fluxoId : (FLUXOS.find(f=>f.padrao)||FLUXOS[0]||{}).id;
@@ -963,19 +1045,27 @@ function aoTrocarTipoDemanda(){
   atualizarDisplayTempoDemanda();
   onCampoEtapaChange();
 }
+
+// Função do módulo: etapa eh analise qualidade
 /* ---- Análise de qualidade: switch, comentários e solicitações ---- */
 function etapaEhAnaliseQualidade(d){
   return nomeEtapaDemanda(d).toLowerCase().includes("qualidade");
 }
+
+// Função do módulo: tipo requer qualidade
 function tipoRequerQualidade(d){
   const cfg = DEMANDAS_TIPOS_CONFIG.find(t=>t.nome===d.tipoDemanda);
   return !!(cfg && cfg.requerAnaliseQualidade);
 }
+
+// Função do módulo: carregar comentarios qualidade
 async function carregarComentariosQualidade(demandaId){
   const { data, error } = await sb.from("demandas_qualidade_comentarios").select("*").eq("demanda_id", demandaId).order("created_at", {ascending:false});
   if(error){ console.error("[Supabase] demandas_qualidade_comentarios:", error); comentariosQualidadeModalAtual = []; return; }
   comentariosQualidadeModalAtual = data||[];
 }
+
+// Desenha na tela: render timeline qualidade
 function renderTimelineQualidade(){
   const wrap = document.getElementById("dem-qualidade-timeline");
   if(!wrap) return;
@@ -990,12 +1080,16 @@ function renderTimelineQualidade(){
     </div>`;
   }).join("");
 }
+
+// Função do módulo: registrar evento qualidade
 async function registrarEventoQualidade(demandaId, tipo, comentario){
   const { data, error } = await sb.from("demandas_qualidade_comentarios").insert({demanda_id:demandaId, autor_id:currentUser.id, comentario, tipo}).select().single();
   if(error){ console.error("[Supabase] registrar evento qualidade:", error); return null; }
   comentariosQualidadeModalAtual.unshift(data);
   return data;
 }
+
+// Função do módulo: solicitar analise qualidade
 async function solicitarAnaliseQualidade(){
   const id = Number(document.getElementById("dem-id").value);
   const d = DEMANDAS.find(x=>x.id===id);
@@ -1011,6 +1105,8 @@ async function solicitarAnaliseQualidade(){
   renderBlocoQualidade(d);
   mostrarToast("Solicitação enviada ao administrador.");
 }
+
+// Função do módulo: aprovar qualidade
 async function aprovarQualidade(){
   if(!ehAdministrador()) return;
   const id = Number(document.getElementById("dem-id").value);
@@ -1027,6 +1123,8 @@ async function aprovarQualidade(){
   renderBlocoQualidade(d);
   mostrarToast("Análise aprovada.");
 }
+
+// Função do módulo: iniciar reprovacao
 function iniciarReprovacao(){
   if(!ehAdministrador()) return;
   const acoes = document.getElementById("dem-qualidade-acoes");
@@ -1037,10 +1135,14 @@ function iniciarReprovacao(){
       <button type="button" class="btn-secondary" onclick="cancelarReprovacao()">Cancelar</button>
     </div>`;
 }
+
+// Remove/cancela: cancelar reprovacao
 function cancelarReprovacao(){
   const id = Number(document.getElementById("dem-id").value);
   renderBlocoQualidade(DEMANDAS.find(x=>x.id===id));
 }
+
+// Função do módulo: confirmar reprovacao
 async function confirmarReprovacao(){
   const texto = document.getElementById("dem-texto-reprovacao").value.trim();
   if(!texto){ alert("Descreva a alteração a ser feita."); return; }
@@ -1058,6 +1160,8 @@ async function confirmarReprovacao(){
   renderBlocoQualidade(d);
   mostrarToast("Reprovação registrada.");
 }
+
+// Função do módulo: marcar resolvido
 async function marcarResolvido(){
   const id = Number(document.getElementById("dem-id").value);
   const d = DEMANDAS.find(x=>x.id===id);
@@ -1073,16 +1177,22 @@ async function marcarResolvido(){
   renderBlocoQualidade(d);
   mostrarToast("Marcado como resolvido. O administrador foi notificado.");
 }
+
+// Função do módulo: demandas ativas do usuario
 /* ---- Disponibilidade de usuários (carga horária diária x demandas ativas) ---- */
 function demandasAtivasDoUsuario(usuarioId){
   return DEMANDAS.filter(d=> d.responsavelUsuarioId===usuarioId && !nomeEtapaDemanda(d).toLowerCase().includes("conclu") && d.aprovacaoQualidade!=="Aprovado");
 }
+
+// Função do módulo: horas alocadas usuario
 function horasAlocadasUsuario(usuarioId){
   return demandasAtivasDoUsuario(usuarioId).reduce((soma,d)=>{
     const cfg = DEMANDAS_TIPOS_CONFIG.find(t=>t.nome===d.tipoDemanda);
     return soma + (cfg && cfg.tempoEstimadoHoras!=null ? Number(cfg.tempoEstimadoHoras) : 0);
   }, 0);
 }
+
+// Desenha na tela: render disponibilidade usuarios
 function renderDisponibilidadeUsuarios(){
   const wrap = document.getElementById("lista-disponibilidade-usuarios");
   if(!wrap) return;
@@ -1109,10 +1219,7 @@ function renderDisponibilidadeUsuarios(){
   }).join("");
 }
 
-/* ---- Disponibilidade: grade semanal/mensal por dia ---- */
-let dispModoVisao = "semana";
-let dispOffsetSemana = 0;
-let dispOffsetMes = 0;
+// Função do módulo: segunda da semana disp
 function segundaDaSemanaDisp(offset){
   const hoje = new Date(); hoje.setHours(0,0,0,0);
   const dia = hoje.getDay();
@@ -1120,6 +1227,8 @@ function segundaDaSemanaDisp(offset){
   hoje.setDate(hoje.getDate()+diffParaSegunda+offset*7);
   return hoje;
 }
+
+// Função do módulo: horas alocadas usuario no dia
 function horasAlocadasUsuarioNoDia(usuarioId, dataISO){
   return DEMANDAS.filter(d=>d.responsavelUsuarioId===usuarioId && d.agendadoPara===dataISO && !demandaConcluida(d))
     .reduce((soma,d)=>{
@@ -1127,6 +1236,8 @@ function horasAlocadasUsuarioNoDia(usuarioId, dataISO){
       return soma + (cfg && cfg.tempoEstimadoHoras!=null ? Number(cfg.tempoEstimadoHoras) : 0);
     }, 0);
 }
+
+// Função do módulo: cor carga dia
 function corCargaDia(alocado, limite){
   if(alocado<=0) return "#e5e0d3";
   if(limite<=0) return "#ee3135";
@@ -1135,17 +1246,23 @@ function corCargaDia(alocado, limite){
   if(pct<=1) return "#faa61a";
   return "#ee3135";
 }
+
+// Função do módulo: mudar visao disponibilidade
 function mudarVisaoDisponibilidade(modo){
   dispModoVisao = modo;
   document.getElementById("btn-disp-semana").classList.toggle("ativo", modo==="semana");
   document.getElementById("btn-disp-mes").classList.toggle("ativo", modo==="mes");
   renderGradeDisponibilidade();
 }
+
+// Função do módulo: navegar disponibilidade
 function navegarDisponibilidade(delta){
   if(dispModoVisao==="semana") dispOffsetSemana += delta;
   else dispOffsetMes += delta;
   renderGradeDisponibilidade();
 }
+
+// Desenha na tela: render grade disponibilidade
 function renderGradeDisponibilidade(){
   const wrap = document.getElementById("disp-grid-usuarios");
   const label = document.getElementById("disp-periodo-label");
@@ -1198,6 +1315,8 @@ function renderGradeDisponibilidade(){
     }).join("");
   }
 }
+
+// Reage ao evento:: on campo etapa change
 function onCampoEtapaChange(){
   const id = Number(document.getElementById("dem-id").value);
   const d = DEMANDAS.find(x=>x.id===id);
@@ -1205,6 +1324,8 @@ function onCampoEtapaChange(){
   const etapaSelecionada = Number(document.getElementById("dem-etapa").value);
   renderBlocoQualidade({...d, etapaId: etapaSelecionada});
 }
+
+// Desenha na tela: render bloco qualidade
 function renderBlocoQualidade(d){
   const titulo = document.getElementById("dem-qualidade-titulo");
   const bloco = document.getElementById("dem-qualidade-bloco");
@@ -1246,6 +1367,7 @@ function renderBlocoQualidade(d){
   acoes.innerHTML = html;
 }
 
+// Atualiza: atualizar display entrega
 function atualizarDisplayEntrega(){
   const val = document.getElementById("dem-entregue-em").value;
   const btn = document.getElementById("btn-entregar-demanda");
@@ -1264,6 +1386,8 @@ function atualizarDisplayEntrega(){
   }
   if(typeof atualizarCabecalhoJanelaDemanda==="function") atualizarCabecalhoJanelaDemanda();
 }
+
+// Função do módulo: registrar entrega demanda
 async function registrarEntregaDemanda(){
   if(sessaoAbertaModalAtual){
     await toggleTimerDemanda();
@@ -1281,6 +1405,8 @@ async function registrarEntregaDemanda(){
   const demandaEmEdicao = DEMANDAS.find(x=>x.id===demandaId);
   if(demandaEmEdicao) aplicarPermissoesModalDemanda(demandaEmEdicao);
 }
+
+// Função do módulo: desfazer entrega demanda
 function desfazerEntregaDemanda(){
   document.getElementById("dem-entregue-em").value = "";
   const fluxoId = Number(document.getElementById("dem-fluxo-id-atual").value) || null;
@@ -1293,6 +1419,8 @@ function desfazerEntregaDemanda(){
   if(demandaEmEdicao) aplicarPermissoesModalDemanda(demandaEmEdicao);
   mostrarToast("Entrega desfeita — status reaberto para ajuste.");
 }
+
+// Verifica se: validar agendado para
 function validarAgendadoPara(){
   const agendado = document.getElementById("dem-agendado-para").value;
   const limite = document.getElementById("dem-data-limite").value;
@@ -1306,6 +1434,8 @@ function validarAgendadoPara(){
   aviso.textContent = "";
   return true;
 }
+
+// Preenche: popular etapas modal demanda
 function popularEtapasModalDemanda(){
   const fluxoId = Number(document.getElementById("dem-fluxo-id-atual").value) || null;
   const selEtapa = document.getElementById("dem-etapa");
@@ -1314,6 +1444,8 @@ function popularEtapasModalDemanda(){
   selEtapa.innerHTML = etapas.map(e=>`<option value="${e.id}">${e.nome}</option>`).join("") || '<option value="">Selecione um tipo de demanda</option>';
   if(etapas.some(e=>String(e.id)===atual)) selEtapa.value = atual;
 }
+
+// Abre: abrir modal demanda
 async function abrirModalDemanda(id, etapaIdPreDefinida){
   if(timerIntervalIdDemanda){ clearInterval(timerIntervalIdDemanda); timerIntervalIdDemanda=null; }
   sessoesModalAtual = []; sessaoAbertaModalAtual = null;
@@ -1405,12 +1537,16 @@ async function abrirModalDemanda(id, etapaIdPreDefinida){
   document.querySelector("#modal-demanda .dm-col-principal").scrollTop = 0;
   iniciarChatDemanda(demandaAtual ? demandaAtual.id : null);
 }
+
+// Fecha: fechar modal demanda
 function fecharModalDemanda(){
   if(timerIntervalIdDemanda){ clearInterval(timerIntervalIdDemanda); timerIntervalIdDemanda = null; }
   pararChatDemanda();
   document.getElementById("modal-demanda").style.display = "none";
   if(document.getElementById("modal-reuniao").style.display!=="flex") document.body.style.overflow = "";
 }
+
+// Salva no banco: salvar demanda
 async function salvarDemanda(ev){
   ev.preventDefault();
   const id = document.getElementById("dem-id").value;
@@ -1488,6 +1624,8 @@ async function salvarDemanda(ev){
   renderVisaoAtivaDemandas();
   return false;
 }
+
+// Remove/cancela: remover demanda
 async function removerDemanda(){
   const id = Number(document.getElementById("dem-id").value);
   if(!id) return;
@@ -1502,7 +1640,7 @@ async function removerDemanda(){
   renderVisaoAtivaDemandas();
 }
 
-
+// Atualiza: atualizar cabecalho janela demanda
 /* ---- Janela da demanda: cabeçalho (chips e etapas) ---- */
 function atualizarCabecalhoJanelaDemanda(){
   const idEl = document.getElementById("dem-id");
@@ -1529,12 +1667,12 @@ function atualizarCabecalhoJanelaDemanda(){
   document.getElementById("dem-stepper").innerHTML = ops.map((o,i)=>`<span class="dm-step ${i<idx?"feito":i===idx?"atual":""}">${escHtml(o.textContent)}</span>`).join("");
 }
 
-/* ---- Chat da demanda ---- */
-let chatDemanda = {id:null, msgs:[], timer:null};
-const ICONE_CHAT_VAZIO = '<svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20.5l1.5-4.6A8 8 0 1 1 21 12Z"/></svg>';
+// Função do módulo: parar chat demanda
 function pararChatDemanda(){
   if(chatDemanda.timer){ clearInterval(chatDemanda.timer); chatDemanda.timer = null; }
 }
+
+// Função do módulo: iniciar chat demanda
 function iniciarChatDemanda(id){
   pararChatDemanda();
   chatDemanda = {id:id||null, msgs:[], timer:null};
@@ -1553,6 +1691,8 @@ function iniciarChatDemanda(id){
     if(chatDemanda.id===id) chatDemanda.timer = setInterval(()=>carregarMensagensDemanda(false), 7000);
   });
 }
+
+// Função do módulo: carregar mensagens demanda
 async function carregarMensagensDemanda(rolar){
   const id = chatDemanda.id;
   if(!id) return;
@@ -1565,15 +1705,21 @@ async function carregarMensagensDemanda(rolar){
   if(mudou || rolar) renderChatDemanda(!!rolar);
   if(DEMANDAS_MSG_CONT[id]!==chatDemanda.msgs.length){ DEMANDAS_MSG_CONT[id] = chatDemanda.msgs.length; }
 }
+
+// Função do módulo: linkificar texto
 function linkificarTexto(txt){
   return escHtml(txt).replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" target="_blank" rel="noopener">$1</a>');
 }
+
+// Função do módulo: rotulo dia chat
 function rotuloDiaChat(iso){
   const hoje = dataISOLocal(new Date());
   if(iso===hoje) return "Hoje";
   if(iso===somarDiasISO(hoje,-1)) return "Ontem";
   return formatarDataBR(iso);
 }
+
+// Desenha na tela: render chat demanda
 function renderChatDemanda(rolar){
   const el = document.getElementById("dem-chat-msgs");
   if(!el) return;
@@ -1603,6 +1749,8 @@ function renderChatDemanda(rolar){
   el.innerHTML = html.join("");
   if(rolar || perto) el.scrollTop = el.scrollHeight;
 }
+
+// Função do módulo: enviar mensagem demanda
 async function enviarMensagemDemanda(){
   const id = chatDemanda.id;
   const inp = document.getElementById("dem-chat-input"), btn = document.getElementById("dem-chat-enviar");
@@ -1624,6 +1772,8 @@ async function enviarMensagemDemanda(){
   alvo.delete(currentUser.id);
   alvo.forEach(uid=>{ criarNotificacao(uid, "demanda_mensagem", "Nova mensagem na demanda #"+id, currentUser.nome+": "+txt.slice(0,80), "demanda", id); });
 }
+
+// Remove/cancela: remover mensagem demanda
 async function removerMensagemDemanda(msgId){
   if(!confirm("Apagar esta mensagem?")) return;
   const { error } = await sb.from("demandas_mensagens").delete().eq("id", msgId);

@@ -1,7 +1,8 @@
 /* =====================================================================
-   3) DASHBOARD — FILTROS, KPIs, TERMÔMETRO E GRÁFICOS
+   DASHBOARD DE ACIDENTES E INCIDENTES — filtros, KPIs, gráficos, lançamento manual e upload de Excel
    ===================================================================== */
-let charts = {};
+
+// Preenche: popular filtros
 function popularFiltros(){
   const unidades = [...new Set(ACIDENTES.map(a=>a.loja))].sort();
   const regionais = [...new Set(ACIDENTES.map(a=>a.regional).filter(Boolean))].sort();
@@ -14,6 +15,8 @@ function popularFiltros(){
   fillSelect("f-negocio", negocios);
   fillSelect("f-tipo", tipos);
 }
+
+// Função do módulo: fill select
 function fillSelect(id, arr){
   const sel = document.getElementById(id);
   if(!sel) return;
@@ -22,18 +25,15 @@ function fillSelect(id, arr){
   arr.forEach(v=>{ const o=document.createElement("option"); o.value=v; o.textContent=v; sel.appendChild(o); });
   sel.value = atual || "";
 }
+
+// Função do módulo: clear filters
 function clearFilters(){
   ["f-unidade","f-regional","f-praca","f-negocio","f-tipo"].forEach(id=>document.getElementById(id).value="");
   document.getElementById("f-de").value=""; document.getElementById("f-ate").value="";
   atualizarDashboard();
 }
-["f-unidade","f-regional","f-praca","f-negocio","f-tipo","f-de","f-ate"].forEach(id=>{
-  document.addEventListener("DOMContentLoaded",()=>{
-    const el=document.getElementById(id);
-    if(el) el.addEventListener("change", atualizarDashboard);
-  });
-});
 
+// Função do módulo: dados filtrados
 function dadosFiltrados(){
   const unidade = document.getElementById("f-unidade").value;
   const regional = document.getElementById("f-regional").value;
@@ -53,6 +53,8 @@ function dadosFiltrados(){
     return true;
   });
 }
+
+// Função do módulo: dados filtrados sem tipo
 function dadosFiltradosSemTipo(){
   const unidade = document.getElementById("f-unidade").value;
   const regional = document.getElementById("f-regional").value;
@@ -70,23 +72,33 @@ function dadosFiltradosSemTipo(){
     return true;
   });
 }
+
+// Função do módulo: minutos entre
 function minutosEntre(hIni,hFim){
   const [h1,m1]=hIni.split(":").map(Number); const [h2,m2]=hFim.split(":").map(Number);
   let diff = (h2*60+m2)-(h1*60+m1);
   if(diff<0) diff += 24*60;
   return diff;
 }
+
+// Calcula: contar
 function contar(arr, chave){
   const map = {};
   arr.forEach(a=>{ map[chave(a)] = (map[chave(a)]||0)+1; });
   return map;
 }
+
+// Calcula: somar
 function somar(arr, chave, valor){
   const map = {};
   arr.forEach(a=>{ const k=chave(a); map[k]=(map[k]||0)+valor(a); });
   return map;
 }
+
+// Função do módulo: destroy chart
 function destroyChart(key){ if(charts[key]){ charts[key].destroy(); delete charts[key]; } }
+
+// Função do módulo: criar chart
 function criarChart(key, canvasId, config){
   try{
     destroyChart(key);
@@ -103,8 +115,11 @@ function criarChart(key, canvasId, config){
     console.error("[Dashboard] Erro ao criar o gráfico '"+key+"' ("+canvasId+"):", e);
   }
 }
+
+// Função do módulo: paleta
 function paleta(){ return ["#00733f","#00b262","#a15a33","#54412f","#9f8167","#f99d33","#faa61a","#ee3135"]; }
 
+// Atualiza: atualizar dashboard
 function atualizarDashboard(){
   const btnPpt = document.getElementById("btn-exportar-ppt");
   if(btnPpt) btnPpt.style.display = ehAdminOuCoordenador() ? "inline-flex" : "none";
@@ -290,6 +305,7 @@ function atualizarDashboard(){
   }
 }
 
+// Desenha na tela: render heatmap dias horas
 function renderHeatmapDiasHoras(dados){
   const wrap = document.getElementById("heatmap-dias-horas");
   if(!wrap) return;
@@ -334,7 +350,7 @@ function renderHeatmapDiasHoras(dados){
   wrap.innerHTML = html;
 }
 
-
+// Exporta: exportar dashboard ppt
 /* ---- Exportação do Dashboard em PowerPoint (com insights automáticos) ---- */
 async function exportarDashboardPPT(){
   if(!ehAdminOuCoordenador()){
@@ -507,6 +523,7 @@ async function exportarDashboardPPT(){
   mostrarToast("Apresentação em PPT gerada.");
 }
 
+// Salva no banco: salvar acidente
 /* =====================================================================
    4) LANÇAMENTO MANUAL
    ===================================================================== */
@@ -558,34 +575,7 @@ async function salvarAcidente(ev){
   return false;
 }
 
-/* ---- Ficha de acompanhamento da análise de acidente de trabalho ---- */
-let FICHAS_ANALISE = [];
-const ICONE_PLAY = '<svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor" style="vertical-align:-2px;"><path d="M6 4.5v15l14-7.5-14-7.5Z"/></svg>';
-const ICONE_PAUSE = '<svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor" style="vertical-align:-2px;"><path d="M6 4h4v16H6V4Zm8 0h4v16h-4V4Z"/></svg>';
-let DEMANDAS = [];
-let FLUXOS = [];
-let FLUXO_ETAPAS = [];
-let DEMANDAS_OPCOES = {categoria:[], area:[], tipo_atividade:[]};
-let DEMANDAS_TIPOS_CONFIG = [];
-let CHECKLIST_GRUPOS = [];
-let CHECKLIST_ITENS_CONFIG = [];
-let OCORRENCIAS_TIPOS = [];
-let ATESTADOS = [];
-let ABSENTEISMO = [];
-let ABSENTEISMO_CATEGORIAS = [];
-let EPI_FICHAS_IMPRESSAS = [];
-let NOTIFICACOES = [];
-let AVISOS = [];                       // avisos da plataforma (manuais e automáticos)
-let AVISOS_RESOLVIDOS = new Set();     // ids dos avisos que o usuário logado marcou como resolvidos
-let CONVITES = [];
-let CAL_EVENTOS = [];                  // eventos do calendário (eventos, atividades, folgas, férias...)
-let EPI_NOVOS = [];                    // fichas de EPI de novos admitidos aguardando download
-let sessoesModalAtual = [];
-let sessaoAbertaModalAtual = null;
-let timerIntervalIdDemanda = null;
-let comentariosQualidadeModalAtual = [];
-/* ---- Demandas: lista tipo planilha ---- */
-let proxIdFicha = 1;
+// Preenche: popular select acidentes ficha
 function popularSelectAcidentesFicha(){
   const sel = document.getElementById("fa-acidente");
   if(!sel) return;
@@ -597,6 +587,8 @@ function popularSelectAcidentesFicha(){
   const box = document.getElementById("fa-responsavel-box");
   if(box && currentUser) box.textContent = "Responsável pela análise: "+currentUser.nome+(currentUser.cargo? " — "+currentUser.cargo : "");
 }
+
+// Salva no banco: salvar ficha analise
 async function salvarFichaAnalise(ev){
   ev.preventDefault();
   const acidenteId = document.getElementById("fa-acidente").value;
@@ -623,10 +615,14 @@ async function salvarFichaAnalise(ev){
   mostrarToast("Ficha de análise salva.");
   return false;
 }
+
+// Define o rótulo/cor visual de status de: tag status ficha
 function tagStatusFicha(status){
   const cor = status==="Concluída" ? "concluido" : "andamento";
   return `<span class="tag-status ${cor}">${status}</span>`;
 }
+
+// Desenha na tela: render fichas analise
 function renderFichasAnalise(){
   const tbody = document.getElementById("tbl-fichas-analise");
   if(!tbody) return;
@@ -648,6 +644,8 @@ function renderFichasAnalise(){
     </tr>
   `).join("");
 }
+
+// Função do módulo: ver detalhe ficha
 function verDetalheFicha(id){
   const f = FICHAS_ANALISE.find(x=>x.id===id);
   if(!f) return;
@@ -661,6 +659,8 @@ function verDetalheFicha(id){
     "Ações corretivas: "+(f.acoes||"—")
   );
 }
+
+// Remove/cancela: remover ficha analise
 async function removerFichaAnalise(id){
   if(!confirm("Remover esta ficha de análise?")) return;
   const { error } = await sb.from("fichas_analise").delete().eq("id", id);
@@ -668,6 +668,8 @@ async function removerFichaAnalise(id){
   FICHAS_ANALISE = FICHAS_ANALISE.filter(f=>f.id!==id);
   renderFichasAnalise();
 }
+
+// Desenha na tela: render lancamentos
 function renderLancamentos(){
   const tb = document.getElementById("tbl-lancamentos");
   const minhasUnidades = new Set(UNIDADES.filter(u=> currentUser && u.tecnicoResponsavel && u.tecnicoResponsavel.trim().toLowerCase()===currentUser.nome.trim().toLowerCase()).map(u=>u.nome));
@@ -692,11 +694,15 @@ function renderLancamentos(){
     </tr>`;
   });
 }
+
+// Remove/cancela: cancelar edicao acidente
 function cancelarEdicaoAcidente(){
   document.getElementById("in-acidente-id").value = "";
   document.getElementById("btn-salvar-acidente").textContent = "Salvar registro";
   document.getElementById("in-dias").value = 0;
 }
+
+// Função do módulo: editar acidente
 function editarAcidente(id){
   if(!ehAdministrador()) return;
   const a = ACIDENTES.find(x=>x.id===id);
@@ -727,25 +733,32 @@ function editarAcidente(id){
   document.getElementById("btn-salvar-acidente").textContent = "Salvar alterações";
   painel.scrollIntoView({behavior:"smooth", block:"start"});
 }
+
+// Função do módulo: formata data
 function formataData(iso){ if(!iso) return "-"; const [y,m,d]=iso.split("-"); return `${d}/${m}/${y}`; }
 
-/* ---- Todos os Acidentes (sem limite de quantidade) ---- */
-let ordenacaoTodosAcidentes = {campo:"data", dir:-1};
+// Preenche: popular filtros todos acidentes
 function popularFiltrosTodosAcidentes(){
   fillSelect("todos-ac-unidade", UNIDADES.map(u=>u.nome));
   fillSelect("todos-ac-gravidade", GRAVIDADES);
 }
+
+// Limpa: limpar filtros todos acidentes
 function limparFiltrosTodosAcidentes(){
   ["todos-ac-busca","todos-ac-unidade","todos-ac-tipo","todos-ac-gravidade","todos-ac-de","todos-ac-ate"].forEach(id=>{
     const el = document.getElementById(id); if(el) el.value = "";
   });
   renderTodosAcidentes();
 }
+
+// Ordena a lista de: ordenar todos acidentes
 function ordenarTodosAcidentes(campo){
   if(ordenacaoTodosAcidentes.campo===campo) ordenacaoTodosAcidentes.dir *= -1;
   else ordenacaoTodosAcidentes = {campo, dir:1};
   renderTodosAcidentes();
 }
+
+// Desenha na tela: render todos acidentes
 function renderTodosAcidentes(){
   const tbody = document.getElementById("tbl-todos-acidentes");
   if(!tbody) return;
@@ -808,6 +821,7 @@ function renderTodosAcidentes(){
   </tr>`).join("");
 }
 
+// Alterna (mostra/esconde): toggle upload panel
 /* =====================================================================
    5) UPLOAD DE EXCEL (painel dentro de Acidentes e Incidentes)
    ===================================================================== */
@@ -815,6 +829,8 @@ function toggleUploadPanel(){
   const painel = document.getElementById("painel-upload");
   painel.style.display = painel.style.display==="none" ? "block" : "none";
 }
+
+// Alterna (mostra/esconde): toggle novo registro panel
 function toggleNovoRegistroPanel(){
   const painel = document.getElementById("painel-novo-registro");
   const abrindo = painel.style.display==="none";
@@ -824,25 +840,16 @@ function toggleNovoRegistroPanel(){
     cancelarEdicaoAcidente();
   }
 }
+
+// Alterna (mostra/esconde): toggle ficha analise panel
 function toggleFichaAnalisePanel(){
   const painel = document.getElementById("painel-ficha-analise");
   const abrindo = painel.style.display === "none";
   painel.style.display = abrindo ? "block" : "none";
   if(abrindo){ popularSelectAcidentesFicha(); renderFichasAnalise(); }
 }
-let pendingImport = [];
-document.addEventListener("DOMContentLoaded", ()=>{
-  const input = document.getElementById("file-input");
-  input.addEventListener("change", (e)=>{ if(e.target.files[0]) processarArquivo(e.target.files[0]); });
-  const zone = document.getElementById("drop-zone");
-  zone.addEventListener("dragover", e=>{ e.preventDefault(); zone.style.borderColor="#00b262"; });
-  zone.addEventListener("dragleave", e=>{ zone.style.borderColor=""; });
-  zone.addEventListener("drop", e=>{
-    e.preventDefault(); zone.style.borderColor="";
-    if(e.dataTransfer.files[0]) processarArquivo(e.dataTransfer.files[0]);
-  });
-});
-const COLUNAS_MODELO = ["Data","Tipo (Trajeto/Típico)","Praça","Regional","Loja","Tipo de Negócio","Setor","Função","Funcionário","Motivo","Agente Causador","Local do Acidente","Partes do corpo atingidas","Hora do Acidente","Hora do Atendimento","Gravidade","Dias de Afastamento"];
+
+// Função do módulo: baixar modelo
 function baixarModelo(){
   const wsData = [COLUNAS_MODELO,
     ["2026-03-10","Típico","SP","Jean","Loja SP - Campinas","Loja","Estoque","Repositor","Fulano da Silva","Queda ao mesmo nível","Superfícies, Pisos e Estruturas","Área de vendas","Pe","09:15","09:40","Sem afastamento",0],
@@ -853,6 +860,8 @@ function baixarModelo(){
   XLSX.utils.book_append_sheet(wb, ws, "Modelo Acidentes");
   XLSX.writeFile(wb, "modelo_acidentes_sesmt.xlsx");
 }
+
+// Função do módulo: processar arquivo
 function processarArquivo(file){
   const reader = new FileReader();
   reader.onload = (e)=>{
@@ -867,6 +876,8 @@ function processarArquivo(file){
   };
   reader.readAsArrayBuffer(file);
 }
+
+// Função do módulo: excel hora to str
 function excelHoraToStr(v){
   if(typeof v === "number"){
     const totalMin = Math.round(v*24*60);
@@ -875,6 +886,8 @@ function excelHoraToStr(v){
   }
   return String(v||"").slice(0,5);
 }
+
+// Função do módulo: excel data to str
 function excelDataToStr(v){
   if(typeof v === "number"){
     const d = XLSX.SSF.parse_date_code(v);
@@ -886,6 +899,8 @@ function excelDataToStr(v){
   if(m) return `${m[3]}-${m[2].padStart(2,"0")}-${m[1].padStart(2,"0")}`;
   return s;
 }
+
+// Função do módulo: normalizar linha
 function normalizarLinha(r){
   const get = (...keys)=>{ for(const k of keys){ if(r[k]!==undefined && r[k]!=="") return r[k]; } return ""; };
   const loja = String(get("Loja","Unidade")).trim();
@@ -916,6 +931,8 @@ function normalizarLinha(r){
     obs:""
   };
 }
+
+// Função do módulo: mostrar preview
 function mostrarPreview(rows){
   const head = document.getElementById("tbl-preview-head");
   const body = document.getElementById("tbl-preview-body");
@@ -923,6 +940,8 @@ function mostrarPreview(rows){
   head.innerHTML = "<tr>"+cols.map(c=>`<th>${c}</th>`).join("")+"</tr>";
   body.innerHTML = rows.slice(0,8).map(r=>"<tr>"+cols.map(c=>`<td>${r[c]}</td>`).join("")+"</tr>").join("");
 }
+
+// Função do módulo: confirmar importacao
 function confirmarImportacao(){
   if(!pendingImport.length) return;
   let nextId = Math.max(0,...ACIDENTES.map(a=>a.id))+1;
@@ -936,6 +955,8 @@ function confirmarImportacao(){
   document.getElementById("file-input").value="";
   popularFiltros();
 }
+
+// Remove/cancela: cancelar importacao
 function cancelarImportacao(){
   pendingImport = [];
   document.getElementById("upload-actions").style.display="none";

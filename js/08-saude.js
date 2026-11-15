@@ -1,0 +1,239 @@
+/* =====================================================================
+   SAÚDE — visão geral e registros de atestados
+   ===================================================================== */
+
+// Inicializa: init saude
+/* =====================================================================
+   SAÚDE — visão geral e registros de atestados (dados reais do Supabase)
+   ===================================================================== */
+function initSaude(){
+  const cardImportar = document.getElementById("sd-card-importar");
+  if(cardImportar) cardImportar.style.display = ehAdminOuCoordenador() ? "block" : "none";
+  popularFiltrosSaude();
+  renderSaudeVisaoGeral();
+}
+
+// Função do módulo: importar backup atestados
+async function importarBackupAtestados(){
+  const input = document.getElementById("sd-import-file");
+  const status = document.getElementById("sd-import-status");
+  const file = input.files[0];
+  if(!file){ status.style.color="var(--vermelho)"; status.textContent = "Selecione um arquivo primeiro."; return; }
+  status.style.color = "var(--areia-esc)";
+  status.textContent = "Lendo o arquivo...";
+  try{
+    const buf = await file.arrayBuffer();
+    const wb = XLSX.read(buf, {type:"array", cellDates:true});
+    let registros = [];
+    let mapaRegional = {};
+
+    if(wb.SheetNames.includes("REGIONAIS")){
+      const regs = XLSX.utils.sheet_to_json(wb.Sheets["REGIONAIS"], {defval:null});
+      regs.forEach(r=>{ if(r.Regional && r.Lojas) mapaRegional[r.Lojas] = r.Regional; });
+    }
+    if(wb.SheetNames.includes("Atestados")){
+      const rows = XLSX.utils.sheet_to_json(wb.Sheets["Atestados"], {defval:null});
+      registros = registros.concat(rows.filter(r=>r.Loja).map(r=>({
+        matricula: r.Matricula!=null ? String(r.Matricula) : null,
+        nome: r.Nome || null, loja: r.Loja || null, regional: mapaRegional[r.Loja] || null,
+        data_atestado: normalizarDataImportacao(r.Data), hospital: r.Hospital || null, especialidade: null,
+        motivo: r.Motivo || null, afastamento_inicio: normalizarDataImportacao(r.Inicio),
+        afastamento_fim: normalizarDataImportacao(r.Fim), duracao_dias: Number(r.Dias)||0,
+        tipo_atestado: r.Tipo || null, cid: r.CID || null, convenio: r.Convenio || null,
+        setor: r.Setor || null, funcao: r.Funcao || null
+      })));
+    }
+    if(wb.SheetNames.includes("BASE BOT")){
+      const rows = XLSX.utils.sheet_to_json(wb.Sheets["BASE BOT"], {defval:null});
+      registros = registros.concat(rows.filter(r=>r.loja).map(r=>({
+        matricula: null, nome: null, loja: r.loja || null, regional: mapaRegional[r.loja] || null,
+        data_atestado: normalizarDataImportacao(r.data_atestado), hospital: null, especialidade: null,
+        motivo: r.motivo || null, afastamento_inicio: normalizarDataImportacao(r.afastamento_inicio),
+        afastamento_fim: normalizarDataImportacao(r.afastamento_fim), duracao_dias: Number(r.dias)||0,
+        tipo_atestado: r.tipo || null, cid: r.cid || null, convenio: null, setor: null, funcao: null
+      })));
+    }
+
+    if(!registros.length){
+      status.style.color = "var(--vermelho)";
+      status.textContent = 'Não encontrei nenhuma aba reconhecida ("Atestados" ou "BASE BOT") nesse arquivo.';
+      return;
+    }
+
+    if(document.getElementById("sd-import-substituir").checked){
+      status.textContent = "Limpando a base atual...";
+      const { error: delError } = await sb.from("atestados").delete().neq("id", 0);
+      if(delError){ status.style.color="var(--vermelho)"; status.textContent = "Erro ao limpar a base: "+delError.message; return; }
+      ATESTADOS = [];
+    }
+
+    const LOTE = 500;
+    let inseridos = 0;
+    for(let i=0; i<registros.length; i+=LOTE){
+      const lote = registros.slice(i, i+LOTE);
+      status.textContent = "Importando... "+Math.min(i+LOTE, registros.length)+" de "+registros.length;
+      const { data, error } = await sb.from("atestados").insert(lote).select();
+      if(error){ status.style.color="var(--vermelho)"; status.textContent = "Erro ao importar (parou em "+inseridos+" registros): "+error.message; return; }
+      (data||[]).forEach(a=>{
+        ATESTADOS.push({
+          id:a.id, matricula:a.matricula, nome:a.nome, loja:a.loja, regional:a.regional,
+          dataAtestado:a.data_atestado, hospital:a.hospital, especialidade:a.especialidade, motivo:a.motivo,
+          afastamentoInicio:a.afastamento_inicio, afastamentoFim:a.afastamento_fim, duracaoDias:a.duracao_dias||0,
+          tipoAtestado:a.tipo_atestado, cid:a.cid, convenio:a.convenio, setor:a.setor, funcao:a.funcao
+        });
+      });
+      inseridos += lote.length;
+    }
+
+    status.style.color = "var(--verde-esc)";
+    status.textContent = inseridos+" registro(s) importado(s) com sucesso!";
+    input.value = "";
+    popularFiltrosSaude();
+    renderSaudeVisaoGeral();
+    renderSaudeRegistros();
+  }catch(e){
+    status.style.color = "var(--vermelho)";
+    status.textContent = "Erro ao processar o arquivo: "+e.message;
+  }
+}
+
+// Troca para a sub-tela: mostrar sub saude
+function mostrarSubSaude(sub){
+  document.querySelectorAll("#view-saude .insp-tab").forEach(b=>b.classList.remove("active"));
+  document.querySelector('#view-saude .insp-tab[data-sub="'+sub+'"]').classList.add("active");
+  document.querySelectorAll("#view-saude .insp-sub").forEach(s=>s.classList.remove("active"));
+  document.getElementById("saude-sub-"+sub).classList.add("active");
+  if(sub==="visao") renderSaudeVisaoGeral();
+  else renderSaudeRegistros();
+}
+
+// Preenche: popular filtros saude
+function popularFiltrosSaude(){
+  fillSelect("sd-f-unidade", [...new Set(ATESTADOS.map(a=>a.loja).filter(Boolean))].sort());
+  fillSelect("sd-f-regional", [...new Set(ATESTADOS.map(a=>a.regional).filter(Boolean))].sort());
+  fillSelect("sd-f-tipo", [...new Set(ATESTADOS.map(a=>a.tipoAtestado).filter(Boolean))].sort());
+}
+
+// Limpa: limpar filtros saude
+function limparFiltrosSaude(){
+  ["sd-f-unidade","sd-f-regional","sd-f-tipo","sd-f-de","sd-f-ate"].forEach(id=>{
+    const el = document.getElementById(id); if(el) el.value = "";
+  });
+  renderSaudeVisaoGeral();
+}
+
+// Função do módulo: dados filtrados saude
+function dadosFiltradosSaude(){
+  const unidade = document.getElementById("sd-f-unidade")?.value;
+  const regional = document.getElementById("sd-f-regional")?.value;
+  const tipo = document.getElementById("sd-f-tipo")?.value;
+  const de = document.getElementById("sd-f-de")?.value;
+  const ate = document.getElementById("sd-f-ate")?.value;
+  return ATESTADOS.filter(a=>{
+    if(unidade && a.loja!==unidade) return false;
+    if(regional && a.regional!==regional) return false;
+    if(tipo && a.tipoAtestado!==tipo) return false;
+    if(de && (!a.dataAtestado || a.dataAtestado<de)) return false;
+    if(ate && (!a.dataAtestado || a.dataAtestado>ate)) return false;
+    return true;
+  });
+}
+
+// Desenha na tela: render saude visao geral
+function renderSaudeVisaoGeral(){
+  const dados = dadosFiltradosSaude();
+  document.getElementById("sd-kpi-total").textContent = dados.length;
+  const totalDias = dados.reduce((s,a)=>s+(a.duracaoDias||0),0);
+  document.getElementById("sd-kpi-dias").textContent = totalDias;
+  const colaboradores = new Set(dados.map(a=>a.matricula).filter(Boolean));
+  document.getElementById("sd-kpi-colaboradores").textContent = colaboradores.size;
+  document.getElementById("sd-kpi-media").textContent = dados.length ? (totalDias/dados.length).toFixed(1) : "0";
+
+  const porUnidade = {};
+  dados.forEach(a=>{ if(a.loja){ porUnidade[a.loja] = (porUnidade[a.loja]||0)+1; } });
+  const topUnidades = Object.entries(porUnidade).sort((a,b)=>b[1]-a[1]).slice(0,12);
+  criarChart("saudeUnidade", "chart-saude-unidade", {
+    type:"bar",
+    data:{ labels:topUnidades.map(u=>u[0]), datasets:[{label:"Registros", data:topUnidades.map(u=>u[1]), backgroundColor:"#00733f", borderRadius:6}]},
+    options:{indexAxis:"y", plugins:{legend:{display:false}}, scales:{x:{beginAtZero:true, ticks:{precision:0}}}}
+  });
+
+  const porRegional = {};
+  dados.forEach(a=>{ const r = a.regional||"Não mapeado"; porRegional[r] = (porRegional[r]||0)+1; });
+  criarChart("saudeRegional", "chart-saude-regional", {
+    type:"doughnut",
+    data:{ labels:Object.keys(porRegional), datasets:[{data:Object.values(porRegional), backgroundColor:["#00733f","#faa61a","#a15a33","#a35e8e","#24a076","#f06650","#54412f","#9f8167","#54be95"], borderWidth:2, borderColor:"#fffdfa"}]},
+    options:{plugins:{legend:{position:"bottom", labels:{font:{size:10}}}}}
+  });
+
+  const porMotivo = {};
+  dados.forEach(a=>{ const m = (a.motivo||"Não informado").toUpperCase(); if(m!=="NÃO INFORMADO"&&m!=="COMPARECIMENTO") porMotivo[m] = (porMotivo[m]||0)+1; });
+  const topMotivos = Object.entries(porMotivo).sort((a,b)=>b[1]-a[1]).slice(0,10);
+  criarChart("saudeMotivo", "chart-saude-motivo", {
+    type:"bar",
+    data:{ labels:topMotivos.map(m=>m[0]), datasets:[{label:"Registros", data:topMotivos.map(m=>m[1]), backgroundColor:"#ee3135", borderRadius:6}]},
+    options:{indexAxis:"y", plugins:{legend:{display:false}}, scales:{x:{beginAtZero:true, ticks:{precision:0}}}}
+  });
+
+  const porTipo = {};
+  dados.forEach(a=>{ const t = a.tipoAtestado||"Não informado"; porTipo[t] = (porTipo[t]||0)+1; });
+  const topTipos = Object.entries(porTipo).sort((a,b)=>b[1]-a[1]).slice(0,8);
+  criarChart("saudeTipo", "chart-saude-tipo", {
+    type:"doughnut",
+    data:{ labels:topTipos.map(t=>t[0]), datasets:[{data:topTipos.map(t=>t[1]), backgroundColor:["#faa61a","#00b262","#a15a33","#a35e8e","#f06650","#54be95","#9f8167","#54412f"], borderWidth:2, borderColor:"#fffdfa"}]},
+    options:{plugins:{legend:{position:"bottom", labels:{font:{size:10}}}}}
+  });
+}
+
+// Ordena a lista de: ordenar saude registros
+function ordenarSaudeRegistros(campo){
+  if(ordenacaoSaudeRegistros.campo===campo) ordenacaoSaudeRegistros.dir *= -1;
+  else ordenacaoSaudeRegistros = {campo, dir:1};
+  renderSaudeRegistros();
+}
+
+// Desenha na tela: render saude registros
+function renderSaudeRegistros(){
+  const tbody = document.getElementById("tbl-saude-registros");
+  if(!tbody) return;
+  const busca = (document.getElementById("sd-busca")?.value||"").trim().toLowerCase();
+  let linhas = ATESTADOS.filter(a=>{
+    if(!busca) return true;
+    const alvo = [a.nome,a.motivo,a.loja,a.cid,a.setor,a.funcao].filter(Boolean).join(" ").toLowerCase();
+    return alvo.includes(busca);
+  });
+  const mapaCampo = {data_atestado:"dataAtestado", loja:"loja", regional:"regional", nome:"nome", setor:"setor", funcao:"funcao", tipo_atestado:"tipoAtestado", motivo:"motivo", cid:"cid", afastamento_inicio:"afastamentoInicio", afastamento_fim:"afastamentoFim", duracao_dias:"duracaoDias"};
+  const {campo, dir} = ordenacaoSaudeRegistros;
+  const chave = mapaCampo[campo]||campo;
+  linhas = linhas.slice().sort((a,b)=>{
+    let va = a[chave], vb = b[chave];
+    if(chave==="duracaoDias"){ va = Number(va)||0; vb = Number(vb)||0; }
+    else { va = (va||"").toString(); vb = (vb||"").toString(); }
+    if(va<vb) return -1*dir;
+    if(va>vb) return 1*dir;
+    return 0;
+  });
+
+  const contador = document.getElementById("sd-contador");
+  if(contador) contador.textContent = linhas.length+" registro(s) de "+ATESTADOS.length+" no total.";
+
+  if(!linhas.length){
+    tbody.innerHTML = `<tr><td colspan="12"><div class="lista-vazio"><b>Nenhum registro encontrado</b>Ajuste a busca para ver os resultados.</div></td></tr>`;
+    return;
+  }
+  tbody.innerHTML = linhas.map(a=>`<tr>
+    <td class="col-sticky" style="min-width:110px; max-width:110px;">${formataData(a.dataAtestado)}</td>
+    <td>${a.loja||"—"}</td>
+    <td>${a.regional||"—"}</td>
+    <td>${a.nome||"—"}</td>
+    <td>${a.setor||"—"}</td>
+    <td>${a.funcao||"—"}</td>
+    <td>${a.tipoAtestado||"—"}</td>
+    <td>${a.motivo||"—"}</td>
+    <td>${a.cid||"—"}</td>
+    <td>${formataData(a.afastamentoInicio)}</td>
+    <td>${formataData(a.afastamentoFim)}</td>
+    <td>${a.duracaoDias||0}</td>
+  </tr>`).join("");
+}
+
