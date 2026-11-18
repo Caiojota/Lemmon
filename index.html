@@ -253,6 +253,25 @@
             </table>
           </div>
         </div>
+
+        <div class="card" id="pt-folha-card" style="display:none;">
+          <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;">
+            <h3 style="margin:0;">Folha de ponto — editar horários e ausências</h3>
+            <button type="button" class="btn-secondary" onclick="ptGerarPdfFolha()">Gerar PDF para assinatura</button>
+          </div>
+          <span class="sub">Corrija entrada/saída, registre faltas, atestados, férias e folgas, e extraia o relatório do mês para o colaborador conferir e assinar.</span>
+          <div class="filters" style="box-shadow:none; border:none; padding:0;">
+            <div class="f-group"><label>Colaborador</label><select id="pt-folha-usuario" onchange="ptRenderFolha()"></select></div>
+            <div class="f-group"><label>Mês</label><input type="month" id="pt-folha-mes" onchange="ptRenderFolha()"></div>
+          </div>
+          <div id="pt-folha-resumo" class="sub" style="margin:10px 0 4px; font-weight:600;"></div>
+          <div class="table-wrap" style="margin-top:6px;">
+            <table>
+              <thead><tr><th>Data</th><th>Entrada</th><th>Saída</th><th>Horas</th><th>Ocorrência</th><th>Observação</th><th></th></tr></thead>
+              <tbody id="pt-folha-tbody"></tbody>
+            </table>
+          </div>
+        </div>
       </section>
 
       <!-- ============ DASHBOARD ============ -->

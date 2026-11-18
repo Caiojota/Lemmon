@@ -19,12 +19,17 @@ async function initPonto(){
   const admin = ehAdminOuCoordenador();
   document.getElementById("pt-pendentes-card").style.display = admin ? "block" : "none";
   document.getElementById("pt-equipe-card").style.display = admin ? "block" : "none";
+  document.getElementById("pt-folha-card").style.display = admin ? "block" : "none";
   if(admin){
     const hoje = new Date().toISOString().slice(0,10);
     const campoData = document.getElementById("pt-eq-data");
     if(!campoData.value) campoData.value = hoje;
     await ptRenderPendentes();
     await ptRenderEquipe();
+    ptPopularSelectFolha();
+    const campoMes = document.getElementById("pt-folha-mes");
+    if(!campoMes.value) campoMes.value = hoje.slice(0,7);
+    await ptRenderFolha();
   }
   await ptSincronizarStatus();
   await ptRenderHistorico();
@@ -269,4 +274,200 @@ function renderInicioCardPonto(){
   if(!(currentUser.modulos||[]).includes("ponto")){ card.style.display = "none"; return; }
   card.style.display = "flex";
   ptSincronizarStatus();
+}
+
+/* =====================================================================
+   FOLHA DE PONTO — correção de horários e registro de ausências
+   (Administrador/Coordenador). Cada linha é um dia do mês escolhido;
+   os campos de hora e o seletor de ausência são editados direto na
+   tabela e salvos linha a linha. Também gera o PDF para assinatura.
+   ===================================================================== */
+
+const PT_AUSENCIA_LABEL = {falta:"Falta", falta_justificada:"Falta justificada", atestado:"Atestado médico", ferias:"Férias", folga:"Folga", outro:"Outro"};
+
+// Preenche o seletor de colaborador da folha de ponto com quem tem o módulo Ponto liberado
+function ptPopularSelectFolha(){
+  const sel = document.getElementById("pt-folha-usuario");
+  if(!sel) return;
+  const atual = sel.value;
+  const lista = USUARIOS.filter(u=>(u.modulos||[]).includes("ponto")).slice().sort((a,b)=>cmpPtBr(a.nome,b.nome));
+  sel.innerHTML = lista.map(u=>`<option value="${u.id}">${escHtml(u.nome)}${u.matricula?" — Mat. "+escHtml(u.matricula):""}</option>`).join("");
+  if(atual && lista.some(u=>u.id===atual)) sel.value = atual;
+}
+
+// Busca, para um colaborador e mês, os registros aprovados e as ausências já lançadas
+async function ptBuscarDadosFolha(uid, iniISO, fimISO){
+  const [{data: regs, error: e1}, {data: ausencias, error: e2}] = await Promise.all([
+    sb.from("ponto_registros").select("*").eq("usuario_id", uid).eq("status","aprovado").gte("data_hora", iniISO+"T00:00:00").lte("data_hora", fimISO+"T23:59:59"),
+    sb.from("ponto_ausencias").select("*").eq("usuario_id", uid).gte("data", iniISO).lte("data", fimISO)
+  ]);
+  if(e1||e2) throw (e1||e2);
+  const porDia = {};
+  (regs||[]).forEach(r=>{
+    const d = r.data_hora.slice(0,10);
+    if(!porDia[d]) porDia[d] = {};
+    if(!porDia[d][r.tipo]) porDia[d][r.tipo] = r;
+  });
+  const ausPorDia = {};
+  (ausencias||[]).forEach(a=>{ ausPorDia[a.data] = a; });
+  return {porDia, ausPorDia};
+}
+
+// Desenha a tabela do mês selecionado, com entrada/saída editáveis e seletor de ausência por dia
+async function ptRenderFolha(){
+  const sel = document.getElementById("pt-folha-usuario");
+  const uid = sel ? sel.value : "";
+  const mesVal = document.getElementById("pt-folha-mes").value; // "YYYY-MM"
+  const tbody = document.getElementById("pt-folha-tbody");
+  const resumo = document.getElementById("pt-folha-resumo");
+  if(!uid || !mesVal){ tbody.innerHTML = ""; resumo.textContent = ""; return; }
+  const [ano, mes] = mesVal.split("-").map(Number);
+  const ini = new Date(ano, mes-1, 1), fim = new Date(ano, mes, 0);
+  const iniISO = dataISOLocal(ini), fimISO = dataISOLocal(fim);
+
+  let porDia, ausPorDia;
+  try{ ({porDia, ausPorDia} = await ptBuscarDadosFolha(uid, iniISO, fimISO)); }
+  catch(e){ tbody.innerHTML = `<tr><td colspan="7" style="color:var(--vermelho);text-align:center;padding:14px;">Erro ao carregar: ${escHtml(e.message||"")}</td></tr>`; return; }
+
+  let linhasHtml = "";
+  let totalMin = 0, diasTrabalhados = 0, diasAusencia = 0;
+  for(let d = new Date(ini); d <= fim; d.setDate(d.getDate()+1)){
+    const iso = dataISOLocal(d);
+    const dia = porDia[iso] || {};
+    const ent = dia.entrada, sai = dia.saida;
+    const aus = ausPorDia[iso];
+    let horasTxt = "—";
+    if(ent && sai){
+      const diffMin = Math.round((new Date(sai.data_hora) - new Date(ent.data_hora))/60000);
+      if(diffMin > 0){ totalMin += diffMin; diasTrabalhados++; horasTxt = Math.floor(diffMin/60)+"h"+String(diffMin%60).padStart(2,"0"); }
+    }
+    if(aus) diasAusencia++;
+    const horaEnt = ent ? new Date(ent.data_hora).toTimeString().slice(0,5) : "";
+    const horaSai = sai ? new Date(sai.data_hora).toTimeString().slice(0,5) : "";
+    const obsAtual = (aus&&aus.observacao) || (ent&&ent.observacao_edicao) || (sai&&sai.observacao_edicao) || "";
+    linhasHtml += `<tr data-dia="${iso}">
+      <td>${maiusc1(d.toLocaleDateString("pt-BR",{weekday:"short"}).replace(".",""))} ${iso.split("-").reverse().join("/")}</td>
+      <td><input type="time" class="pt-folha-ent" value="${horaEnt}" style="width:105px;"></td>
+      <td><input type="time" class="pt-folha-sai" value="${horaSai}" style="width:105px;"></td>
+      <td>${horasTxt}</td>
+      <td><select class="pt-folha-aus" style="min-width:150px;">
+        <option value="">—</option>
+        ${Object.entries(PT_AUSENCIA_LABEL).map(([v,l])=>`<option value="${v}" ${aus&&aus.tipo===v?"selected":""}>${l}</option>`).join("")}
+      </select></td>
+      <td><input type="text" class="pt-folha-obs" placeholder="observação" value="${escHtml(obsAtual)}" style="width:160px;"></td>
+      <td><button type="button" class="small-btn" onclick="ptSalvarDiaFolha(this)">Salvar</button></td>
+    </tr>`;
+  }
+  tbody.innerHTML = linhasHtml;
+  const totalH = Math.floor(totalMin/60)+"h"+String(totalMin%60).padStart(2,"0");
+  resumo.textContent = `Dias com entrada e saída: ${diasTrabalhados} · Total de horas no mês: ${totalH} · Ausências lançadas: ${diasAusencia}`;
+}
+
+// Salva, para o dia da linha clicada, a entrada, a saída e a ausência informadas (horário vazio remove o registro daquele tipo)
+async function ptSalvarDiaFolha(btn){
+  const tr = btn.closest("tr");
+  const dia = tr.dataset.dia;
+  const uid = document.getElementById("pt-folha-usuario").value;
+  const hEnt = tr.querySelector(".pt-folha-ent").value;
+  const hSai = tr.querySelector(".pt-folha-sai").value;
+  const aus = tr.querySelector(".pt-folha-aus").value;
+  const obs = tr.querySelector(".pt-folha-obs").value.trim();
+  const rot = btn.textContent; btn.disabled = true; btn.textContent = "Salvando...";
+  const { error } = await sb.rpc("ponto_admin_salvar_dia", {
+    p_usuario: uid, p_data: dia, p_hora_entrada: hEnt||null, p_hora_saida: hSai||null,
+    p_ausencia_tipo: aus||null, p_observacao: obs||null
+  });
+  btn.disabled = false; btn.textContent = rot;
+  if(error){ alert("Erro ao salvar: "+error.message); return; }
+  mostrarToast("Dia atualizado.");
+  await ptRenderFolha();
+  if(document.getElementById("pt-eq-data")) await ptRenderEquipe();
+}
+
+// Gera o PDF da folha de ponto do mês selecionado, pronto para o colaborador conferir e assinar
+async function ptGerarPdfFolha(){
+  const sel = document.getElementById("pt-folha-usuario");
+  const uid = sel ? sel.value : "";
+  const mesVal = document.getElementById("pt-folha-mes").value;
+  if(!uid || !mesVal){ alert("Selecione o colaborador e o mês."); return; }
+  const u = USUARIOS.find(x=>x.id===uid);
+  const [ano, mes] = mesVal.split("-").map(Number);
+  const ini = new Date(ano, mes-1, 1), fim = new Date(ano, mes, 0);
+  const iniISO = dataISOLocal(ini), fimISO = dataISOLocal(fim);
+
+  let porDia, ausPorDia;
+  try{ ({porDia, ausPorDia} = await ptBuscarDadosFolha(uid, iniISO, fimISO)); }
+  catch(e){ alert("Erro ao carregar os dados: "+(e.message||"")); return; }
+
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({unit:"pt", format:"a4"});
+  const pageW = doc.internal.pageSize.getWidth();
+  const pageH = doc.internal.pageSize.getHeight();
+  let y = 60;
+  try{ doc.addImage(HORTIFRUTI_LOGO_DATAURL, "PNG", 40, 30, 90, 31); }catch(e){}
+  doc.setFont("helvetica","bold"); doc.setFontSize(16);
+  doc.text("Folha de Ponto", pageW-40, 48, {align:"right"});
+  doc.setFont("helvetica","normal"); doc.setFontSize(9.5); doc.setTextColor(120,105,85);
+  const nomeMes = maiusc1(ini.toLocaleDateString("pt-BR",{month:"long",year:"numeric"}));
+  doc.text("Período: "+nomeMes+"  ·  Gerado em "+new Date().toLocaleString("pt-BR"), pageW-40, 62, {align:"right"});
+  doc.setTextColor(30,30,30);
+  y = 92;
+  doc.setDrawColor(210,195,165); doc.line(40,y,pageW-40,y); y += 18;
+  doc.setFont("helvetica","bold"); doc.setFontSize(11);
+  doc.text((u?u.nome:"—")+(u&&u.matricula?" — matrícula "+u.matricula:""), 40, y);
+  y += 14;
+  doc.setFont("helvetica","normal"); doc.setFontSize(9); doc.setTextColor(90,75,60);
+  doc.text("Cargo: "+(u&&u.cargo?u.cargo:"—"), 40, y);
+  doc.setTextColor(30,30,30);
+  y += 22;
+
+  const colX = [40, 108, 170, 232, 292, 375];
+  const header = ["Data","Entrada","Saída","Horas","Ocorrência","Observação"];
+  const desenhaCabecalho = ()=>{
+    doc.setFillColor(245,238,222); doc.rect(40, y-11, pageW-80, 17, "F");
+    doc.setFont("helvetica","bold"); doc.setFontSize(8.5); doc.setTextColor(60,45,30);
+    header.forEach((h,i)=>doc.text(h, colX[i], y));
+    y += 15;
+    doc.setFont("helvetica","normal"); doc.setFontSize(8.5); doc.setTextColor(30,30,30);
+  };
+  desenhaCabecalho();
+
+  let totalMin = 0;
+  for(let d = new Date(ini); d <= fim; d.setDate(d.getDate()+1)){
+    const iso = dataISOLocal(d);
+    const dia = porDia[iso] || {};
+    const aus = ausPorDia[iso];
+    const ent = dia.entrada, sai = dia.saida;
+    let horasTxt = "—";
+    if(ent && sai){
+      const dm = Math.round((new Date(sai.data_hora) - new Date(ent.data_hora))/60000);
+      if(dm > 0){ totalMin += dm; horasTxt = Math.floor(dm/60)+"h"+String(dm%60).padStart(2,"0"); }
+    }
+    const ocorrencia = aus ? (PT_AUSENCIA_LABEL[aus.tipo]||aus.tipo) : "";
+    const obs = (aus&&aus.observacao) || (ent&&ent.observacao_edicao) || (sai&&sai.observacao_edicao) || "";
+    if(y > pageH-70){ doc.addPage(); y = 50; desenhaCabecalho(); }
+    doc.text(maiusc1(d.toLocaleDateString("pt-BR",{weekday:"short"}).replace(".",""))+" "+iso.split("-").reverse().join("/"), colX[0], y);
+    doc.text(ent ? new Date(ent.data_hora).toTimeString().slice(0,5) : "—", colX[1], y);
+    doc.text(sai ? new Date(sai.data_hora).toTimeString().slice(0,5) : "—", colX[2], y);
+    doc.text(horasTxt, colX[3], y);
+    doc.text(ocorrencia||"—", colX[4], y);
+    if(obs) doc.text(doc.splitTextToSize(obs, pageW-40-colX[5])[0]||"", colX[5], y);
+    y += 13;
+  }
+  y += 8;
+  doc.setDrawColor(210,195,165); doc.line(40,y,pageW-40,y); y += 18;
+  const totalH = Math.floor(totalMin/60)+"h"+String(totalMin%60).padStart(2,"0");
+  doc.setFont("helvetica","bold"); doc.setFontSize(10); doc.setTextColor(30,30,30);
+  doc.text("Total de horas no período: "+totalH, 40, y);
+  y += 46;
+  if(y > pageH-80){ doc.addPage(); y = 60; }
+  doc.setFont("helvetica","normal"); doc.setFontSize(9);
+  doc.text("Declaro, para os devidos fins, que conferi os registros de ponto acima referentes ao período indicado.", 40, y);
+  y += 36;
+  doc.setDrawColor(100,90,75); doc.line(40, y, 280, y);
+  doc.setFontSize(9);
+  doc.text("Assinatura do colaborador", 40, y+12);
+  doc.text("Data: ____/____/______", 320, y+12);
+
+  doc.save("folha_ponto_"+(u?u.nome.replace(/\s+/g,"_"):"colaborador")+"_"+mesVal+".pdf");
 }
