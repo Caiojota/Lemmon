@@ -135,6 +135,7 @@
     <!-- ABAS -->
     <nav class="app-tabs" id="nav-list">
       <a href="#" class="nav-item" data-view="inicio"><span class="ic"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M12 3.2 2.5 11.4a1 1 0 0 0 .66 1.76H5V20a1 1 0 0 0 1 1h4v-5h4v5h4a1 1 0 0 0 1-1v-6.84h1.84a1 1 0 0 0 .66-1.76L12 3.2Z"/></svg></span>Início</a>
+      <a href="#" class="nav-item" data-view="ponto"><span class="ic"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg></span> Ponto</a>
       <a href="#" class="nav-item" data-view="calendario"><span class="ic"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M7 2a1 1 0 0 1 1 1v1h8V3a1 1 0 1 1 2 0v1h1a2 2 0 0 1 2 2v13a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h1V3a1 1 0 0 1 1-1Zm13 8H4v10a.5.5 0 0 0 .5.5h15a.5.5 0 0 0 .5-.5V10Z"/></svg></span> Agenda</a>
       <a href="#" class="nav-item" data-view="demandas"><span class="ic"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M3 6a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6Z"/></svg></span> Demandas</a>
       <a href="#" class="nav-item" data-view="reunioes"><span class="ic"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M16 11a3 3 0 1 0-3-3 3 3 0 0 0 3 3Zm-8 0a3 3 0 1 0-3-3 3 3 0 0 0 3 3Zm0 2c-2.3 0-7 1.2-7 3.5V19h14v-2.5C15 14.2 10.3 13 8 13Zm8 0c-.3 0-.6 0-1 .1 1.2.8 2 1.9 2 3.4V19h6v-2.5c0-2.3-4.7-3.5-7-3.5Z"/></svg></span> Reuniões</a>
@@ -195,6 +196,45 @@
           <div class="card in-card in-avisos">
             <div class="in-card-topo"><h4>Avisos</h4><span class="in-acoes-topo" id="inicio-avisos-acoes"></span></div>
             <div id="inicio-avisos"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ PONTO ============ -->
+      <section class="view" id="view-ponto">
+        <div class="topbar">
+          <div><h2>Ponto</h2></div>
+        </div>
+
+        <div class="card" id="pt-bater" style="max-width:480px; text-align:center; padding:32px 24px;">
+          <div id="pt-status-hoje" style="margin-bottom:18px; font-size:14px; color:var(--areia-esc);"></div>
+          <div id="pt-relogio" style="font-size:38px; font-weight:800; color:var(--texto); margin-bottom:4px; font-variant-numeric:tabular-nums;"></div>
+          <div id="pt-data" class="sub" style="margin-bottom:22px;"></div>
+          <button type="button" class="btn-primary inline" id="pt-btn-bater" style="font-size:15px; padding:12px 28px;" onclick="ptAbrirRegistro()">Bater ponto</button>
+          <div id="pt-msg" class="sub" style="margin-top:12px; font-weight:600;"></div>
+        </div>
+
+        <div class="card">
+          <h3>Meu histórico</h3>
+          <div class="table-wrap" style="margin-top:10px;">
+            <table>
+              <thead><tr><th>Data</th><th>Entrada</th><th>Saída</th><th>Local</th></tr></thead>
+              <tbody id="pt-hist-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="card" id="pt-equipe-card" style="display:none;">
+          <h3>Ponto da equipe</h3>
+          <div class="filters" style="box-shadow:none; border:none; padding:0;">
+            <div class="f-group"><label>Dia</label><input type="date" id="pt-eq-data" onchange="ptRenderEquipe()"></div>
+            <div class="f-group"><label>Buscar</label><input type="text" id="pt-eq-busca" placeholder="Nome ou registro" oninput="ptRenderEquipe()"></div>
+          </div>
+          <div class="table-wrap" style="margin-top:10px;">
+            <table>
+              <thead><tr><th>Colaborador</th><th>Entrada</th><th>Saída</th><th>Foto</th><th>Local</th></tr></thead>
+              <tbody id="pt-eq-tbody"></tbody>
+            </table>
           </div>
         </div>
       </section>
@@ -1831,6 +1871,25 @@
 </div>
 
 <!-- ============ MODAL: NOVO/EDITAR USUÁRIO ============ -->
+<div class="modal-bg" id="modal-ponto">
+  <div class="modal" style="max-width:420px; text-align:center;">
+    <h3>Confirmar <span id="pt-modal-tipo">entrada</span></h3>
+    <span class="sub" id="pt-modal-info" style="display:block; margin-bottom:14px;"></span>
+    <label class="foto-btn" style="display:block; width:100%; box-sizing:border-box; margin-bottom:14px;" id="pt-foto-label">
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" style="vertical-align:-3px;"><path d="M9 3h6l1.2 2H19a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h2.8L9 3Zm3 5a4.5 4.5 0 1 0 0 9 4.5 4.5 0 0 0 0-9Zm0 2a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5Z"/></svg>
+      Tirar foto agora
+      <input type="file" accept="image/*" capture="user" onchange="ptFotoChange(this)" hidden>
+    </label>
+    <img id="pt-foto-preview" style="display:none; max-width:100%; max-height:200px; border-radius:10px; margin-bottom:14px;">
+    <div class="field" style="text-align:left;"><label>Digite sua matrícula para confirmar</label><input type="text" id="pt-matricula" placeholder="Sua matrícula"></div>
+    <span class="sub" id="pt-modal-status" style="display:block; margin:10px 0; font-weight:600;"></span>
+    <div style="display:flex; gap:10px; margin-top:10px;">
+      <button type="button" class="btn-secondary" style="flex:1;" onclick="document.getElementById('modal-ponto').style.display='none'">Cancelar</button>
+      <button type="button" class="btn-primary inline" style="flex:1;" id="pt-btn-confirmar" onclick="ptConfirmarRegistro()">Confirmar</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-bg" id="modal-epi-assinatura">
   <div class="modal" style="max-width:640px;">
     <h3>Confirmação do colaborador</h3>
@@ -1899,6 +1958,7 @@
           <label><input type="checkbox" value="fichaEpi" class="us-mod"> Ficha de EPI (em Tarefas)</label>
           <label><input type="checkbox" value="auditoriaEpi" class="us-mod"> Auditoria EPI</label>
           <label><input type="checkbox" value="gestao" class="us-mod"> Gestão (Usuários, Unidades, Estrutura, Auditoria)</label>
+          <label><input type="checkbox" value="ponto" class="us-mod"> Ponto (registro de entrada/saída)</label>
         </div>
       </div>
       <div class="field">
@@ -2496,6 +2556,7 @@
 <script src="js/16-vistoria.js"></script>
 <script src="js/17-vistoria-publica.js"></script>
 <script src="js/18-entrega-epi.js"></script>
+<script src="js/19-ponto.js"></script>
 <script src="js/99-inicializacao.js"></script>
 </body>
 </html>

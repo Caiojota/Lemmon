@@ -9,7 +9,7 @@
 function renderUsuarios(){
   const tb = document.getElementById("tbl-usuarios");
   tb.innerHTML="";
-  const nomesModulo = {lancamento:"Acidentes", inspecoes:"Relatório Vistorial", agenda:"Agenda", demandas:"Demandas", reunioes:"Reuniões", saude:"Saúde (Tarefas)", absenteismo:"Absenteísmo (Tarefas)", fichaEpi:"Ficha de EPI (Tarefas)", auditoriaEpi:"Auditoria EPI", gestao:"Gestão"};
+  const nomesModulo = {lancamento:"Acidentes", inspecoes:"Relatório Vistorial", agenda:"Agenda", demandas:"Demandas", reunioes:"Reuniões", saude:"Saúde (Tarefas)", absenteismo:"Absenteísmo (Tarefas)", fichaEpi:"Ficha de EPI (Tarefas)", auditoriaEpi:"Auditoria EPI", gestao:"Gestão", ponto:"Ponto"};
   USUARIOS.forEach(u=>{
     tb.innerHTML += `<tr>
       <td>${u.foto? `<img src="${u.foto}" style="width:32px;height:32px;border-radius:50%;object-fit:cover;">` : `<div style="width:32px;height:32px;border-radius:50%;background:var(--areia-cla);display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--marrom-esc);font-size:13px;">${u.nome.charAt(0).toUpperCase()}</div>`}</td>

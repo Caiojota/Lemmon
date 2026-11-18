@@ -485,6 +485,7 @@ function irParaView(view, painel){
   if(alvo==="demandas") initDemandas();
   if(alvo==="reunioes") initReunioes();
   if(alvo==="gestao") initGestao();
+  if(alvo==="ponto") initPonto();
 }
 
 // Alterna (mostra/esconde): toggle menu usuario
