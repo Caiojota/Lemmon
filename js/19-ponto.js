@@ -69,6 +69,7 @@ async function ptSincronizarStatus(){
 
 // Abre o quadro de confirmação: pega a localização, depois abre a câmera ao vivo
 async function ptAbrirRegistro(){
+  if(!currentUser.matricula){ alert("Seu usuário ainda não tem matrícula cadastrada. Peça para um administrador cadastrar em Usuários antes de bater o ponto."); return; }
   if(PT_TIPO_ATUAL===null){ await ptSincronizarStatus(); if(PT_TIPO_ATUAL===null){ alert("Você já tem um registro aguardando aprovação."); return; } }
   document.getElementById("modal-ponto").style.display = "flex";
   document.getElementById("pt-matricula").value = "";

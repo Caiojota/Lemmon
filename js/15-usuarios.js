@@ -15,6 +15,7 @@ function renderUsuarios(){
       <td>${u.foto? `<img src="${u.foto}" style="width:32px;height:32px;border-radius:50%;object-fit:cover;">` : `<div style="width:32px;height:32px;border-radius:50%;background:var(--areia-cla);display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--marrom-esc);font-size:13px;">${u.nome.charAt(0).toUpperCase()}</div>`}</td>
       <td>${u.nome}</td>
       <td>${u.login}</td>
+      <td>${u.matricula||"—"}</td>
       <td><span class="perfil-tag ${u.perfil.replace(' ','')}" style="background:${u.perfil==='Administrador'?'#981b22':u.perfil==='Coordenador'?'#a15a33':'#00733f'}">${u.perfil}</span></td>
       <td>${(u.modulos||[]).map(m=>nomesModulo[m]||m).join(", ")}</td>
       <td><span class="status-dot ${u.ativo?'on':'off'}"></span>${u.ativo?'Ativo':'Inativo'}</td>
@@ -47,6 +48,7 @@ function abrirModalUsuario(id){
     document.getElementById("us-senha").value = "";
     document.getElementById("us-senha").disabled = true;
     document.getElementById("us-senha").placeholder = "Senha não pode ser alterada por aqui";
+    document.getElementById("us-matricula").value = u.matricula||"";
     document.getElementById("us-registro").value = u.registro||"";
     document.getElementById("us-cargo").value = u.cargo||"";
     document.getElementById("us-carga-horaria").value = u.cargaHorariaDiaria!=null ? u.cargaHorariaDiaria : 8;
@@ -138,6 +140,7 @@ async function salvarUsuario(ev){
   const notificacoesAtivas = [...document.querySelectorAll(".us-notif")].filter(cb=>cb.checked).map(cb=>cb.value);
   const dadosPerfil = {
     nome: document.getElementById("us-nome").value.trim(),
+    matricula: document.getElementById("us-matricula").value.trim(),
     registro: document.getElementById("us-registro").value.trim(),
     cargo: document.getElementById("us-cargo").value.trim(),
     assinatura: assinaturaTemp,

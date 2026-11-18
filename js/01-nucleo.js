@@ -110,7 +110,7 @@ function mapFichaEpiFromDb(r){
 // Converte do formato do banco para o do app:: map profile from db
 function mapProfileFromDb(r){
   return {
-    id:r.id, nome:r.nome, login:r.login||"", registro:r.registro||"", cargo:r.cargo||"",
+    id:r.id, nome:r.nome, login:r.login||"", matricula:r.matricula||"", registro:r.registro||"", cargo:r.cargo||"",
     assinatura:r.assinatura||null, foto:r.foto||null, perfil:r.perfil, modulos:r.modulos||[],
     ativo:r.ativo, notificacoesAtivas:r.notificacoes_ativas||[], cargaHorariaDiaria:r.carga_horaria_diaria!=null ? Number(r.carga_horaria_diaria) : 8
   };
