@@ -35,6 +35,7 @@ function renderInicio(){
   renderInicioHero();
   renderInicioSessao();
   renderCheckinHoje();
+  renderInicioCardPonto();
   renderInicioCalendario();
   carregarReunioesParaCalendario();
   renderInicioKpis();

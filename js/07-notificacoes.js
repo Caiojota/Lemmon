@@ -87,6 +87,9 @@ async function abrirNotificacao(id){
     document.getElementById("notif-dropdown").style.display = "none";
     const av = AVISOS.find(x=>String(x.id)===String(n.referenciaId));
     if(av && av.referenciaTipo) abrirAviso(av.id); else irParaView("inicio");
+  } else if(n.referenciaTipo==="ponto_registros"){
+    document.getElementById("notif-dropdown").style.display = "none";
+    if((currentUser.modulos||[]).includes("ponto")) irParaView("ponto"); else irParaView("inicio");
   }
 }
 
@@ -115,7 +118,7 @@ async function criarNotificacao(usuarioId, tipo, titulo, mensagem, referenciaTip
   if(!usuarioId) return;
   const destinatario = USUARIOS.find(u=>u.id===usuarioId);
   // avisos da plataforma, eventos de calendário e fichas de EPI chegam a todos (não dependem da lista de tipos do perfil)
-  const SEMPRE_NOTIFICAR = ["aviso","calendario_evento","epi_admitidos","agenda_decisao","acao_plataforma"];
+  const SEMPRE_NOTIFICAR = ["aviso","calendario_evento","epi_admitidos","agenda_decisao","acao_plataforma","ponto_pendente"];
   const recebeTudo = !!destinatario && (destinatario.perfil==="Administrador" || destinatario.perfil==="Coordenador");   // administradores e coordenadores recebem tudo
   if(destinatario && !recebeTudo && !SEMPRE_NOTIFICAR.includes(tipo) && Array.isArray(destinatario.notificacoesAtivas) && !destinatario.notificacoesAtivas.includes(tipo)) return;
   const { data, error } = await sb.from("notificacoes").insert({
