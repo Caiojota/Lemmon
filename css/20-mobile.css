@@ -1,0 +1,89 @@
+/* =====================================================================
+   MOBILE — reorganiza a plataforma pra parecer (e ser usável como) um
+   app de celular: menu vira uma barra fixa embaixo da tela, textos e
+   toques ficam maiores, modais abrem em tela cheia. Só entra em ação
+   em telas estreitas (celular); em tablet/desktop nada aqui se aplica.
+   Carregado por último de propósito, pra vencer os estilos "compactos"
+   pensados pra desktop que vêm antes neste mesmo arquivo de CSS.
+   ===================================================================== */
+@media (max-width: 680px){
+
+  /* ---- Barra de navegação fixa embaixo, estilo app (em vez da linha de abas no topo) ---- */
+  .app-tabs{
+    display:flex !important; flex-wrap:nowrap; overflow-x:auto; scrollbar-width:none;
+    position:fixed; left:0; right:0; bottom:0; z-index:400;
+    background:var(--branco); border-top:1px solid var(--areia-cla); border-bottom:none;
+    padding:4px 4px calc(4px + env(safe-area-inset-bottom)); gap:0;
+    box-shadow:0 -4px 14px rgba(84,65,47,.1);
+  }
+  .app-tabs::-webkit-scrollbar{ display:none; }
+  .nav-item{
+    flex-direction:column !important; align-items:center !important; justify-content:center !important;
+    gap:3px !important; flex:1 1 0; min-width:54px; padding:6px 2px !important; border-radius:10px;
+  }
+  .nav-item .ic{ font-size:19px; }
+  .nav-item .ic svg{ width:21px; height:21px; }
+  .nav-item .lbl{
+    display:block !important; font-size:9.5px !important; font-weight:700; line-height:1.1;
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100%;
+  }
+  .nav-item .caret{ display:none; }
+  .nav-item.active{ background:var(--verde-esc); color:#fff; }
+  .nav-item.aberto:not(.active){ background:var(--creme); }
+
+  /* ---- Cabeçalho mais respirado ---- */
+  .brand-block{ padding-left:14px !important; }
+  .header-actions{ padding-right:14px !important; }
+
+  /* ---- Conteúdo: menos aperto nas bordas, e espaço embaixo pra barra fixa não tampar nada ---- */
+  .content{ padding:14px 14px calc(78px + env(safe-area-inset-bottom)) !important; }
+  .topbar h2{ font-size:20px !important; }
+  .topbar .eyebrow{ font-size:10.5px !important; }
+
+  /* ---- Cards com mais ar e texto legível ---- */
+  .card{ padding:16px !important; border-radius:14px !important; }
+  .card h3{ font-size:15px !important; }
+  .card .sub{ font-size:12.5px !important; }
+  .kpi-row{ grid-template-columns:repeat(2,minmax(0,1fr)) !important; }
+  .grid-2, .grid-3{ grid-template-columns:1fr !important; }
+
+  /* ---- Campos e botões com alvo de toque confortável ----
+     (font-size 16px no input evita o Safari dar zoom automático ao focar) */
+  .field input:not([type=checkbox]):not([type=radio]):not([type=range]),
+  .field select, .field textarea{
+    padding:11px 12px !important; font-size:16px !important; min-height:44px;
+  }
+  .field label{ font-size:12.5px !important; }
+  .btn-primary, .btn-secondary{ min-height:44px; font-size:14.5px !important; padding:11px 18px !important; }
+  .small-btn{ min-height:38px; padding:9px 13px !important; font-size:12.5px !important; }
+
+  /* ---- Filtros empilhados, ocupando a largura toda ---- */
+  .filters{ flex-direction:column !important; align-items:stretch !important; padding:12px !important; }
+  .filters .f-group{ width:100%; }
+  .filters select, .filters input{
+    min-width:0 !important; width:100%; min-height:42px; font-size:16px !important; padding:9px 10px !important;
+  }
+
+  /* ---- Tabelas: rolagem suave, sem espremer tanto ---- */
+  .table-wrap{ -webkit-overflow-scrolling:touch; }
+
+  /* ---- Modais em tela cheia (como um app, não uma caixinha de site) ---- */
+  .modal-bg{ align-items:stretch !important; justify-content:stretch !important; }
+  .modal{
+    max-width:none !important; width:100% !important; height:100%; max-height:none !important;
+    border-radius:0 !important; padding:18px 16px calc(18px + env(safe-area-inset-bottom)) !important;
+  }
+
+  /* ---- Menu "Dashboards"/"Tarefas" (abre pra cima, já que o menu é embaixo) ---- */
+  .nav-drop{ max-width:calc(100vw - 20px); }
+
+  /* ---- Início: a página tem várias colunas lado a lado pensadas pra tela
+     larga (até 5!); no celular empilha tudo numa coluna só ---- */
+  #view-inicio > .in-linha2{
+    display:flex !important; flex-direction:column !important; grid-template-columns:none !important;
+  }
+  #view-inicio .in-linha2 > *{
+    width:auto !important; grid-column:auto !important; contain:none !important; overflow:visible !important;
+  }
+  .in-grid{ grid-template-columns:1fr !important; }
+}

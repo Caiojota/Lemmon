@@ -436,7 +436,16 @@ function abrirNavDrop(it){
   d.innerHTML = lista.map(p=>`<button type="button" role="menuitem" class="${viewAtual===view && painelAtivo[view]===p.id ? "ativo":""}" onclick="escolherNavDrop('${view}','${p.id}')">${escHtml(p.rotulo)}</button>`).join("");
   const r = it.getBoundingClientRect();
   const z = parseFloat(getComputedStyle(document.documentElement).zoom) || 1;   // a tela roda com zoom: converte as coordenadas
-  d.style.left = Math.max(6, Math.min(r.left/z, window.innerWidth/z-210))+"px"; d.style.top = (r.bottom/z+2)+"px"; d.style.display = "block";
+  d.style.left = Math.max(6, Math.min(r.left/z, window.innerWidth/z-210))+"px";
+  // no celular o menu fica numa barra fixa embaixo da tela: se não couber espaço
+  // abaixo do item (ex.: a barra inferior), abre o menu pra cima dele em vez de pra baixo
+  const alturaEstimada = Math.min(260, lista.length*38+14);
+  if((window.innerHeight/z - r.bottom/z) < alturaEstimada){
+    d.style.bottom = (window.innerHeight/z - r.top/z + 2)+"px"; d.style.top = "auto";
+  } else {
+    d.style.top = (r.bottom/z+2)+"px"; d.style.bottom = "auto";
+  }
+  d.style.display = "block";
   document.querySelectorAll(".nav-item.aberto").forEach(n=>n.classList.remove("aberto"));
   it.classList.add("aberto"); NAV_DROP_VIEW = view;
 }
