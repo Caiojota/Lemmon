@@ -7,6 +7,15 @@
 <title>LEMMON | SESMT HNT</title>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB2aWV3Qm94PSI3MCA0MiAxNTAgMTI4IiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxkZWZzPjxjbGlwUGF0aCBpZD0ibGVtb25DbGlwRmF2Ij48ZWxsaXBzZSBjeD0iMTQ1IiBjeT0iMTE1IiByeD0iNjIiIHJ5PSI1MiIvPjwvY2xpcFBhdGg+PC9kZWZzPjxlbGxpcHNlIGN4PSIxNDUiIGN5PSIxMTUiIHJ4PSI2MiIgcnk9IjUyIiBmaWxsPSIjZmFhNjFhIi8+PGcgY2xpcC1wYXRoPSJ1cmwoI2xlbW9uQ2xpcEZhdikiIHN0cm9rZT0iI2U1ZDFhYiIgc3Ryb2tlLXdpZHRoPSIyIiBvcGFjaXR5PSIwLjUiPjxsaW5lIHgxPSI4MCIgeTE9IjgwIiB4Mj0iMjEwIiB5Mj0iOTUiLz48bGluZSB4MT0iODAiIHkxPSI5NSIgeDI9IjIxMCIgeTI9IjExMCIvPjxsaW5lIHgxPSI4MCIgeTE9IjExMCIgeDI9IjIxMCIgeTI9IjEyNSIvPjxsaW5lIHgxPSI4MCIgeTE9IjEyNSIgeDI9IjIxMCIgeTI9IjE0MCIvPjxsaW5lIHgxPSI4MCIgeTE9IjE0MCIgeDI9IjIxMCIgeTI9IjE1NSIvPjwvZz48ZWxsaXBzZSBjeD0iODAiIGN5PSIxMTUiIHJ4PSI3IiByeT0iMTAiIGZpbGw9IiNmYWE2MWEiLz48ZWxsaXBzZSBjeD0iMjEwIiBjeT0iMTE1IiByeD0iNyIgcnk9IjEwIiBmaWxsPSIjZmFhNjFhIi8+PHBhdGggZD0iTTE0NSA0NSBDIDE3MiA0OSwgMTg1IDY1LCAxODUgNjUgQyAxODUgOTIsIDE2OCAxMDgsIDE0NSAxMTQgQyAxMjIgMTA4LCAxMDUgOTIsIDEwNSA2NSBDIDEwNSA2NSwgMTE4IDQ5LCAxNDUgNDUgWiIgZmlsbD0iIzAwYjI2MiIvPjxyZWN0IHg9IjEzOSIgeT0iNzAiIHdpZHRoPSIxMiIgaGVpZ2h0PSIyOCIgcng9IjIiIGZpbGw9IiNlZmUxZDMiIG9wYWNpdHk9IjAuOSIvPjxyZWN0IHg9IjEzMSIgeT0iNzgiIHdpZHRoPSIyOCIgaGVpZ2h0PSIxMiIgcng9IjIiIGZpbGw9IiNlZmUxZDMiIG9wYWNpdHk9IjAuOSIvPjwvc3ZnPg==">
 
+<!-- PWA: deixa a Lemmon "instalável" no celular (ícone na tela, abre em tela cheia) -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#00733f">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Lemmon">
+
 <!-- Open Sans (fonte de apoio/leitura, disponível via Google Fonts) -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -2598,5 +2607,13 @@
 <script src="js/18-entrega-epi.js"></script>
 <script src="js/19-ponto.js"></script>
 <script src="js/99-inicializacao.js"></script>
+<script>
+  // Registra o Service Worker (só a "casca" do app fica em cache; nenhum dado do Supabase)
+  if("serviceWorker" in navigator){
+    window.addEventListener("load", ()=>{
+      navigator.serviceWorker.register("sw.js").catch(()=>{});
+    });
+  }
+</script>
 </body>
 </html>
