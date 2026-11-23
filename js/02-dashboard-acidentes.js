@@ -98,8 +98,16 @@ function somar(arr, chave, valor){
 // Função do módulo: destroy chart
 function destroyChart(key){ if(charts[key]){ charts[key].destroy(); delete charts[key]; } }
 
+// Guarda, por chave de gráfico, a config usada e (quando disponível) os registros de cada categoria,
+// para que qualquer gráfico da plataforma possa ser clicado e expandido com mais detalhes.
+let CHART_META = {};
+let chartDetalheGrande = null;
+let chartDetalheChaveAtual = null;
+
 // Função do módulo: criar chart
-function criarChart(key, canvasId, config){
+// "grupos" (opcional) é um objeto {categoria: [registros...]}, na mesma ordem/categorias do gráfico —
+// quando informado, o detalhamento do gráfico permite clicar numa categoria e ver os registros dela.
+function criarChart(key, canvasId, config, grupos){
   try{
     destroyChart(key);
     const canvas = document.getElementById(canvasId);
@@ -111,6 +119,19 @@ function criarChart(key, canvasId, config){
     }
     config.options = Object.assign({}, config.options || {}, {maintainAspectRatio:false});
     charts[key] = new Chart(canvas, config);
+
+    // título/subtítulo: pega do card que envolve o gráfico, pra não precisar repetir em cada chamada
+    const card = canvas.closest(".card");
+    const titulo = (card && card.querySelector("h3") && card.querySelector("h3").textContent) || "Indicador";
+    const subtitulo = (card && card.querySelector(".sub") && card.querySelector(".sub").textContent) || "";
+    CHART_META[key] = {titulo, subtitulo, config, grupos: grupos||null};
+
+    const bx = canvas.parentNode;
+    if(bx && bx.classList.contains("chart-box")){
+      bx.classList.add("chart-box-clicavel");
+      bx.title = "Clique para ver mais detalhes";
+      bx.onclick = ()=>abrirDetalheChart(key);
+    }
   }catch(e){
     console.error("[Dashboard] Erro ao criar o gráfico '"+key+"' ("+canvasId+"):", e);
   }
@@ -118,6 +139,94 @@ function criarChart(key, canvasId, config){
 
 // Função do módulo: paleta
 function paleta(){ return ["#00733f","#00b262","#a15a33","#54412f","#9f8167","#f99d33","#faa61a","#ee3135"]; }
+
+// Calcula: agrupar — como "contar", mas guarda também os registros de cada categoria (pra detalhamento)
+function agrupar(arr, chaveFn){
+  const g = {};
+  arr.forEach(a=>{
+    const k = chaveFn(a);
+    if(k===undefined || k===null || k==="") return;
+    (g[k] = g[k]||[]).push(a);
+  });
+  return g;
+}
+
+/* =====================================================================
+   DETALHAMENTO DE GRÁFICO — clique em qualquer gráfico da plataforma pra
+   abrir uma versão maior dele, com uma tabela mostrando a quantidade (e,
+   quando o gráfico tiver os registros de cada categoria) os acidentes de
+   cada categoria, clicável pra ver a lista completa daquela categoria.
+   ===================================================================== */
+function abrirDetalheChart(key){
+  const meta = CHART_META[key];
+  if(!meta) return;
+  chartDetalheChaveAtual = key;
+
+  document.getElementById("chart-detalhe-titulo").textContent = meta.titulo;
+  document.getElementById("chart-detalhe-sub").textContent = meta.subtitulo||"";
+
+  if(chartDetalheGrande){ chartDetalheGrande.destroy(); chartDetalheGrande = null; }
+  const canvas = document.getElementById("chart-detalhe-canvas");
+  const configGrande = JSON.parse(JSON.stringify(meta.config));
+  configGrande.options = Object.assign({}, configGrande.options||{}, {maintainAspectRatio:false});
+  chartDetalheGrande = new Chart(canvas, configGrande);
+
+  const labels = (meta.config.data && meta.config.data.labels) || [];
+  const valores = (meta.config.data && meta.config.data.datasets && meta.config.data.datasets[0] && meta.config.data.datasets[0].data) || [];
+  const total = valores.reduce((s,v)=>s+(Number(v)||0), 0) || 1;
+  const tbody = document.getElementById("chart-detalhe-tbody");
+  if(!labels.length){
+    tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; color:var(--areia-esc);">Sem dados para os filtros selecionados.</td></tr>';
+  } else {
+    tbody.innerHTML = labels.map((lbl,i)=>{
+      const qtd = Number(valores[i])||0;
+      const pct = Math.round((qtd/total)*1000)/10;
+      const temRegistros = meta.grupos && meta.grupos[lbl] && meta.grupos[lbl].length;
+      return `<tr ${temRegistros?`style="cursor:pointer;" onclick="mostrarRegistrosDetalheChart('${escHtml(String(lbl)).replace(/'/g,"&#39;")}')"`:""}>
+        <td>${escHtml(String(lbl))}${temRegistros?' <span class="sub">(clique para ver os acidentes)</span>':""}</td>
+        <td>${qtd}</td>
+        <td>${pct}%</td>
+      </tr>`;
+    }).join("");
+  }
+
+  document.getElementById("chart-detalhe-bloco-lista").style.display = "block";
+  document.getElementById("chart-detalhe-bloco-registros").style.display = "none";
+  document.getElementById("modal-chart-detalhe").style.display = "flex";
+}
+
+// Desenha na tela: lista de acidentes de uma categoria específica do gráfico aberto no detalhamento
+function mostrarRegistrosDetalheChart(label){
+  const meta = CHART_META[chartDetalheChaveAtual];
+  if(!meta || !meta.grupos) return;
+  const registros = (meta.grupos[label]||[]).slice().sort((a,b)=> a.data<b.data?1:-1);
+  document.getElementById("chart-detalhe-categoria-titulo").textContent = label+" — "+registros.length+" acidente(s)";
+  const tbody = document.getElementById("chart-detalhe-registros-tbody");
+  tbody.innerHTML = registros.map(a=>`
+    <tr>
+      <td>${a.data ? a.data.split("-").reverse().join("/") : "—"}</td>
+      <td>${escHtml(a.funcionario||"—")}</td>
+      <td>${escHtml(a.loja||"—")}</td>
+      <td>${escHtml(a.setor||"—")}</td>
+      <td>${escHtml(a.funcao||"—")}</td>
+      <td>${escHtml(a.motivo||"—")}</td>
+      <td>${escHtml(a.gravidade||"—")}</td>
+      <td>${a.dias||0}</td>
+    </tr>`).join("");
+  document.getElementById("chart-detalhe-bloco-lista").style.display = "none";
+  document.getElementById("chart-detalhe-bloco-registros").style.display = "block";
+}
+
+// Volta da lista de registros de uma categoria pro detalhamento geral do gráfico
+function voltarListaDetalheChart(){
+  document.getElementById("chart-detalhe-bloco-lista").style.display = "block";
+  document.getElementById("chart-detalhe-bloco-registros").style.display = "none";
+}
+
+// Fecha o modal de detalhamento de gráfico
+function fecharDetalheChart(){
+  document.getElementById("modal-chart-detalhe").style.display = "none";
+}
 
 // Atualiza: atualizar dashboard
 function atualizarDashboard(){
@@ -162,7 +271,8 @@ function atualizarDashboard(){
   const track = document.getElementById("thermo-track");
   const legend = document.getElementById("thermo-legend");
   track.innerHTML=""; legend.innerHTML="";
-  const gravCount = contar(dados, a=>a.gravidade);
+  const gravGrupos = agrupar(dados, a=>a.gravidade);
+  const gravCount = {}; Object.entries(gravGrupos).forEach(([k,v])=>gravCount[k]=v.length);
   const totalTh = dados.length || 1;
   GRAVIDADES.forEach(g=>{
     const qtd = gravCount[g]||0;
@@ -180,92 +290,101 @@ function atualizarDashboard(){
   });
 
   /* ---- Gráfico: tipo (Típico x Trajeto) ---- */
-  const tipoCount = contar(dados, a=>a.tipo);
+  const tipoGrupos = agrupar(dados, a=>a.tipo);
+  const tipoCount = {}; Object.entries(tipoGrupos).forEach(([k,v])=>tipoCount[k]=v.length);
   criarChart("tipo", "chart-tipo", {
     type:"doughnut",
     data:{ labels:Object.keys(tipoCount), datasets:[{data:Object.values(tipoCount), backgroundColor:["#00733f","#a15a33"], borderWidth:2, borderColor:"#fffdfa"}]},
     options:{plugins:{legend:{position:"bottom", labels:{font:{family:"Open Sans"}}}}}
-  });
+  }, tipoGrupos);
 
   /* ---- Gráfico: tipo de negócio ---- */
   const negOrdem = ["Loja","Logística","CP","Corporativo"];
-  const negCount = contar(dados, a=>a.negocio);
+  const negGrupos = agrupar(dados, a=>a.negocio);
+  const negCount = {}; Object.entries(negGrupos).forEach(([k,v])=>negCount[k]=v.length);
   const negLabels = negOrdem.filter(n=>negCount[n]!==undefined).concat(Object.keys(negCount).filter(n=>!negOrdem.includes(n)));
   criarChart("negocio", "chart-negocio", {
     type:"doughnut",
     data:{ labels:negLabels, datasets:[{data:negLabels.map(n=>negCount[n]), backgroundColor:["#00733f","#faa61a","#a15a33","#54412f"], borderWidth:2, borderColor:"#fffdfa"}]},
     options:{plugins:{legend:{position:"bottom"}}}
-  });
+  }, negGrupos);
 
   /* ---- Gráfico: por regional ---- */
-  const regionalCount = contar(dados, a=>a.regional || "Não atribuído");
+  const regionalGrupos = agrupar(dados, a=>a.regional || "Não atribuído");
+  const regionalCount = {}; Object.entries(regionalGrupos).forEach(([k,v])=>regionalCount[k]=v.length);
   const regionalOrdenado = Object.entries(regionalCount).sort((a,b)=>b[1]-a[1]);
   criarChart("regional", "chart-regional", {
     type:"bar",
     data:{ labels:regionalOrdenado.map(r=>r[0]), datasets:[{label:"Acidentes", data:regionalOrdenado.map(r=>r[1]), backgroundColor:"#00b262", borderRadius:6}]},
     options:{plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true, ticks:{precision:0}}}}
-  });
+  }, regionalGrupos);
 
   /* ---- Gráfico: categoria de afastamento ---- */
   criarChart("gravidade", "chart-gravidade", {
     type:"bar",
     data:{ labels:GRAVIDADES, datasets:[{label:"Casos", data:GRAVIDADES.map(g=>gravCount[g]||0), backgroundColor:GRAVIDADES.map(g=>GRAVIDADE_COR[g]), borderRadius:6}]},
     options:{indexAxis:"y", plugins:{legend:{display:false}}, scales:{x:{beginAtZero:true, ticks:{precision:0}}}}
-  });
+  }, gravGrupos);
 
   /* ---- Gráfico: unidades mais ofensoras (top 10) ---- */
-  const unidadeCount = contar(dados, a=>a.loja);
+  const unidadeGrupos = agrupar(dados, a=>a.loja);
+  const unidadeCount = {}; Object.entries(unidadeGrupos).forEach(([k,v])=>unidadeCount[k]=v.length);
   const topUnidades = Object.entries(unidadeCount).sort((a,b)=>b[1]-a[1]).slice(0,10);
   criarChart("unidades", "chart-unidades", {
     type:"bar",
     data:{ labels:topUnidades.map(u=>u[0]), datasets:[{label:"Acidentes", data:topUnidades.map(u=>u[1]), backgroundColor:"#a15a33", borderRadius:6}]},
     options:{indexAxis:"y", plugins:{legend:{display:false}}, scales:{x:{beginAtZero:true, ticks:{precision:0}}}}
-  });
+  }, unidadeGrupos);
 
   /* ---- Gráfico: por setor ---- */
-  const setorCount = contar(dados, a=>a.setor);
+  const setorGrupos = agrupar(dados, a=>a.setor);
+  const setorCount = {}; Object.entries(setorGrupos).forEach(([k,v])=>setorCount[k]=v.length);
   const setoresOrdenados = Object.entries(setorCount).sort((a,b)=>b[1]-a[1]);
   criarChart("setor", "chart-setor", {
     type:"bar",
     data:{ labels:setoresOrdenados.map(s=>s[0]), datasets:[{label:"Acidentes", data:setoresOrdenados.map(s=>s[1]), backgroundColor:"#00733f", borderRadius:6}]},
     options:{indexAxis:"y", plugins:{legend:{display:false}}, scales:{x:{beginAtZero:true, ticks:{precision:0}}}}
-  });
+  }, setorGrupos);
 
   /* ---- Gráfico: por função ---- */
-  const funcaoCount = contar(dados, a=>a.funcao);
+  const funcaoGrupos = agrupar(dados, a=>a.funcao);
+  const funcaoCount = {}; Object.entries(funcaoGrupos).forEach(([k,v])=>funcaoCount[k]=v.length);
   const funcoesOrdenadas = Object.entries(funcaoCount).sort((a,b)=>b[1]-a[1]);
   criarChart("funcao", "chart-funcao", {
     type:"bar",
     data:{ labels:funcoesOrdenadas.map(f=>f[0]), datasets:[{label:"Acidentes", data:funcoesOrdenadas.map(f=>f[1]), backgroundColor:"#faa61a", borderRadius:6}]},
     options:{indexAxis:"y", plugins:{legend:{display:false}}, scales:{x:{beginAtZero:true, ticks:{precision:0}}}}
-  });
+  }, funcaoGrupos);
 
   /* ---- Gráfico: motivo do acidente (top 10) ---- */
-  const motivoCount = contar(dados.filter(a=>a.motivo), a=>a.motivo);
+  const motivoGrupos = agrupar(dados.filter(a=>a.motivo), a=>a.motivo);
+  const motivoCount = {}; Object.entries(motivoGrupos).forEach(([k,v])=>motivoCount[k]=v.length);
   const topMotivos = Object.entries(motivoCount).sort((a,b)=>b[1]-a[1]).slice(0,10);
   criarChart("motivo", "chart-motivo", {
     type:"bar",
     data:{ labels:topMotivos.map(m=>m[0]), datasets:[{label:"Ocorrências", data:topMotivos.map(m=>m[1]), backgroundColor:"#ee3135", borderRadius:6}]},
     options:{indexAxis:"y", plugins:{legend:{display:false}}, scales:{x:{beginAtZero:true, ticks:{precision:0}}}}
-  });
+  }, motivoGrupos);
 
   /* ---- Gráfico: agente causador ---- */
-  const agenteCount = contar(dados.filter(a=>a.agenteCausador), a=>a.agenteCausador);
+  const agenteGrupos = agrupar(dados.filter(a=>a.agenteCausador), a=>a.agenteCausador);
+  const agenteCount = {}; Object.entries(agenteGrupos).forEach(([k,v])=>agenteCount[k]=v.length);
   criarChart("agente", "chart-agente", {
     type:"doughnut",
     data:{ labels:Object.keys(agenteCount), datasets:[{data:Object.values(agenteCount), backgroundColor:["#00733f","#faa61a","#a15a33","#54412f","#ee3135","#9f8167"], borderWidth:2, borderColor:"#fffdfa"}]},
     options:{plugins:{legend:{position:"bottom", labels:{font:{size:10.5}}}}}
-  });
+  }, agenteGrupos);
 
   /* ---- Gráfico: partes do corpo atingidas (top 10) ---- */
-  const partesFlat = {};
-  dados.forEach(a=>{ (a.partesAtingidas||[]).forEach(p=>{ if(p){ partesFlat[p]=(partesFlat[p]||0)+1; } }); });
+  const partesGrupos = {};
+  dados.forEach(a=>{ (a.partesAtingidas||[]).forEach(p=>{ if(p){ (partesGrupos[p]=partesGrupos[p]||[]).push(a); } }); });
+  const partesFlat = {}; Object.entries(partesGrupos).forEach(([k,v])=>partesFlat[k]=v.length);
   const topPartes = Object.entries(partesFlat).sort((a,b)=>b[1]-a[1]).slice(0,10);
   criarChart("partes", "chart-partes", {
     type:"bar",
     data:{ labels:topPartes.map(p=>p[0]), datasets:[{label:"Ocorrências", data:topPartes.map(p=>p[1]), backgroundColor:"#54412f", borderRadius:6}]},
     options:{indexAxis:"y", plugins:{legend:{display:false}}, scales:{x:{beginAtZero:true, ticks:{precision:0}}}}
-  });
+  }, partesGrupos);
 
   /* ---- Mapa de calor: dia da semana x faixa de horário ---- */
   renderHeatmapDiasHoras(dados);
