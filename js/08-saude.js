@@ -11,14 +11,11 @@
 // indicador — mas continua contado e visível nas tabelas/KPI dedicado.
 const SAUDE_DIAS_CAP = 180;
 
-let saudeSubAtual = "visao";
-
 // Inicializa: init saude
 function initSaude(){
   const cardImportar = document.getElementById("sd-card-importar");
   if(cardImportar) cardImportar.style.display = ehAdminOuCoordenador() ? "block" : "none";
   popularFiltrosSaude();
-  saudeSubAtual = "visao";
   renderSaudeAtual();
 }
 
@@ -106,24 +103,14 @@ async function importarBackupAtestados(){
   }
 }
 
-// Troca para a sub-tela: mostrar sub saude
-function mostrarSubSaude(sub){
-  document.querySelectorAll("#view-saude .insp-tab").forEach(b=>b.classList.remove("active"));
-  document.querySelector('#view-saude .insp-tab[data-sub="'+sub+'"]').classList.add("active");
-  document.querySelectorAll("#view-saude .insp-sub").forEach(s=>s.classList.remove("active"));
-  document.getElementById("saude-sub-"+sub).classList.add("active");
-  saudeSubAtual = sub;
-  renderSaudeAtual();
-}
-
-// Chama o render certo pra sub-tela ativa — usado pelos filtros do topo,
-// que valem pra todas as sub-telas do módulo.
+// Tudo fica numa tela só agora (sem abas) — os filtros do topo re-renderizam
+// todos os blocos de uma vez.
 function renderSaudeAtual(){
-  if(saudeSubAtual==="visao") renderSaudeVisaoGeral();
-  else if(saudeSubAtual==="lojas") renderSaudeLojasRegionais();
-  else if(saudeSubAtual==="motivos") renderSaudeMotivosCid();
-  else if(saudeSubAtual==="reincidencia") renderSaudeReincidencia();
-  else renderSaudeRegistros();
+  renderSaudeVisaoGeral();
+  renderSaudeLojasRegionais();
+  renderSaudeMotivosCid();
+  renderSaudeReincidencia();
+  renderSaudeRegistros();
 }
 
 // Preenche: popular filtros saude
