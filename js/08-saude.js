@@ -1,16 +1,25 @@
 /* =====================================================================
-   SAÚDE — visão geral e registros de atestados
+   SAÚDE — indicadores de atestados (dados reais do Supabase)
+   5 sub-telas: Visão Geral, Lojas & Regionais, Motivos & CID, Reincidência,
+   Todos os Registros. Filtros (unidade/regional/tipo/data) no topo, aplicados
+   a todas as sub-telas.
    ===================================================================== */
 
+// Acima desse número de dias, um registro é tratado como "afastamento
+// prolongado" (ex.: aposentadoria por invalidez com data-fim fictícia tipo
+// 31/12/9999) e é excluído do cálculo de duração média, pra não distorcer o
+// indicador — mas continua contado e visível nas tabelas/KPI dedicado.
+const SAUDE_DIAS_CAP = 180;
+
+let saudeSubAtual = "visao";
+
 // Inicializa: init saude
-/* =====================================================================
-   SAÚDE — visão geral e registros de atestados (dados reais do Supabase)
-   ===================================================================== */
 function initSaude(){
   const cardImportar = document.getElementById("sd-card-importar");
   if(cardImportar) cardImportar.style.display = ehAdminOuCoordenador() ? "block" : "none";
   popularFiltrosSaude();
-  renderSaudeVisaoGeral();
+  saudeSubAtual = "visao";
+  renderSaudeAtual();
 }
 
 // Função do módulo: importar backup atestados
@@ -89,7 +98,7 @@ async function importarBackupAtestados(){
     status.textContent = inseridos+" registro(s) importado(s) com sucesso!";
     input.value = "";
     popularFiltrosSaude();
-    renderSaudeVisaoGeral();
+    renderSaudeAtual();
     renderSaudeRegistros();
   }catch(e){
     status.style.color = "var(--vermelho)";
@@ -103,7 +112,17 @@ function mostrarSubSaude(sub){
   document.querySelector('#view-saude .insp-tab[data-sub="'+sub+'"]').classList.add("active");
   document.querySelectorAll("#view-saude .insp-sub").forEach(s=>s.classList.remove("active"));
   document.getElementById("saude-sub-"+sub).classList.add("active");
-  if(sub==="visao") renderSaudeVisaoGeral();
+  saudeSubAtual = sub;
+  renderSaudeAtual();
+}
+
+// Chama o render certo pra sub-tela ativa — usado pelos filtros do topo,
+// que valem pra todas as sub-telas do módulo.
+function renderSaudeAtual(){
+  if(saudeSubAtual==="visao") renderSaudeVisaoGeral();
+  else if(saudeSubAtual==="lojas") renderSaudeLojasRegionais();
+  else if(saudeSubAtual==="motivos") renderSaudeMotivosCid();
+  else if(saudeSubAtual==="reincidencia") renderSaudeReincidencia();
   else renderSaudeRegistros();
 }
 
@@ -112,6 +131,7 @@ function popularFiltrosSaude(){
   fillSelect("sd-f-unidade", [...new Set(ATESTADOS.map(a=>a.loja).filter(Boolean))].sort());
   fillSelect("sd-f-regional", [...new Set(ATESTADOS.map(a=>a.regional).filter(Boolean))].sort());
   fillSelect("sd-f-tipo", [...new Set(ATESTADOS.map(a=>a.tipoAtestado).filter(Boolean))].sort());
+  fillSelect("sd-lojas-regional", [...new Set(ATESTADOS.map(a=>a.regional).filter(Boolean))].sort());
 }
 
 // Limpa: limpar filtros saude
@@ -119,7 +139,7 @@ function limparFiltrosSaude(){
   ["sd-f-unidade","sd-f-regional","sd-f-tipo","sd-f-de","sd-f-ate"].forEach(id=>{
     const el = document.getElementById(id); if(el) el.value = "";
   });
-  renderSaudeVisaoGeral();
+  renderSaudeAtual();
 }
 
 // Função do módulo: dados filtrados saude
@@ -139,15 +159,40 @@ function dadosFiltradosSaude(){
   });
 }
 
-// Desenha na tela: render saude visao geral
+/* ---- VISÃO GERAL ---- */
 function renderSaudeVisaoGeral(){
   const dados = dadosFiltradosSaude();
   document.getElementById("sd-kpi-total").textContent = dados.length;
+
   const totalDias = dados.reduce((s,a)=>s+(a.duracaoDias||0),0);
   document.getElementById("sd-kpi-dias").textContent = totalDias;
+
   const colaboradores = new Set(dados.map(a=>a.matricula).filter(Boolean));
   document.getElementById("sd-kpi-colaboradores").textContent = colaboradores.size;
-  document.getElementById("sd-kpi-media").textContent = dados.length ? (totalDias/dados.length).toFixed(1) : "0";
+
+  // duração média: exclui outliers (afastamentos prolongados) do cálculo,
+  // pra um único registro com data-fim irreal não distorcer o indicador
+  const diasValidos = dados.filter(a=>(a.duracaoDias||0) <= SAUDE_DIAS_CAP);
+  const somaDiasValidos = diasValidos.reduce((s,a)=>s+(a.duracaoDias||0),0);
+  document.getElementById("sd-kpi-media").textContent = diasValidos.length ? (somaDiasValidos/diasValidos.length).toFixed(1) : "0";
+
+  const prolongados = dados.filter(a=>(a.duracaoDias||0) > SAUDE_DIAS_CAP);
+  document.getElementById("sd-kpi-prolongados").textContent = prolongados.length;
+
+  const medicos = dados.filter(a=>/m[eé]dic/i.test(a.tipoAtestado||""));
+  document.getElementById("sd-kpi-pct-medico").textContent = dados.length ? Math.round(medicos.length/dados.length*100)+"%" : "0%";
+
+  // evolução mensal
+  const nomesMes = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
+  const rotuloMes = m=>{ const [ano,mes]=m.split("-"); return nomesMes[Number(mes)-1]+"/"+ano.slice(2); };
+  const comData = dados.filter(a=>typeof a.dataAtestado==="string" && /^\d{4}-\d{2}/.test(a.dataAtestado));
+  const mesGrupos = agrupar(comData, a=>a.dataAtestado.slice(0,7));
+  const mesesOrdenados = Object.keys(mesGrupos).sort();
+  criarChart("saudeEvolucao", "chart-saude-evolucao", {
+    type:"line",
+    data:{ labels:mesesOrdenados.map(rotuloMes), datasets:[{label:"Registros", data:mesesOrdenados.map(m=>mesGrupos[m].length), borderColor:"#00733f", backgroundColor:"rgba(0,115,63,0.15)", fill:true, tension:0.3, pointRadius:3, pointBackgroundColor:"#00733f", pointHoverRadius:5}]},
+    options:{plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true, ticks:{precision:0}}}}
+  });
 
   const porUnidade = {};
   dados.forEach(a=>{ if(a.loja){ porUnidade[a.loja] = (porUnidade[a.loja]||0)+1; } });
@@ -165,6 +210,76 @@ function renderSaudeVisaoGeral(){
     data:{ labels:Object.keys(porRegional), datasets:[{data:Object.values(porRegional), backgroundColor:["#00733f","#faa61a","#a15a33","#a35e8e","#24a076","#f06650","#54412f","#9f8167","#54be95"], borderWidth:2, borderColor:"#fffdfa"}]},
     options:{plugins:{legend:{position:"bottom", labels:{font:{size:10}}}}}
   });
+}
+
+/* ---- LOJAS & REGIONAIS ---- */
+function renderSaudeLojasRegionais(){
+  const dados = dadosFiltradosSaude();
+
+  // ranking por regional: registros + dias
+  const regGrupos = {};
+  dados.forEach(a=>{
+    const r = a.regional||"Não mapeado";
+    if(!regGrupos[r]) regGrupos[r] = {qtd:0, dias:0};
+    regGrupos[r].qtd++; regGrupos[r].dias += (a.duracaoDias||0);
+  });
+  const regOrdenado = Object.entries(regGrupos).sort((a,b)=>b[1].qtd-a[1].qtd);
+  criarChart("saudeRankingRegional", "chart-saude-ranking-regional", {
+    type:"bar",
+    data:{ labels:regOrdenado.map(r=>r[0]), datasets:[
+      {label:"Registros", data:regOrdenado.map(r=>r[1].qtd), backgroundColor:"#00733f", borderRadius:6},
+      {label:"Dias de afastamento", data:regOrdenado.map(r=>r[1].dias), backgroundColor:"#faa61a", borderRadius:6}
+    ]},
+    options:{indexAxis:"y", scales:{x:{beginAtZero:true, ticks:{precision:0}}}}
+  });
+
+  // top 15 lojas: combo barra (registros) + linha (dias)
+  const lojaGrupos = {};
+  dados.forEach(a=>{
+    if(!a.loja) return;
+    if(!lojaGrupos[a.loja]) lojaGrupos[a.loja] = {qtd:0, dias:0, regional:a.regional, matriculas:new Set()};
+    lojaGrupos[a.loja].qtd++; lojaGrupos[a.loja].dias += (a.duracaoDias||0);
+    if(a.matricula) lojaGrupos[a.loja].matriculas.add(a.matricula);
+  });
+  const lojaOrdenado = Object.entries(lojaGrupos).sort((a,b)=>b[1].qtd-a[1].qtd).slice(0,15);
+  criarChart("saudeTopLojas", "chart-saude-top-lojas", {
+    data:{ labels:lojaOrdenado.map(l=>l[0]), datasets:[
+      {type:"bar", label:"Registros", data:lojaOrdenado.map(l=>l[1].qtd), backgroundColor:"#00733f", borderRadius:6, yAxisID:"y"},
+      {type:"line", label:"Dias de afastamento", data:lojaOrdenado.map(l=>l[1].dias), borderColor:"#ee3135", backgroundColor:"#ee3135", yAxisID:"y1", tension:0.3, pointRadius:3}
+    ]},
+    options:{
+      scales:{
+        x:{ticks:{autoSkip:false, maxRotation:60, minRotation:40}},
+        y:{beginAtZero:true, ticks:{precision:0}, position:"left"},
+        y1:{beginAtZero:true, position:"right", grid:{drawOnChartArea:false}}
+      }
+    }
+  });
+
+  // tabela: detalhamento por loja (todas, não só top 15), com filtro de regional próprio
+  const regionalFiltro = document.getElementById("sd-lojas-regional")?.value;
+  let linhas = Object.entries(lojaGrupos);
+  if(regionalFiltro) linhas = linhas.filter(l=>l[1].regional===regionalFiltro);
+  linhas = linhas.sort((a,b)=>b[1].qtd-a[1].qtd);
+  const tbody = document.getElementById("tbl-saude-lojas");
+  if(tbody){
+    if(!linhas.length){
+      tbody.innerHTML = `<tr><td colspan="5"><div class="lista-vazio"><b>Nenhum registro encontrado</b>Ajuste os filtros para ver os resultados.</div></td></tr>`;
+    }else{
+      tbody.innerHTML = linhas.map(([loja,info])=>`<tr>
+        <td>${escHtml(loja)}</td>
+        <td>${escHtml(info.regional||"—")}</td>
+        <td>${info.qtd}</td>
+        <td>${info.dias}</td>
+        <td>${info.matriculas.size}</td>
+      </tr>`).join("");
+    }
+  }
+}
+
+/* ---- MOTIVOS & CID ---- */
+function renderSaudeMotivosCid(){
+  const dados = dadosFiltradosSaude();
 
   const porMotivo = {};
   dados.forEach(a=>{ const m = (a.motivo||"Não informado").toUpperCase(); if(m!=="NÃO INFORMADO"&&m!=="COMPARECIMENTO") porMotivo[m] = (porMotivo[m]||0)+1; });
@@ -172,6 +287,15 @@ function renderSaudeVisaoGeral(){
   criarChart("saudeMotivo", "chart-saude-motivo", {
     type:"bar",
     data:{ labels:topMotivos.map(m=>m[0]), datasets:[{label:"Registros", data:topMotivos.map(m=>m[1]), backgroundColor:"#ee3135", borderRadius:6}]},
+    options:{indexAxis:"y", plugins:{legend:{display:false}}, scales:{x:{beginAtZero:true, ticks:{precision:0}}}}
+  });
+
+  const porCid = {};
+  dados.forEach(a=>{ if(a.cid) porCid[a.cid] = (porCid[a.cid]||0)+1; });
+  const topCid = Object.entries(porCid).sort((a,b)=>b[1]-a[1]).slice(0,10);
+  criarChart("saudeCid", "chart-saude-cid", {
+    type:"bar",
+    data:{ labels:topCid.map(c=>c[0]), datasets:[{label:"Registros", data:topCid.map(c=>c[1]), backgroundColor:"#a35e8e", borderRadius:6}]},
     options:{indexAxis:"y", plugins:{legend:{display:false}}, scales:{x:{beginAtZero:true, ticks:{precision:0}}}}
   });
 
@@ -183,16 +307,58 @@ function renderSaudeVisaoGeral(){
     data:{ labels:topTipos.map(t=>t[0]), datasets:[{data:topTipos.map(t=>t[1]), backgroundColor:["#faa61a","#00b262","#a15a33","#a35e8e","#f06650","#54be95","#9f8167","#54412f"], borderWidth:2, borderColor:"#fffdfa"}]},
     options:{plugins:{legend:{position:"bottom", labels:{font:{size:10}}}}}
   });
+
+  const porConvenio = {};
+  dados.forEach(a=>{ const c = a.convenio||"Não informado"; porConvenio[c] = (porConvenio[c]||0)+1; });
+  const topConvenio = Object.entries(porConvenio).sort((a,b)=>b[1]-a[1]).slice(0,8);
+  criarChart("saudeConvenio", "chart-saude-convenio", {
+    type:"doughnut",
+    data:{ labels:topConvenio.map(c=>c[0]), datasets:[{data:topConvenio.map(c=>c[1]), backgroundColor:["#00733f","#faa61a","#a15a33","#a35e8e","#24a076","#f06650","#54412f","#9f8167"], borderWidth:2, borderColor:"#fffdfa"}]},
+    options:{plugins:{legend:{position:"bottom", labels:{font:{size:10}}}}}
+  });
 }
 
-// Ordena a lista de: ordenar saude registros
+/* ---- REINCIDÊNCIA ---- */
+function renderSaudeReincidencia(){
+  const dados = dadosFiltradosSaude();
+
+  const grupos = {};
+  dados.forEach(a=>{
+    const chave = a.matricula || (a.nome ? "nome:"+a.nome : null);
+    if(!chave) return;
+    if(!grupos[chave]) grupos[chave] = {nome:a.nome, loja:a.loja, setor:a.setor, funcao:a.funcao, qtd:0, dias:0};
+    grupos[chave].qtd++; grupos[chave].dias += (a.duracaoDias||0);
+  });
+
+  const colaboradores = Object.values(grupos);
+  const reincidentes = colaboradores.filter(c=>c.qtd>=2).sort((a,b)=>b.qtd-a.qtd || b.dias-a.dias);
+
+  document.getElementById("sd-kpi-reincidentes").textContent = reincidentes.length;
+  document.getElementById("sd-kpi-pct-reincidencia").textContent = colaboradores.length ? Math.round(reincidentes.length/colaboradores.length*100)+"%" : "0%";
+
+  const tbody = document.getElementById("tbl-saude-reincidencia");
+  if(!tbody) return;
+  if(!reincidentes.length){
+    tbody.innerHTML = `<tr><td colspan="6"><div class="lista-vazio"><b>Nenhum colaborador reincidente</b>Ninguém com 2 ou mais registros no período filtrado.</div></td></tr>`;
+    return;
+  }
+  tbody.innerHTML = reincidentes.slice(0,100).map(c=>`<tr>
+    <td>${escHtml(c.nome||"—")}</td>
+    <td>${escHtml(c.loja||"—")}</td>
+    <td>${escHtml(c.setor||"—")}</td>
+    <td>${escHtml(c.funcao||"—")}</td>
+    <td>${c.qtd}</td>
+    <td>${c.dias}</td>
+  </tr>`).join("");
+}
+
+/* ---- TODOS OS REGISTROS ---- */
 function ordenarSaudeRegistros(campo){
   if(ordenacaoSaudeRegistros.campo===campo) ordenacaoSaudeRegistros.dir *= -1;
   else ordenacaoSaudeRegistros = {campo, dir:1};
   renderSaudeRegistros();
 }
 
-// Desenha na tela: render saude registros
 function renderSaudeRegistros(){
   const tbody = document.getElementById("tbl-saude-registros");
   if(!tbody) return;
@@ -236,4 +402,3 @@ function renderSaudeRegistros(){
     <td>${a.duracaoDias||0}</td>
   </tr>`).join("");
 }
-
