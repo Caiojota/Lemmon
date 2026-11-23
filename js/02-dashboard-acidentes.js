@@ -1095,6 +1095,7 @@ function cancelarImportacao(){
    quanto os campos que ela não tinha (para completar antes de lançar).
    ===================================================================== */
 let pendenciasConciliacaoRH = [];
+let extrasPlataformaRH = [];
 
 // Abre/fecha: alternar painel de conciliação com a planilha do RH
 function toggleConciliacaoRHPanel(){
@@ -1128,6 +1129,8 @@ function processarArquivoConciliacaoRH(file){
       status.textContent = "Não encontrei registros de acidente nesse arquivo. Confira se é o relatório detalhado do RH, agrupado por Setor/Unidade.";
       document.getElementById("conciliacao-rh-lista").innerHTML = "";
       pendenciasConciliacaoRH = [];
+      extrasPlataformaRH = [];
+      document.getElementById("conciliacao-rh-bloco-extras").style.display = "none";
       return;
     }
     const existentes = new Set(ACIDENTES.map(a=>chaveConciliacaoRH(a.funcionario, a.data)));
@@ -1140,11 +1143,36 @@ function processarArquivoConciliacaoRH(file){
       pendentes.push(r);
     });
     pendenciasConciliacaoRH = pendentes;
+
+    // Também confere o caminho inverso: acidentes já lançados na plataforma que não aparecem na planilha do RH
+    const chavesLidas = new Set(lidos.map(r=>chaveConciliacaoRH(r.funcionario, r.data)));
+    extrasPlataformaRH = ACIDENTES.filter(a=>!chavesLidas.has(chaveConciliacaoRH(a.funcionario, a.data)));
+
     const jaLancados = lidos.length - pendentes.length;
-    status.innerHTML = "<b>"+lidos.length+"</b> acidente(s) encontrado(s) na planilha · <b>"+jaLancados+"</b> já lançado(s) na plataforma (ignorados) · <b>"+pendentes.length+"</b> ainda precisam ser lançados.";
+    status.innerHTML = "<b>"+lidos.length+"</b> acidente(s) encontrado(s) na planilha · <b>"+jaLancados+"</b> já lançado(s) na plataforma (ignorados) · <b>"+pendentes.length+"</b> ainda precisam ser lançados · <b>"+extrasPlataformaRH.length+"</b> lançado(s) na plataforma sem correspondência na planilha.";
     renderConciliacaoRH();
+    renderExtrasConciliacaoRH();
   };
   reader.readAsArrayBuffer(file);
+}
+
+// Desenha na tela: acidentes lançados na plataforma que não foram encontrados na planilha do RH enviada
+function renderExtrasConciliacaoRH(){
+  const bloco = document.getElementById("conciliacao-rh-bloco-extras");
+  const tbody = document.getElementById("conciliacao-rh-extras-tbody");
+  if(!extrasPlataformaRH.length){ bloco.style.display = "none"; return; }
+  bloco.style.display = "block";
+  tbody.innerHTML = extrasPlataformaRH.slice().sort((a,b)=> a.data<b.data?1:-1).map(a=>`
+    <tr>
+      <td>${a.data ? a.data.split("-").reverse().join("/") : "—"}</td>
+      <td>${escHtml(a.funcionario||"—")}</td>
+      <td>${escHtml(a.loja||"—")}</td>
+      <td>${escHtml(a.setor||"—")}</td>
+      <td>${escHtml(a.funcao||"—")}</td>
+      <td>${escHtml(a.motivo||"—")}</td>
+      <td>${escHtml(a.gravidade||"—")}</td>
+      <td>${a.dias||0}</td>
+    </tr>`).join("");
 }
 
 // Extrai os registros de um relatório agrupado em blocos "Setor:"/"Unidade:" (formato do RH)
