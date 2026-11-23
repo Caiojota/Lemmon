@@ -453,6 +453,7 @@
             <div style="display:flex; gap:10px; flex-wrap:wrap;">
               <button type="button" class="btn-primary inline" onclick="toggleNovoRegistroPanel()">+ Nova Análise de Acidente</button>
               <button type="button" class="btn-secondary" onclick="toggleFichaAnalisePanel()"><svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" style="vertical-align:-2px;"><path d="M9 2h6a1 1 0 0 1 1 1v1h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2V3a1 1 0 0 1 1-1Zm0 2v2h6V4H9ZM7 11h10v1.6H7V11Zm0 4h10v1.6H7V15Z"/></svg> Ficha de análise de acidente</button>
+              <button type="button" class="btn-secondary" onclick="toggleConciliacaoRHPanel()"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;"><path d="M12 16V4m0 0L7.5 8.5M12 4l4.5 4.5"/><path d="M4 15v3.5A1.5 1.5 0 0 0 5.5 20h13a1.5 1.5 0 0 0 1.5-1.5V15"/></svg> Conferir planilha do RH</button>
             </div>
           </div>
 
@@ -555,7 +556,24 @@
           </div>
         </div>
 
-        
+        <!-- PAINEL DE CONCILIAÇÃO COM A PLANILHA DO RH (oculto por padrão) -->
+        <div id="painel-conciliacao-rh" style="display:none;">
+          <div class="form-card">
+            <h3 style="margin-bottom:6px;">Conferir planilha do RH</h3>
+            <span class="sub" style="display:block; margin-bottom:14px;">Envie o relatório de acidentes do RH (o modelo por Setor/Unidade). A plataforma lê o arquivo, compara nome do colaborador + data do acidente com os acidentes já lançados e mostra, numa lista, só os que ainda faltam lançar — com os dados que a planilha já trouxe (para você conferir e, se precisar, corrigir) e os campos que ela não tinha, para você completar antes de lançar.</span>
+            <div class="upload-zone" id="drop-zone-rh" onclick="document.getElementById('file-input-rh').click()">
+              <div class="icon">⇪</div>
+              <h3>Clique para selecionar ou arraste o arquivo aqui</h3>
+              <p>Formatos aceitos: .xls, .xlsx</p>
+              <input type="file" id="file-input-rh" accept=".xlsx,.xls" style="display:none">
+            </div>
+            <span class="sub" id="conciliacao-rh-status" style="display:block; margin-top:10px;">Nenhum arquivo carregado ainda.</span>
+          </div>
+
+          <div id="conciliacao-rh-lista"></div>
+        </div>
+
+
 <div class="section-title"><span>Últimos lançamentos das suas unidades</span><div class="ln"></div></div>
         <span class="sub" style="display:block; margin-bottom:10px;">Mostra só os acidentes das unidades onde você é o técnico responsável cadastrado. Para ver e editar todos os acidentes da plataforma, use a aba "Todos os Acidentes".</span>
         <div class="card">

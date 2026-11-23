@@ -213,6 +213,18 @@ document.addEventListener("DOMContentLoaded", ()=>{
     e.preventDefault(); zone.style.borderColor="";
     if(e.dataTransfer.files[0]) processarArquivo(e.dataTransfer.files[0]);
   });
+
+  const inputRh = document.getElementById("file-input-rh");
+  const zoneRh = document.getElementById("drop-zone-rh");
+  if(inputRh && zoneRh){
+    inputRh.addEventListener("change", (e)=>{ if(e.target.files[0]) processarArquivoConciliacaoRH(e.target.files[0]); });
+    zoneRh.addEventListener("dragover", e=>{ e.preventDefault(); zoneRh.style.borderColor="#00b262"; });
+    zoneRh.addEventListener("dragleave", e=>{ zoneRh.style.borderColor=""; });
+    zoneRh.addEventListener("drop", e=>{
+      e.preventDefault(); zoneRh.style.borderColor="";
+      if(e.dataTransfer.files[0]) processarArquivoConciliacaoRH(e.dataTransfer.files[0]);
+    });
+  }
 });
 
 const COLUNAS_MODELO = ["Data","Tipo (Trajeto/Típico)","Praça","Regional","Loja","Tipo de Negócio","Setor","Função","Funcionário","Motivo","Agente Causador","Local do Acidente","Partes do corpo atingidas","Hora do Acidente","Hora do Atendimento","Gravidade","Dias de Afastamento"];

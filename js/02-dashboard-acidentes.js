@@ -966,3 +966,247 @@ function cancelarImportacao(){
   document.getElementById("file-input").value="";
 }
 
+/* =====================================================================
+   CONCILIAÇÃO COM A PLANILHA DO RH
+   Lê o relatório de acidentes do RH (agrupado em blocos por "Setor:"/
+   "Unidade:", com uma linha por colaborador), compara cada registro com
+   os acidentes já lançados na plataforma (nome do colaborador + data do
+   acidente) e lista só os que ainda faltam lançar. Para cada um, mostra
+   editáveis tanto os dados que a planilha trouxe (para conferir/corrigir)
+   quanto os campos que ela não tinha (para completar antes de lançar).
+   ===================================================================== */
+let pendenciasConciliacaoRH = [];
+
+// Abre/fecha: alternar painel de conciliação com a planilha do RH
+function toggleConciliacaoRHPanel(){
+  const painel = document.getElementById("painel-conciliacao-rh");
+  painel.style.display = painel.style.display==="none" ? "block" : "none";
+}
+
+// Util: chave de comparação (nome normalizado + data) para achar o que já foi lançado
+function chaveConciliacaoRH(nome, data){
+  return normalizarTextoComparacao(nome)+"|"+(data||"");
+}
+
+// Lê o arquivo enviado e monta a lista de pendências (ainda não lançadas)
+function processarArquivoConciliacaoRH(file){
+  if(!file) return;
+  const status = document.getElementById("conciliacao-rh-status");
+  status.textContent = "Lendo arquivo...";
+  const reader = new FileReader();
+  reader.onload = (e)=>{
+    let aoa;
+    try{
+      const wb = XLSX.read(e.target.result, {type:"array"});
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      aoa = XLSX.utils.sheet_to_json(ws, {header:1, defval:""});
+    }catch(err){
+      status.textContent = "Não consegui ler esse arquivo ("+(err && err.message ? err.message : "formato inválido")+").";
+      return;
+    }
+    const lidos = parseRelatorioAcidentesRH(aoa);
+    if(!lidos.length){
+      status.textContent = "Não encontrei registros de acidente nesse arquivo. Confira se é o relatório detalhado do RH, agrupado por Setor/Unidade.";
+      document.getElementById("conciliacao-rh-lista").innerHTML = "";
+      pendenciasConciliacaoRH = [];
+      return;
+    }
+    const existentes = new Set(ACIDENTES.map(a=>chaveConciliacaoRH(a.funcionario, a.data)));
+    const vistos = new Set();
+    const pendentes = [];
+    lidos.forEach(r=>{
+      const chave = chaveConciliacaoRH(r.funcionario, r.data);
+      if(existentes.has(chave) || vistos.has(chave)) return;
+      vistos.add(chave);
+      pendentes.push(r);
+    });
+    pendenciasConciliacaoRH = pendentes;
+    const jaLancados = lidos.length - pendentes.length;
+    status.innerHTML = "<b>"+lidos.length+"</b> acidente(s) encontrado(s) na planilha · <b>"+jaLancados+"</b> já lançado(s) na plataforma (ignorados) · <b>"+pendentes.length+"</b> ainda precisam ser lançados.";
+    renderConciliacaoRH();
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+// Extrai os registros de um relatório agrupado em blocos "Setor:"/"Unidade:" (formato do RH)
+function parseRelatorioAcidentesRH(aoa){
+  const registros = [];
+  let setorAtual = "", unidadeAtual = "";
+  for(let i=0;i<aoa.length;i++){
+    const row = aoa[i]||[];
+    const c0 = String(row[0]!==undefined && row[0]!==null ? row[0] : "").trim();
+    if(c0 === "Setor:"){
+      setorAtual = String(row[1]||"").trim();
+      unidadeAtual = String(row[3]||"").trim();
+      continue;
+    }
+    if(!c0 || c0 === "Funcionário" || c0 === "Totalização do Setor") continue;
+    const dataRaw = row[2];
+    if(dataRaw===undefined || dataRaw===null || dataRaw==="") continue;
+    const data = excelDataToStr(dataRaw);
+    if(!/^\d{4}-\d{2}-\d{2}$/.test(data)) continue;
+    registros.push({
+      funcionario: c0,
+      codigo: String(row[1]!==undefined && row[1]!==null ? row[1] : "").trim(),
+      data,
+      diasPerdidos: Number(row[3])||0,
+      custo: row[4]!==undefined && row[4]!==null ? row[4] : "",
+      setorRh: setorAtual,
+      unidadeRh: unidadeAtual
+    });
+  }
+  return registros;
+}
+
+// Sugere, entre os Setores cadastrados em Gestão, o que mais se parece com o texto trazido pelo RH
+function sugerirSetorConciliacaoRH(setorRh){
+  if(!setorRh) return "";
+  const alvo = normalizarTextoComparacao(setorRh);
+  return (ESTRUTURA.setores||[]).find(s=>normalizarTextoComparacao(s)===alvo) || "";
+}
+
+// Desenha na tela: a lista de pendências da conciliação com a planilha do RH
+function renderConciliacaoRH(){
+  const cont = document.getElementById("conciliacao-rh-lista");
+  if(!pendenciasConciliacaoRH.length){ cont.innerHTML = ""; return; }
+  cont.innerHTML = pendenciasConciliacaoRH.map((r,i)=>{
+    const setorSugerido = sugerirSetorConciliacaoRH(r.setorRh);
+    const obsSugerida = "Importado da planilha do RH — código "+(r.codigo||"—")+", setor RH \""+(r.setorRh||"—")+"\", unidade RH \""+(r.unidadeRh||"—")+"\".";
+    return `
+    <div class="card" style="margin-bottom:14px;">
+      <div style="display:flex; justify-content:space-between; flex-wrap:wrap; gap:8px; margin-bottom:10px;">
+        <h3 style="margin:0;">${escHtml(r.funcionario)} — ${r.data.split("-").reverse().join("/")}</h3>
+        <span class="sub">Da planilha do RH: código ${escHtml(r.codigo||"—")} · setor "${escHtml(r.setorRh||"—")}" · unidade "${escHtml(r.unidadeRh||"—")}" · custo R$ ${escHtml(String(r.custo))} · dias perdidos ${escHtml(String(r.diasPerdidos))}</span>
+      </div>
+      <div class="form-grid">
+        <div class="field"><label>Nome do colaborador <span style="font-weight:400; text-transform:none; color:var(--areia-esc);">(da planilha)</span></label><input type="text" id="conc-rh-funcionario-${i}" value="${escHtml(r.funcionario)}"></div>
+        <div class="field"><label>Data do acidente <span style="font-weight:400; text-transform:none; color:var(--areia-esc);">(da planilha)</span></label><input type="date" id="conc-rh-data-${i}" value="${r.data}"></div>
+        <div class="field"><label>Dias de afastamento <span style="font-weight:400; text-transform:none; color:var(--areia-esc);">(da planilha)</span></label><input type="number" min="0" id="conc-rh-dias-${i}" value="${r.diasPerdidos}"></div>
+
+        <div class="field"><label>Hora do acidente</label><input required type="time" id="conc-rh-hora-acidente-${i}"></div>
+        <div class="field"><label>Hora do atendimento</label><input required type="time" id="conc-rh-hora-atendimento-${i}"></div>
+        <div class="field"><label>Tipo de acidente</label>
+          <select required id="conc-rh-tipo-${i}"><option value="">Selecione...</option><option value="Típico">Típico</option><option value="Trajeto">Trajeto</option></select>
+        </div>
+
+        <div class="field"><label>Praça</label>
+          <select required id="conc-rh-praca-${i}"><option value="">Selecione...</option><option>SP</option><option>MG</option><option>ES</option><option>RJ</option></select>
+        </div>
+        <div class="field"><label>Tipo de negócio</label>
+          <select required id="conc-rh-negocio-${i}"><option value="">Selecione...</option><option>Loja</option><option>Logística</option><option>CP</option><option>Corporativo</option></select>
+        </div>
+        <div class="field"><label>Loja / unidade</label>
+          <select required id="conc-rh-loja-${i}" onchange="atualizarRegionalConciliacaoRH(${i})"><option value="">Selecione...</option>${UNIDADES.map(u=>`<option>${escHtml(u.nome)}</option>`).join("")}</select>
+        </div>
+
+        <div class="field"><label>Regional <span style="font-weight:400; text-transform:none; color:var(--areia-esc);">(automático)</span></label><input type="text" id="conc-rh-regional-${i}" disabled placeholder="Selecione a unidade"></div>
+        <div class="field"><label>Setor <span style="font-weight:400; text-transform:none; color:var(--areia-esc);">${setorSugerido?"(sugestão da planilha)":""}</span></label>
+          <select required id="conc-rh-setor-${i}"><option value="">Selecione...</option>${(ESTRUTURA.setores||[]).map(s=>`<option ${s===setorSugerido?"selected":""}>${escHtml(s)}</option>`).join("")}</select>
+        </div>
+        <div class="field"><label>Função</label>
+          <select required id="conc-rh-funcao-${i}"><option value="">Selecione...</option>${(ESTRUTURA.funcoes||[]).map(f=>`<option>${escHtml(f)}</option>`).join("")}</select>
+        </div>
+
+        <div class="field"><label>Motivo do acidente</label><input required type="text" id="conc-rh-motivo-${i}" placeholder="ex.: Corte com faca, Queda em escada..."></div>
+        <div class="field"><label>Agente causador</label>
+          <select required id="conc-rh-agente-${i}">
+            <option value="">Selecione...</option>
+            <option>Superfícies, Pisos e Estruturas</option>
+            <option>Ferramentas Manuais Cortantes/Perfurantes</option>
+            <option>Embalagens, Mobiliário e Outros</option>
+            <option>Máquinas e Equipamentos</option>
+            <option>Veículos</option>
+            <option>Outros</option>
+          </select>
+        </div>
+        <div class="field"><label>Local do acidente</label><input required type="text" id="conc-rh-local-${i}" placeholder="ex.: Doca de carga"></div>
+
+        <div class="field"><label>Partes do corpo atingidas</label><input type="text" id="conc-rh-partes-${i}" placeholder="ex.: Dedo, Mão (separe por vírgula)"></div>
+        <div class="field"><label>Gravidade</label>
+          <select required id="conc-rh-gravidade-${i}">
+            <option value="">Selecione...</option>
+            <option ${r.diasPerdidos===0?"selected":""}>Sem afastamento</option>
+            <option>Afastamento de baixo impacto</option>
+            <option>Com afastamento</option>
+            <option>Afastamento previdenciário</option>
+            <option>Óbito</option>
+          </select>
+        </div>
+        <div class="field full"><label>Observações</label><input type="text" id="conc-rh-obs-${i}" value="${escHtml(obsSugerida)}"></div>
+      </div>
+      <div class="form-actions">
+        <button type="button" class="btn-primary inline" onclick="lancarAcidenteConciliacaoRH(${i})">Lançar este acidente</button>
+        <button type="button" class="btn-secondary" onclick="ignorarConciliacaoRH(${i})">Ignorar esse registro</button>
+      </div>
+    </div>`;
+  }).join("");
+}
+
+// Atualiza: regional automático ao escolher a loja/unidade na conciliação com o RH
+function atualizarRegionalConciliacaoRH(i){
+  const sel = document.getElementById("conc-rh-loja-"+i);
+  const campo = document.getElementById("conc-rh-regional-"+i);
+  if(!sel || !campo) return;
+  const unidade = unidadePorNome(sel.value);
+  campo.value = unidade && unidade.regional ? unidade.regional : "Não atribuído";
+}
+
+// Remove da lista de pendências sem lançar (ex.: já foi tratado manualmente)
+function ignorarConciliacaoRH(i){
+  pendenciasConciliacaoRH.splice(i,1);
+  renderConciliacaoRH();
+}
+
+// Valida, salva no banco (mesmo caminho real do lançamento manual) e remove da lista de pendências
+async function lancarAcidenteConciliacaoRH(i){
+  const val = (id)=>{ const el = document.getElementById(id); return el ? el.value : ""; };
+  const novo = {
+    data: val("conc-rh-data-"+i),
+    horaAcidente: val("conc-rh-hora-acidente-"+i),
+    horaAtendimento: val("conc-rh-hora-atendimento-"+i),
+    tipo: val("conc-rh-tipo-"+i),
+    praca: val("conc-rh-praca-"+i),
+    negocio: val("conc-rh-negocio-"+i),
+    loja: val("conc-rh-loja-"+i).trim(),
+    regional: val("conc-rh-regional-"+i) || "Não atribuído",
+    setor: val("conc-rh-setor-"+i).trim(),
+    funcao: val("conc-rh-funcao-"+i).trim(),
+    funcionario: val("conc-rh-funcionario-"+i).trim(),
+    motivo: normalizarAgrupamento(val("conc-rh-motivo-"+i)),
+    agenteCausador: val("conc-rh-agente-"+i),
+    local: val("conc-rh-local-"+i).trim(),
+    partesAtingidas: val("conc-rh-partes-"+i).split(",").map(p=>normalizarAgrupamento(p)).filter(Boolean),
+    gravidade: val("conc-rh-gravidade-"+i),
+    dias: Number(val("conc-rh-dias-"+i))||0,
+    obs: val("conc-rh-obs-"+i).trim()
+  };
+  const faltando = [];
+  if(!novo.data) faltando.push("Data do acidente");
+  if(!novo.funcionario) faltando.push("Nome do colaborador");
+  if(!novo.horaAcidente) faltando.push("Hora do acidente");
+  if(!novo.horaAtendimento) faltando.push("Hora do atendimento");
+  if(!novo.tipo) faltando.push("Tipo de acidente");
+  if(!novo.praca) faltando.push("Praça");
+  if(!novo.negocio) faltando.push("Tipo de negócio");
+  if(!novo.loja) faltando.push("Loja/unidade");
+  if(!novo.setor) faltando.push("Setor");
+  if(!novo.funcao) faltando.push("Função");
+  if(!novo.motivo) faltando.push("Motivo do acidente");
+  if(!novo.agenteCausador) faltando.push("Agente causador");
+  if(!novo.local) faltando.push("Local do acidente");
+  if(!novo.gravidade) faltando.push("Gravidade");
+  if(faltando.length){ alert("Preencha antes de lançar: "+faltando.join(", ")); return; }
+
+  const { data, error } = await sb.from("acidentes").insert({...acidenteToDb(novo), created_by: currentUser?currentUser.id:null}).select().single();
+  if(error){ alert("Erro ao salvar o acidente no banco: "+error.message); return; }
+  const acidenteSalvo = mapAcidenteFromDb(data);
+  ACIDENTES.push(acidenteSalvo);
+  notificarAdminsCoordenadores("acidente_novo", "Novo acidente registrado", acidenteSalvo.loja+" — "+acidenteSalvo.motivo, "acidente", acidenteSalvo.id);
+  avisarNovoAcidente(acidenteSalvo);
+  mostrarToast("Acidente de "+acidenteSalvo.funcionario+" lançado com sucesso.");
+  pendenciasConciliacaoRH.splice(i,1);
+  renderConciliacaoRH();
+  popularFiltros();
+  renderLancamentos();
+}
+
