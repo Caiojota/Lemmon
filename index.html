@@ -544,6 +544,7 @@
             <div class="form-actions">
               <button type="submit" class="btn-primary inline" id="btn-salvar-acidente">Salvar registro</button>
               <button type="reset" class="btn-secondary" onclick="cancelarEdicaoAcidente()">Limpar formulário</button>
+              <button type="button" class="btn-secondary" id="btn-excluir-acidente" style="display:none; color:var(--vermelho); border-color:var(--vermelho);" onclick="excluirAcidente(Number(document.getElementById('in-acidente-id').value))">Excluir registro</button>
             </div>
           </form>
         </div>

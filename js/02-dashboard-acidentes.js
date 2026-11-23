@@ -818,6 +818,7 @@ function renderLancamentos(){
 function cancelarEdicaoAcidente(){
   document.getElementById("in-acidente-id").value = "";
   document.getElementById("btn-salvar-acidente").textContent = "Salvar registro";
+  document.getElementById("btn-excluir-acidente").style.display = "none";
   document.getElementById("in-dias").value = 0;
 }
 
@@ -850,7 +851,30 @@ function editarAcidente(id){
   document.getElementById("in-dias").value = a.dias||0;
   document.getElementById("in-obs").value = a.obs||"";
   document.getElementById("btn-salvar-acidente").textContent = "Salvar alterações";
+  document.getElementById("btn-excluir-acidente").style.display = "inline-flex";
   painel.scrollIntoView({behavior:"smooth", block:"start"});
+}
+
+// Remove/cancela: excluir acidente
+async function excluirAcidente(id){
+  if(!ehAdministrador()){ alert("Somente o Administrador pode excluir um registro de acidente."); return; }
+  const a = ACIDENTES.find(x=>x.id===id);
+  if(!a) return;
+  if(!confirm("Excluir definitivamente o acidente de "+(a.funcionario||"colaborador não identificado")+" em "+formataData(a.data)+"? Esta ação não pode ser desfeita.")) return;
+  const { error } = await sb.from("acidentes").delete().eq("id", id);
+  if(error){ alert("Erro ao excluir o acidente: "+error.message); return; }
+  ACIDENTES = ACIDENTES.filter(x=>x.id!==id);
+  acaoPlataforma("Acidente excluído", (a.loja||"")+" — "+(a.motivo||""), "acidente", id);
+  mostrarToast("Registro de acidente excluído.");
+  if(document.getElementById("in-acidente-id").value === String(id)){
+    document.getElementById("form-acidente").reset();
+    cancelarEdicaoAcidente();
+    document.getElementById("painel-novo-registro").style.display = "none";
+  }
+  popularFiltros();
+  renderLancamentos();
+  renderTodosAcidentes();
+  if(typeof atualizarDashboard === "function" && document.getElementById("acidentes-sub-indicadores")) atualizarDashboard();
 }
 
 // Função do módulo: formata data
@@ -936,7 +960,7 @@ function renderTodosAcidentes(){
     <td>${a.agenteCausador||"—"}</td>
     <td><span class="badge ${GRAVIDADE_BADGE[a.gravidade]}">${a.gravidade}</span></td>
     <td>${a.dias||0}</td>
-    ${admin ? `<td><button type="button" class="small-btn" onclick="editarAcidente(${a.id})">Editar</button></td>` : ""}
+    ${admin ? `<td><button type="button" class="small-btn" onclick="editarAcidente(${a.id})">Editar</button><button type="button" class="small-btn danger" onclick="excluirAcidente(${a.id})">Excluir</button></td>` : ""}
   </tr>`).join("");
 }
 
