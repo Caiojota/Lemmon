@@ -290,16 +290,21 @@ function atualizarDashboard(){
   });
 
   /* ---- Gráfico: evolução mensal de acidentes ---- */
-  const nomesMesEvolucao = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
-  const rotuloMesEvolucao = m=>{ const [ano,mes]=m.split("-"); return nomesMesEvolucao[Number(mes)-1]+"/"+ano.slice(2); };
-  const mesGrupos = agrupar(dados.filter(a=>a.data), a=>a.data.slice(0,7));
-  const mesesOrdenados = Object.keys(mesGrupos).sort();
-  const mesGruposRotulados = {}; mesesOrdenados.forEach(m=>{ mesGruposRotulados[rotuloMesEvolucao(m)] = mesGrupos[m]; });
-  criarChart("evolucaoMensal", "chart-evolucao-mensal", {
-    type:"line",
-    data:{ labels:mesesOrdenados.map(rotuloMesEvolucao), datasets:[{label:"Acidentes", data:mesesOrdenados.map(m=>mesGrupos[m].length), borderColor:"#00733f", backgroundColor:"rgba(0,115,63,0.15)", fill:true, tension:0.3, pointRadius:3, pointBackgroundColor:"#00733f", pointHoverRadius:5}]},
-    options:{plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true, ticks:{precision:0}}}}
-  }, mesGruposRotulados);
+  try{
+    const nomesMesEvolucao = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
+    const rotuloMesEvolucao = m=>{ const [ano,mes]=m.split("-"); return nomesMesEvolucao[Number(mes)-1]+"/"+ano.slice(2); };
+    const dadosComData = dados.filter(a=>typeof a.data==="string" && /^\d{4}-\d{2}/.test(a.data));
+    const mesGrupos = agrupar(dadosComData, a=>a.data.slice(0,7));
+    const mesesOrdenados = Object.keys(mesGrupos).sort();
+    const mesGruposRotulados = {}; mesesOrdenados.forEach(m=>{ mesGruposRotulados[rotuloMesEvolucao(m)] = mesGrupos[m]; });
+    criarChart("evolucaoMensal", "chart-evolucao-mensal", {
+      type:"line",
+      data:{ labels:mesesOrdenados.map(rotuloMesEvolucao), datasets:[{label:"Acidentes", data:mesesOrdenados.map(m=>mesGrupos[m].length), borderColor:"#00733f", backgroundColor:"rgba(0,115,63,0.15)", fill:true, tension:0.3, pointRadius:3, pointBackgroundColor:"#00733f", pointHoverRadius:5}]},
+      options:{plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true, ticks:{precision:0}}}}
+    }, mesGruposRotulados);
+  }catch(e){
+    console.error("[Dashboard] Erro ao montar o gráfico de evolução mensal:", e);
+  }
 
   /* ---- Gráfico: tipo (Típico x Trajeto) ---- */
   const tipoGrupos = agrupar(dados, a=>a.tipo);
