@@ -1,5 +1,10 @@
 /* ===== visual: 80% e controles estilo iPhone ===== */
 html{zoom:.8;}
+/* o zoom de 80% acima afeta a IMPRESSÃO também (o Chrome aplica "zoom" no
+   layout de página, não só na tela) — isso fazia a Ficha de EPI (e qualquer
+   outra folha em mm/A4) sair 20% menor do que o papel real. Neutraliza só na
+   hora de imprimir. */
+@media print{ html{zoom:1 !important;} }
 .cont-painel #view-inspecoes > .topbar{display:none;}
 .switch-aprovacao{position:relative; display:inline-flex; background:#e9e9eb; border:none !important; border-radius:10px; padding:2px !important; overflow:visible;}
 .switch-aprovacao .sw-btn{position:relative; z-index:1; background:transparent !important; color:#6c6c70 !important; border-radius:8px; padding:6px 16px; transition:color .2s;}
