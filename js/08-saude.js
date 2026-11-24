@@ -77,8 +77,64 @@ async function importarBackupAtestados(){
       })));
     }
 
+    // Exportação "crua" do SAP (ex.: "ATESTADOS MÉDICOS JANEIRO Á JUN"): uma
+    // única aba sem cabeçalhos nos nomes que usamos, colunas fixas por posição:
+    // Nº pess. | Nº pessoal(nome) | Empr | Empresa | ÁrRH | Área de recursos
+    // humanos(=loja) | GrEmp | Grupo | SgEmp | Subgrupo | Subárea | Subárea RH |
+    // Centro cst | Centro de custo(=setor) | UnidOrg. | Unidade organizacional |
+    // Cargo(cód) | Cargo(=função) | HrInício | Hora fim | TpAus/p | Tipo de
+    // ausência ou presença(=tipo do atestado) | Dias | Horas | Início | Fim
+    //
+    // O código "TpAus/p" do SAP distingue várias variações técnicas (com/sem
+    // INSS, continuação etc.) da mesma licença médica — agrupamos nas mesmas
+    // categorias já usadas no restante da base, pra não pulverizar o filtro
+    // de Tipo em uma dúzia de rótulos quase idênticos.
+    const SAUDE_TIPO_POR_CODIGO_SAP = {
+      200:"Médico", 210:"Médico", 201:"Médico", 205:"Médico",
+      290:"Licença Maternidade",
+      927:"Atestado Médico de Acompanhamento de Filho Menor",
+      928:"Licença Acompanhamento Gestante",
+      913:"Aposentadoria por Invalidez",
+      250:"Acidente de Trabalho", 260:"Acidente de Trabalho", 255:"Acidente de Trabalho", 925:"Acidente de Trabalho",
+      340:"Doação de Sangue"
+    };
     if(!registros.length){
-      mostrarStatusImport('Não encontrei nenhuma aba reconhecida ("Atestados" ou "BASE BOT") nesse arquivo.', "var(--vermelho)");
+      const nomeAbaSap = wb.SheetNames.find(n=>/atestado/i.test(n)) || wb.SheetNames[0];
+      const planilhaSap = nomeAbaSap ? wb.Sheets[nomeAbaSap] : null;
+      if(planilhaSap){
+        const linhas = XLSX.utils.sheet_to_json(planilhaSap, {header:1, defval:null});
+        const cabecalho = (linhas[0]||[]).map(h=>(h||"").toString().toLowerCase());
+        const pareceSap = cabecalho.some(h=>/n.?\s*pess/.test(h)) && cabecalho.some(h=>/tpaus/.test(h));
+        if(pareceSap){
+          registros = linhas.slice(1).filter(r=>r && r[5]).map(r=>{
+            // só colapsa espaços duplicados — mantém a grafia original (igual
+            // à já usada nos registros existentes, ex.: "CD Pavuna AME - RJ")
+            const loja = (r[5]||"").toString().replace(/\s+/g," ").trim();
+            const codigoTipo = Number(r[20]);
+            const tipo = SAUDE_TIPO_POR_CODIGO_SAP[codigoTipo] || (r[21]||null);
+            return {
+              matricula: r[0]!=null ? String(r[0]) : null,
+              nome: r[1] || null,
+              loja: loja || null,
+              regional: regionalDaLoja(loja) || null,
+              data_atestado: normalizarDataImportacao(r[24]),
+              hospital: null, especialidade: null,
+              motivo: r[21] || null,
+              afastamento_inicio: normalizarDataImportacao(r[24]),
+              afastamento_fim: normalizarDataImportacao(r[25]),
+              duracao_dias: Number(r[22])||0,
+              tipo_atestado: tipo,
+              cid: null, convenio: null,
+              setor: r[13] || null,
+              funcao: r[17] || null
+            };
+          });
+        }
+      }
+    }
+
+    if(!registros.length){
+      mostrarStatusImport('Não reconheci o formato desse arquivo (esperava uma aba "Atestados", "BASE BOT" ou a exportação do SAP com as colunas de Nº pessoal/TpAus-p).', "var(--vermelho)");
       return;
     }
 

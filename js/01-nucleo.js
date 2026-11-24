@@ -5,7 +5,10 @@
 // Função do módulo: normalizar texto comparacao
 /* Funções usadas já na carga dos outros arquivos — por isso ficam primeiro. */
 function normalizarTextoComparacao(s){
-  return (s||"").toString().trim().toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
+  return (s||"").toString()
+    .replace(/[.\-\/]/g," ")   // pontua\u00e7\u00e3o separadora (ex.: "Av.das Am\u00e9ricas" / "Centro - Loja") vira espa\u00e7o
+    .replace(/\s+/g," ").trim().toUpperCase()
+    .normalize("NFD").replace(/[\u0300-\u036f]/g,"");
 }
 
 // Função do módulo: svg para png data url
