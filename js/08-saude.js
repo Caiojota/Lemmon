@@ -11,6 +11,15 @@
 // indicador — mas continua contado e visível nas tabelas/KPI dedicado.
 const SAUDE_DIAS_CAP = 180;
 
+// A coluna duracao_dias é inteira no banco, mas algumas planilhas (ex.: a
+// exportação do SAP) trazem "Dias" fracionado (ex.: 0.08, quando a ausência é
+// medida em horas e convertida pra fração de dia) — arredonda pra não quebrar
+// a importação ("invalid input syntax for type integer").
+function arredondarDiasAtestado(v){
+  const n = Number(v);
+  return Number.isFinite(n) ? Math.round(n) : 0;
+}
+
 // Inicializa: init saude
 function initSaude(){
   popularFiltrosSaude();
@@ -61,7 +70,7 @@ async function importarBackupAtestados(){
         nome: r.Nome || null, loja: r.Loja || null, regional: mapaRegional[r.Loja] || null,
         data_atestado: normalizarDataImportacao(r.Data), hospital: r.Hospital || null, especialidade: null,
         motivo: r.Motivo || null, afastamento_inicio: normalizarDataImportacao(r.Inicio),
-        afastamento_fim: normalizarDataImportacao(r.Fim), duracao_dias: Number(r.Dias)||0,
+        afastamento_fim: normalizarDataImportacao(r.Fim), duracao_dias: arredondarDiasAtestado(r.Dias),
         tipo_atestado: r.Tipo || null, cid: r.CID || null, convenio: r.Convenio || null,
         setor: r.Setor || null, funcao: r.Funcao || null
       })));
@@ -72,7 +81,7 @@ async function importarBackupAtestados(){
         matricula: null, nome: null, loja: r.loja || null, regional: mapaRegional[r.loja] || null,
         data_atestado: normalizarDataImportacao(r.data_atestado), hospital: null, especialidade: null,
         motivo: r.motivo || null, afastamento_inicio: normalizarDataImportacao(r.afastamento_inicio),
-        afastamento_fim: normalizarDataImportacao(r.afastamento_fim), duracao_dias: Number(r.dias)||0,
+        afastamento_fim: normalizarDataImportacao(r.afastamento_fim), duracao_dias: arredondarDiasAtestado(r.dias),
         tipo_atestado: r.tipo || null, cid: r.cid || null, convenio: null, setor: null, funcao: null
       })));
     }
@@ -122,7 +131,7 @@ async function importarBackupAtestados(){
               motivo: r[21] || null,
               afastamento_inicio: normalizarDataImportacao(r[24]),
               afastamento_fim: normalizarDataImportacao(r[25]),
-              duracao_dias: Number(r[22])||0,
+              duracao_dias: arredondarDiasAtestado(r[22]),
               tipo_atestado: tipo,
               cid: null, convenio: null,
               setor: r[13] || null,

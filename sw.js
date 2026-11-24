@@ -8,7 +8,7 @@
    numa instabilidade momentânea de rede.
    ===================================================================== */
 
-const CACHE_NOME = "lemmon-shell-v15";
+const CACHE_NOME = "lemmon-shell-v16";
 
 const ARQUIVOS_PARA_CACHE = [
   "./",
