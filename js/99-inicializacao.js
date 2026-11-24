@@ -92,6 +92,7 @@ const CONTEINERES = {
     {id:"demandas",    rotulo:"Demandas",    perm:"demandas", organizador:true, no:"demandas-sub-indicadores", abrir:()=>renderIndicadoresDemandas()},
     {id:"absenteismo", rotulo:"Absenteísmo", perm:"absenteismo", no:"view-absenteismo",           abrir:()=>initAbsenteismo()},
     {id:"saude",       rotulo:"Saúde",       perm:"saude",       no:"view-saude",                 abrir:()=>initSaude()},
+    {id:"saudeTabelas", rotulo:"Tabelas",    perm:"saude",       no:"view-saude-tabelas",          abrir:()=>initSaudeTabelas()},
     {id:"acidentesLista", rotulo:"Todos os Acidentes", perm:"lancamento", oculto:true, no:"acidentes-sub-todos", abrir:()=>mostrarSubAcidentes("todos")},
   ]}
 };
@@ -99,7 +100,7 @@ const CONTEINERES = {
 // nomes antigos de tela continuam funcionando: apontam para o painel novo
 const VIEW_PARA_PAINEL = {
   inspecoes:["tarefas","inspecoes"], registroAnalise:["tarefas","registro"], fichaEpi:["tarefas","fichaEpi"], auditoriaEpi:["tarefas","fichaEpi","auditoria"],
-  absenteismo:["dashboards","absenteismo"], saude:["dashboards","saude"], lancamento:["dashboards","acidentesLista"],
+  absenteismo:["dashboards","absenteismo"], saude:["dashboards","saude"], saudeTabelas:["dashboards","saudeTabelas"], lancamento:["dashboards","acidentesLista"],
   dashAcidentes:["dashboards","acidentes"], dashAgenda:["dashboards","agenda"], dashDemandas:["dashboards","demandas"]
 };
 

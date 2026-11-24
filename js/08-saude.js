@@ -14,9 +14,17 @@ const SAUDE_DIAS_CAP = 180;
 // Inicializa: init saude
 function initSaude(){
   const wrapImportar = document.getElementById("sd-import-wrap");
-  if(wrapImportar) wrapImportar.style.display = ehAdminOuCoordenador() ? "flex" : "none";
+  if(wrapImportar) wrapImportar.style.display = "flex";
   popularFiltrosSaude();
   renderSaudeAtual();
+}
+
+// Inicializa a sub-área "Tabelas" (painel separado dentro de Dashboards)
+function initSaudeTabelas(){
+  popularFiltrosSaude();
+  renderSaudeTabelaLojas();
+  renderSaudeTabelaReincidencia();
+  renderSaudeRegistros();
 }
 
 let saudeStatusTimeout = null;
@@ -99,20 +107,22 @@ async function importarBackupAtestados(){
     input.value = "";
     popularFiltrosSaude();
     renderSaudeAtual();
+    renderSaudeTabelaLojas();
+    renderSaudeTabelaReincidencia();
     renderSaudeRegistros();
   }catch(e){
     mostrarStatusImport("Erro ao processar o arquivo: "+e.message, "var(--vermelho)");
   }
 }
 
-// Tudo fica numa tela só agora (sem abas) — os filtros do topo re-renderizam
-// todos os blocos de uma vez.
+// Tela de Saúde (gráficos/KPIs) — os filtros do topo re-renderizam tudo de
+// uma vez. As 3 tabelas (lojas, reincidência, todos os registros) ficam na
+// sub-área "Tabelas" à parte, e não dependem desses filtros.
 function renderSaudeAtual(){
   renderSaudeVisaoGeral();
   renderSaudeLojasRegionais();
   renderSaudeMotivosCid();
   renderSaudeReincidencia();
-  renderSaudeRegistros();
 }
 
 // Preenche: popular filtros saude
@@ -302,24 +312,35 @@ function renderSaudeLojasRegionais(){
     }
   });
 
-  // tabela: detalhamento por loja (todas, não só top 15), com filtro de regional próprio
+}
+
+// Tabela "Detalhamento por loja" — fica na sub-área Tabelas, por isso não
+// depende dos filtros globais da tela de Saúde (usa toda a base + seu
+// próprio filtro de regional).
+function renderSaudeTabelaLojas(){
+  const tbody = document.getElementById("tbl-saude-lojas");
+  if(!tbody) return;
   const regionalFiltro = document.getElementById("sd-lojas-regional")?.value;
+  const lojaGrupos = {};
+  ATESTADOS.forEach(a=>{
+    if(!a.loja) return;
+    if(!lojaGrupos[a.loja]) lojaGrupos[a.loja] = {qtd:0, dias:0, regional:a.regional, matriculas:new Set()};
+    lojaGrupos[a.loja].qtd++; lojaGrupos[a.loja].dias += (a.duracaoDias||0);
+    if(a.matricula) lojaGrupos[a.loja].matriculas.add(a.matricula);
+  });
   let linhas = Object.entries(lojaGrupos);
   if(regionalFiltro) linhas = linhas.filter(l=>l[1].regional===regionalFiltro);
   linhas = linhas.sort((a,b)=>b[1].qtd-a[1].qtd);
-  const tbody = document.getElementById("tbl-saude-lojas");
-  if(tbody){
-    if(!linhas.length){
-      tbody.innerHTML = `<tr><td colspan="5"><div class="lista-vazio"><b>Nenhum registro encontrado</b>Ajuste os filtros para ver os resultados.</div></td></tr>`;
-    }else{
-      tbody.innerHTML = linhas.map(([loja,info])=>`<tr>
-        <td>${escHtml(loja)}</td>
-        <td>${escHtml(info.regional||"—")}</td>
-        <td>${info.qtd}</td>
-        <td>${info.dias}</td>
-        <td>${info.matriculas.size}</td>
-      </tr>`).join("");
-    }
+  if(!linhas.length){
+    tbody.innerHTML = `<tr><td colspan="5"><div class="lista-vazio"><b>Nenhum registro encontrado</b>Ajuste os filtros para ver os resultados.</div></td></tr>`;
+  }else{
+    tbody.innerHTML = linhas.map(([loja,info])=>`<tr>
+      <td>${escHtml(loja)}</td>
+      <td>${escHtml(info.regional||"—")}</td>
+      <td>${info.qtd}</td>
+      <td>${info.dias}</td>
+      <td>${info.matriculas.size}</td>
+    </tr>`).join("");
   }
 }
 
@@ -365,9 +386,8 @@ function renderSaudeMotivosCid(){
 }
 
 /* ---- REINCIDÊNCIA ---- */
-function renderSaudeReincidencia(){
-  const dados = dadosFiltradosSaude();
-
+// Agrupa os registros por colaborador (matrícula, com fallback pro nome).
+function calcularReincidentesSaude(dados){
   const grupos = {};
   dados.forEach(a=>{
     const chave = a.matricula || (a.nome ? "nome:"+a.nome : null);
@@ -375,17 +395,26 @@ function renderSaudeReincidencia(){
     if(!grupos[chave]) grupos[chave] = {nome:a.nome, loja:a.loja, setor:a.setor, funcao:a.funcao, qtd:0, dias:0};
     grupos[chave].qtd++; grupos[chave].dias += (a.duracaoDias||0);
   });
-
   const colaboradores = Object.values(grupos);
   const reincidentes = colaboradores.filter(c=>c.qtd>=2).sort((a,b)=>b.qtd-a.qtd || b.dias-a.dias);
+  return {colaboradores, reincidentes};
+}
 
+// KPIs de reincidência — ficam na tela de Saúde, respeitam os filtros globais
+function renderSaudeReincidencia(){
+  const dados = dadosFiltradosSaude();
+  const {colaboradores, reincidentes} = calcularReincidentesSaude(dados);
   document.getElementById("sd-kpi-reincidentes").textContent = reincidentes.length;
   document.getElementById("sd-kpi-pct-reincidencia").textContent = colaboradores.length ? Math.round(reincidentes.length/colaboradores.length*100)+"%" : "0%";
+}
 
+// Tabela de reincidência — fica na sub-área Tabelas, usa a base inteira
+function renderSaudeTabelaReincidencia(){
   const tbody = document.getElementById("tbl-saude-reincidencia");
   if(!tbody) return;
+  const {reincidentes} = calcularReincidentesSaude(ATESTADOS);
   if(!reincidentes.length){
-    tbody.innerHTML = `<tr><td colspan="6"><div class="lista-vazio"><b>Nenhum colaborador reincidente</b>Ninguém com 2 ou mais registros no período filtrado.</div></td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="6"><div class="lista-vazio"><b>Nenhum colaborador reincidente</b>Ninguém com 2 ou mais registros na base.</div></td></tr>`;
     return;
   }
   tbody.innerHTML = reincidentes.slice(0,100).map(c=>`<tr>
