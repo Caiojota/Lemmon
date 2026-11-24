@@ -304,7 +304,20 @@ button.userbox[aria-expanded="true"] .user-caret{transform:rotate(180deg);}
 .chk-dropdown.aberto .chk-dropdown-painel{display:block;}
 .chk-dropdown-item{display:flex; align-items:center; gap:8px; padding:5px 6px; border-radius:6px; font-size:12.5px; cursor:pointer;}
 .chk-dropdown-item:hover{background:var(--creme);}
-.chk-dropdown-item input{width:auto; min-width:0; padding:0; margin:0;}
+.chk-dropdown-item input[type="checkbox"]{
+  -webkit-appearance:none; -moz-appearance:none; appearance:none;
+  width:15px; height:15px; min-width:15px; padding:0; margin:0;
+  border-radius:50%; border:1.5px solid var(--areia-cla);
+  background:var(--branco); cursor:pointer; flex-shrink:0;
+  display:inline-grid; place-content:center; transition:background .12s, border-color .12s;
+}
+.chk-dropdown-item input[type="checkbox"]:checked{
+  background:var(--verde-esc); border-color:var(--verde-esc);
+}
+.chk-dropdown-item input[type="checkbox"]:checked:after{
+  content:""; width:5px; height:5px; border-radius:50%; background:var(--branco);
+}
+.chk-dropdown-item input[type="checkbox"]:hover{border-color:var(--verde-viv);}
 .chk-dropdown-acoes{display:flex; gap:8px; padding:4px 6px 2px; border-top:1px solid var(--areia-cla); margin-top:4px;}
 .chk-dropdown-acoes button{background:none; border:none; font-size:11px; font-weight:700; color:var(--verde-esc); cursor:pointer; padding:2px 4px;}
 .chk-dropdown-acoes button:hover{text-decoration:underline;}
@@ -312,13 +325,6 @@ button.userbox[aria-expanded="true"] .user-caret{transform:rotate(180deg);}
 .btn-icon-minimal{width:34px; height:34px; border-radius:50%; border:1.5px solid var(--areia-cla); background:var(--branco); color:var(--verde-esc); font-size:16px; font-weight:700; line-height:1; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:background .15s, border-color .15s;}
 .btn-icon-minimal:hover{background:var(--creme); border-color:var(--verde-viv);}
 
-/* mapa de calor de ausências (estilo "contribuições", sem Chart.js) */
-#saude-heatmap{display:grid; grid-auto-flow:column; grid-template-rows:repeat(7, 14px); gap:3px; overflow-x:auto; padding-bottom:8px;}
-.hm-dia{width:14px; height:14px; border-radius:3px; background:var(--areia-cla);}
-.hm-dia[data-nivel="1"]{background:#bfe3cd;}
-.hm-dia[data-nivel="2"]{background:#7fc79e;}
-.hm-dia[data-nivel="3"]{background:#2f9e67;}
-.hm-dia[data-nivel="4"]{background:#00733f;}
 #saude-sub-tabelas .tabela-demandas th{cursor:pointer; user-select:none;}
 #saude-sub-tabelas .tabela-demandas th:hover{color:var(--verde-esc);}
 

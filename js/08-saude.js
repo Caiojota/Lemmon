@@ -276,7 +276,7 @@ function renderSaudeVisaoGeral(){
     options:{indexAxis:"y", plugins:{legend:{display:false}}, scales:{x:{beginAtZero:true, ticks:{precision:0}}}}
   });
 
-  renderSaudeHeatmap(porDia);
+  renderSaudeHeatmap(comData);
 
   // ranking por setor / função
   const porSetor = {};
@@ -320,35 +320,50 @@ function renderSaudeVisaoGeral(){
   });
 }
 
-// Mapa de calor de ausências: um grid "estilo contribuições" (semanas em
-// colunas, dias da semana em linhas), sem Chart.js — é só HTML/CSS mesmo.
-function renderSaudeHeatmap(porDia){
+// Mapa de calor de ausências: mesma linguagem visual da tabela de
+// "Mapa de calor — dias e horários" de Acidentes (tabela com números e
+// intensidade de cor), mas com os eixos que fazem sentido para atestados:
+// dia da semana (linhas) x mês (colunas), somando todos os anos do período filtrado.
+function renderSaudeHeatmap(comData){
   const el = document.getElementById("saude-heatmap");
   if(!el) return;
-  const dias = Object.keys(porDia).sort();
-  if(!dias.length){ el.innerHTML = '<span class="sub">Sem dados para os filtros selecionados.</span>'; return; }
+  if(!comData.length){ el.innerHTML = '<span class="sub">Sem dados para os filtros selecionados.</span>'; return; }
 
-  const max = Math.max(...Object.values(porDia));
-  const nivel = v=>{
-    if(!v) return 0;
-    if(max<=1) return v>0 ? 4 : 0;
-    const r = v/max;
-    if(r>0.75) return 4; if(r>0.5) return 3; if(r>0.25) return 2; return 1;
-  };
+  const dias = ["Segunda","Terça","Quarta","Quinta","Sexta","Sábado","Domingo"];
+  const nomesMes = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
+  const matriz = dias.map(()=>nomesMes.map(()=>0));
 
-  // preenche todo o intervalo de datas (inclusive os dias sem registro), do
-  // primeiro domingo antes da primeira data até a última data
-  const primeira = new Date(dias[0]+"T00:00:00");
-  const ultima = new Date(dias[dias.length-1]+"T00:00:00");
-  const inicio = new Date(primeira); inicio.setDate(inicio.getDate() - inicio.getDay());
+  comData.forEach(a=>{
+    const dt = new Date(a.dataAtestado+"T00:00:00");
+    let diaSemana = dt.getDay(); // 0=domingo
+    diaSemana = diaSemana===0 ? 6 : diaSemana-1; // 0=segunda ... 6=domingo
+    matriz[diaSemana][dt.getMonth()]++;
+  });
 
-  let html = "";
-  for(let d = new Date(inicio); d<=ultima; d.setDate(d.getDate()+1)){
-    const chave = d.toISOString().slice(0,10);
-    const v = porDia[chave]||0;
-    const n = chave < dias[0] ? "" : nivel(v);
-    html += `<div class="hm-dia" data-nivel="${n}" title="${formataData(chave)}: ${v} registro(s)"></div>`;
+  const max = Math.max(1, ...matriz.flat());
+  function corIntensidade(v){
+    if(v===0) return "#eef6f0";
+    const t = v/max;
+    // interpola de verde claro para verde escuro (paleta já usada no módulo de Saúde)
+    const r1=191,g1=227,b1=205, r2=0,g2=115,b2=63;
+    const r=Math.round(r1+(r2-r1)*t), g=Math.round(g1+(g2-g1)*t), b=Math.round(b1+(b2-b1)*t);
+    return `rgb(${r},${g},${b})`;
   }
+
+  let html = '<table class="heatmap-table"><thead><tr><th></th>';
+  nomesMes.forEach(m=>{ html += `<th>${m}</th>`; });
+  html += '</tr></thead><tbody>';
+  dias.forEach((dia,di)=>{
+    html += `<tr><td class="hm-dia">${dia}</td>`;
+    nomesMes.forEach((_,mi)=>{
+      const v = matriz[di][mi];
+      const cor = corIntensidade(v);
+      const corTexto = v/max>0.55 ? "#fff" : "#2b2118";
+      html += `<td class="hm-cell" style="background:${cor}; color:${corTexto};">${v>0?v:""}</td>`;
+    });
+    html += '</tr>';
+  });
+  html += '</tbody></table>';
   el.innerHTML = html;
 }
 
