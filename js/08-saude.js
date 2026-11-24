@@ -117,29 +117,86 @@ function renderSaudeAtual(){
 function popularFiltrosSaude(){
   fillSelect("sd-f-unidade", [...new Set(ATESTADOS.map(a=>a.loja).filter(Boolean))].sort());
   fillSelect("sd-f-regional", [...new Set(ATESTADOS.map(a=>a.regional).filter(Boolean))].sort());
-  fillSelect("sd-f-tipo", [...new Set(ATESTADOS.map(a=>a.tipoAtestado).filter(Boolean))].sort());
   fillSelect("sd-lojas-regional", [...new Set(ATESTADOS.map(a=>a.regional).filter(Boolean))].sort());
+  popularSaudeTipoDropdown();
 }
+
+/* ---- filtro de Tipo: dropdown de múltipla seleção ---- */
+// vazio = "todos os tipos" (sem filtro)
+let saudeTiposSelecionados = new Set();
+
+function popularSaudeTipoDropdown(){
+  const tipos = [...new Set(ATESTADOS.map(a=>a.tipoAtestado).filter(Boolean))].sort();
+  // mantém marcados só os tipos que ainda existem na base (ex.: após reimportar)
+  saudeTiposSelecionados = new Set([...saudeTiposSelecionados].filter(t=>tipos.includes(t)));
+  const painel = document.getElementById("sd-f-tipo-painel");
+  if(!painel) return;
+  const acoes = painel.querySelector(".chk-dropdown-acoes");
+  painel.querySelectorAll(".chk-dropdown-item").forEach(el=>el.remove());
+  tipos.forEach(t=>{
+    const item = document.createElement("label");
+    item.className = "chk-dropdown-item";
+    const cb = document.createElement("input");
+    cb.type = "checkbox"; cb.value = t; cb.checked = saudeTiposSelecionados.has(t);
+    cb.onchange = ()=>toggleSaudeTipo(t, cb.checked);
+    item.appendChild(cb);
+    item.appendChild(document.createTextNode(" "+t));
+    painel.insertBefore(item, acoes);
+  });
+  atualizarRotuloSaudeTipo();
+}
+
+// Alterna (mostra/esconde): toggle saude tipo dropdown
+function toggleSaudeTipoDropdown(){
+  document.getElementById("sd-f-tipo-dropdown").classList.toggle("aberto");
+}
+
+function toggleSaudeTipo(tipo, marcado){
+  if(marcado) saudeTiposSelecionados.add(tipo);
+  else saudeTiposSelecionados.delete(tipo);
+  atualizarRotuloSaudeTipo();
+  renderSaudeAtual();
+}
+
+function marcarTodosSaudeTipo(marcar){
+  const tipos = [...new Set(ATESTADOS.map(a=>a.tipoAtestado).filter(Boolean))];
+  saudeTiposSelecionados = marcar ? new Set(tipos) : new Set();
+  document.querySelectorAll("#sd-f-tipo-painel .chk-dropdown-item input").forEach(cb=>cb.checked = marcar);
+  atualizarRotuloSaudeTipo();
+  renderSaudeAtual();
+}
+
+function atualizarRotuloSaudeTipo(){
+  const btn = document.getElementById("sd-f-tipo-btn");
+  if(!btn) return;
+  const n = saudeTiposSelecionados.size;
+  btn.textContent = n===0 ? "Todos" : (n===1 ? [...saudeTiposSelecionados][0] : n+" selecionados");
+}
+
+// fecha o dropdown de tipo ao clicar fora dele
+document.addEventListener("click", (e)=>{
+  const dd = document.getElementById("sd-f-tipo-dropdown");
+  if(dd && dd.classList.contains("aberto") && !dd.contains(e.target)) dd.classList.remove("aberto");
+});
 
 // Limpa: limpar filtros saude
 function limparFiltrosSaude(){
-  ["sd-f-unidade","sd-f-regional","sd-f-tipo","sd-f-de","sd-f-ate"].forEach(id=>{
+  ["sd-f-unidade","sd-f-regional","sd-f-de","sd-f-ate"].forEach(id=>{
     const el = document.getElementById(id); if(el) el.value = "";
   });
-  renderSaudeAtual();
+  marcarTodosSaudeTipo(false);
 }
 
 // Função do módulo: dados filtrados saude
 function dadosFiltradosSaude(){
   const unidade = document.getElementById("sd-f-unidade")?.value;
   const regional = document.getElementById("sd-f-regional")?.value;
-  const tipo = document.getElementById("sd-f-tipo")?.value;
   const de = document.getElementById("sd-f-de")?.value;
   const ate = document.getElementById("sd-f-ate")?.value;
   return ATESTADOS.filter(a=>{
     if(unidade && a.loja!==unidade) return false;
     if(regional && a.regional!==regional) return false;
-    if(tipo && a.tipoAtestado!==tipo) return false;
+    if(saudeTiposSelecionados.size && !saudeTiposSelecionados.has(a.tipoAtestado)) return false;
     if(de && (!a.dataAtestado || a.dataAtestado<de)) return false;
     if(ate && (!a.dataAtestado || a.dataAtestado>ate)) return false;
     return true;

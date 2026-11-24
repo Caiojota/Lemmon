@@ -295,6 +295,20 @@ button.userbox[aria-expanded="true"] .user-caret{transform:rotate(180deg);}
 .filters .btn-clear{background:var(--areia-cla); border:none; padding:9px 15px; border-radius:9px; font-size:12.5px; font-weight:700; color:var(--marrom-esc); transition:background .15s;}
 .filters .btn-clear:hover{background:var(--areia-esc); color:#fff;}
 
+/* checklist-dropdown: filtro de múltipla seleção (ex.: Tipo em Saúde) */
+.chk-dropdown{position:relative;}
+.chk-dropdown-btn{padding:8px 11px; border-radius:9px; border:1.5px solid var(--areia-cla); font-size:13px; background:var(--creme); min-width:150px; text-align:left; cursor:pointer; display:flex; align-items:center; justify-content:space-between; gap:8px;}
+.chk-dropdown-btn:after{content:"▾"; font-size:10px; color:var(--areia-esc);}
+.chk-dropdown-btn:focus{outline:none; border-color:var(--verde-viv);}
+.chk-dropdown-painel{display:none; position:absolute; z-index:40; top:calc(100% + 4px); left:0; min-width:220px; max-height:260px; overflow:auto; background:var(--branco); border:1px solid var(--areia-cla); border-radius:10px; box-shadow:var(--sombra); padding:8px;}
+.chk-dropdown.aberto .chk-dropdown-painel{display:block;}
+.chk-dropdown-item{display:flex; align-items:center; gap:8px; padding:5px 6px; border-radius:6px; font-size:12.5px; cursor:pointer;}
+.chk-dropdown-item:hover{background:var(--creme);}
+.chk-dropdown-item input{width:auto; min-width:0; padding:0; margin:0;}
+.chk-dropdown-acoes{display:flex; gap:8px; padding:4px 6px 2px; border-top:1px solid var(--areia-cla); margin-top:4px;}
+.chk-dropdown-acoes button{background:none; border:none; font-size:11px; font-weight:700; color:var(--verde-esc); cursor:pointer; padding:2px 4px;}
+.chk-dropdown-acoes button:hover{text-decoration:underline;}
+
 /* ---- grid de gráficos ---- */
 .grid-2{display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px;}
 .grid-3{display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px; margin-bottom:16px;}
