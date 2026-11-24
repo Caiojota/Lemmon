@@ -17,14 +17,18 @@ function initSaude(){
   if(wrapImportar) wrapImportar.style.display = "flex";
   popularFiltrosSaude();
   renderSaudeAtual();
-}
-
-// Inicializa a sub-área "Tabelas" (painel separado dentro de Dashboards)
-function initSaudeTabelas(){
-  popularFiltrosSaude();
   renderSaudeTabelaLojas();
   renderSaudeTabelaReincidencia();
   renderSaudeRegistros();
+}
+
+// Troca entre as duas sub-abas de Saúde: "Indicadores" (gráficos/KPIs) e
+// "Tabelas" (detalhamento por loja, reincidência e todos os registros)
+function mostrarSubSaude(sub){
+  document.querySelectorAll("#view-saude .insp-tab").forEach(b=>b.classList.remove("active"));
+  document.querySelector('#view-saude .insp-tab[data-sub="'+sub+'"]').classList.add("active");
+  document.querySelectorAll("#view-saude .insp-sub").forEach(s=>s.classList.remove("active"));
+  document.getElementById("saude-sub-"+sub).classList.add("active");
 }
 
 let saudeStatusTimeout = null;

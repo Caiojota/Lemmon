@@ -29,19 +29,19 @@
 <script src="lib/jszip.js"></script>
 <script src="lib/pptxgenjs.js"></script>
 
-<link rel="stylesheet" href="css/08-base.css?v=21">
-<link rel="stylesheet" href="css/09-agenda-unificada.css?v=21">
-<link rel="stylesheet" href="css/10-visual-ios.css?v=21">
-<link rel="stylesheet" href="css/11-icones.css?v=21">
-<link rel="stylesheet" href="css/12-sons.css?v=21">
+<link rel="stylesheet" href="css/08-base.css?v=22">
+<link rel="stylesheet" href="css/09-agenda-unificada.css?v=22">
+<link rel="stylesheet" href="css/10-visual-ios.css?v=22">
+<link rel="stylesheet" href="css/11-icones.css?v=22">
+<link rel="stylesheet" href="css/12-sons.css?v=22">
 <script src="lib/qrcode.js"></script>
-<link rel="stylesheet" href="css/14-vistorial.css?v=21">
-<link rel="stylesheet" href="css/15-extras-1.css?v=21">
-<link rel="stylesheet" href="css/16-extras-2.css?v=21">
-<link rel="stylesheet" href="css/17-inicio-v2.css?v=21">
-<link rel="stylesheet" href="css/18-modais-v2.css?v=21">
-<link rel="stylesheet" href="css/19-modais-v2b.css?v=21">
-<link rel="stylesheet" href="css/20-mobile.css?v=21">
+<link rel="stylesheet" href="css/14-vistorial.css?v=22">
+<link rel="stylesheet" href="css/15-extras-1.css?v=22">
+<link rel="stylesheet" href="css/16-extras-2.css?v=22">
+<link rel="stylesheet" href="css/17-inicio-v2.css?v=22">
+<link rel="stylesheet" href="css/18-modais-v2.css?v=22">
+<link rel="stylesheet" href="css/19-modais-v2b.css?v=22">
+<link rel="stylesheet" href="css/20-mobile.css?v=22">
 </head>
 <body>
 
@@ -1034,130 +1034,132 @@
           <button class="btn-clear" onclick="limparFiltrosSaude()">Limpar filtros</button>
         </div>
 
-        <div class="kpi-row">
-          <div class="kpi k1"><div class="lbl">Registros</div><div class="val" id="sd-kpi-total">0</div><span class="foot">No período filtrado</span></div>
-          <div class="kpi k2"><div class="lbl">Dias de afastamento</div><div class="val" id="sd-kpi-dias">0</div><span class="foot">Soma de todos os registros</span></div>
-          <div class="kpi k4"><div class="lbl">Colaboradores únicos</div><div class="val" id="sd-kpi-colaboradores">0</div><span class="foot">Matrículas distintas</span></div>
-          <div class="kpi k5"><div class="lbl">Duração média</div><div class="val" id="sd-kpi-media">0</div><span class="foot">Dias por registro, até 180 dias</span></div>
-          <div class="kpi k3"><div class="lbl">Atestados médicos</div><div class="val" id="sd-kpi-pct-medico">0%</div><span class="foot">Sobre o total de registros</span></div>
-          <div class="kpi k6"><div class="lbl">Afastamentos prolongados</div><div class="val" id="sd-kpi-prolongados">0</div><span class="foot">Acima de 180 dias seguidos</span></div>
+        <div class="insp-subnav">
+          <button type="button" class="insp-tab active" data-sub="indicadores" onclick="mostrarSubSaude('indicadores')">Indicadores</button>
+          <button type="button" class="insp-tab" data-sub="tabelas" onclick="mostrarSubSaude('tabelas')">Tabelas</button>
         </div>
 
-        <div class="card tall" style="margin-bottom:20px;">
-          <h3>Evolução mensal de atestados</h3>
-          <span class="sub">Quantidade de registros por mês, dentro do período filtrado</span>
-          <canvas id="chart-saude-evolucao"></canvas>
-        </div>
+        <div class="insp-sub active" id="saude-sub-indicadores">
+          <div class="kpi-row">
+            <div class="kpi k1"><div class="lbl">Registros</div><div class="val" id="sd-kpi-total">0</div><span class="foot">No período filtrado</span></div>
+            <div class="kpi k2"><div class="lbl">Dias de afastamento</div><div class="val" id="sd-kpi-dias">0</div><span class="foot">Soma de todos os registros</span></div>
+            <div class="kpi k4"><div class="lbl">Colaboradores únicos</div><div class="val" id="sd-kpi-colaboradores">0</div><span class="foot">Matrículas distintas</span></div>
+            <div class="kpi k5"><div class="lbl">Duração média</div><div class="val" id="sd-kpi-media">0</div><span class="foot">Dias por registro, até 180 dias</span></div>
+            <div class="kpi k3"><div class="lbl">Atestados médicos</div><div class="val" id="sd-kpi-pct-medico">0%</div><span class="foot">Sobre o total de registros</span></div>
+            <div class="kpi k6"><div class="lbl">Afastamentos prolongados</div><div class="val" id="sd-kpi-prolongados">0</div><span class="foot">Acima de 180 dias seguidos</span></div>
+          </div>
 
-        <div class="grid-2">
-          <div class="card tall">
-            <h3>Registros por unidade</h3>
-            <span class="sub">Top 12 unidades com mais registros</span>
-            <canvas id="chart-saude-unidade"></canvas>
+          <div class="card tall" style="margin-bottom:20px;">
+            <h3>Evolução mensal de atestados</h3>
+            <span class="sub">Quantidade de registros por mês, dentro do período filtrado</span>
+            <canvas id="chart-saude-evolucao"></canvas>
           </div>
-          <div class="card tall">
-            <h3>Registros por regional</h3>
-            <canvas id="chart-saude-regional"></canvas>
-          </div>
-        </div>
 
-        <div class="grid-2">
-          <div class="card tall">
-            <h3>Ranking por regional</h3>
-            <span class="sub">Registros e dias de afastamento por regional</span>
-            <canvas id="chart-saude-ranking-regional"></canvas>
+          <div class="grid-2">
+            <div class="card tall">
+              <h3>Registros por unidade</h3>
+              <span class="sub">Top 12 unidades com mais registros</span>
+              <canvas id="chart-saude-unidade"></canvas>
+            </div>
+            <div class="card tall">
+              <h3>Registros por regional</h3>
+              <canvas id="chart-saude-regional"></canvas>
+            </div>
           </div>
-          <div class="card tall">
-            <h3>Top 15 lojas mais ofensoras</h3>
-            <span class="sub">Barra = registros · Linha = dias de afastamento</span>
-            <canvas id="chart-saude-top-lojas"></canvas>
-          </div>
-        </div>
 
-        <div class="grid-2">
-          <div class="card tall">
-            <h3>Top motivos</h3>
-            <canvas id="chart-saude-motivo"></canvas>
+          <div class="grid-2">
+            <div class="card tall">
+              <h3>Ranking por regional</h3>
+              <span class="sub">Registros e dias de afastamento por regional</span>
+              <canvas id="chart-saude-ranking-regional"></canvas>
+            </div>
+            <div class="card tall">
+              <h3>Top 15 lojas mais ofensoras</h3>
+              <span class="sub">Barra = registros · Linha = dias de afastamento</span>
+              <canvas id="chart-saude-top-lojas"></canvas>
+            </div>
           </div>
-          <div class="card tall">
-            <h3>Top CID</h3>
-            <canvas id="chart-saude-cid"></canvas>
-          </div>
-        </div>
-        <div class="grid-2">
-          <div class="card tall">
-            <h3>Tipo de registro</h3>
-            <canvas id="chart-saude-tipo"></canvas>
-          </div>
-          <div class="card tall">
-            <h3>Convênio</h3>
-            <canvas id="chart-saude-convenio"></canvas>
-          </div>
-        </div>
 
-        <div class="kpi-row">
-          <div class="kpi k1"><div class="lbl">Colaboradores reincidentes</div><div class="val" id="sd-kpi-reincidentes">0</div><span class="foot">2 ou mais registros no período</span></div>
-          <div class="kpi k2"><div class="lbl">% de reincidência</div><div class="val" id="sd-kpi-pct-reincidencia">0%</div><span class="foot">Sobre colaboradores únicos</span></div>
-        </div>
-      </section>
-
-      <!-- ============ SAÚDE — TABELAS (sub-área do módulo Dashboards) ============ -->
-      <section class="view" id="view-saude-tabelas">
-        <div class="topbar">
-          <div><h2>Tabelas</h2></div>
-        </div>
-
-        <div class="card" style="margin-bottom:20px;">
-          <h3>Detalhamento por loja</h3>
-          <div class="filters" style="margin-top:0;">
-            <div class="f-group"><label>Filtrar regional</label><select id="sd-lojas-regional" onchange="renderSaudeTabelaLojas()"><option value="">Todas</option></select></div>
+          <div class="grid-2">
+            <div class="card tall">
+              <h3>Top motivos</h3>
+              <canvas id="chart-saude-motivo"></canvas>
+            </div>
+            <div class="card tall">
+              <h3>Top CID</h3>
+              <canvas id="chart-saude-cid"></canvas>
+            </div>
           </div>
-          <div class="table-wrap tabela-demandas-wrap" style="max-height:420px;">
-            <table class="tabela-demandas">
-              <thead><tr><th>Loja</th><th>Regional</th><th>Registros</th><th>Dias de afastamento</th><th>Colaboradores únicos</th></tr></thead>
-              <tbody id="tbl-saude-lojas"></tbody>
-            </table>
+          <div class="grid-2">
+            <div class="card tall">
+              <h3>Tipo de registro</h3>
+              <canvas id="chart-saude-tipo"></canvas>
+            </div>
+            <div class="card tall">
+              <h3>Convênio</h3>
+              <canvas id="chart-saude-convenio"></canvas>
+            </div>
+          </div>
+
+          <div class="kpi-row">
+            <div class="kpi k1"><div class="lbl">Colaboradores reincidentes</div><div class="val" id="sd-kpi-reincidentes">0</div><span class="foot">2 ou mais registros no período</span></div>
+            <div class="kpi k2"><div class="lbl">% de reincidência</div><div class="val" id="sd-kpi-pct-reincidencia">0%</div><span class="foot">Sobre colaboradores únicos</span></div>
           </div>
         </div>
 
-        <div class="card" style="margin-bottom:20px;">
-          <h3>Ranking de colaboradores (reincidência)</h3>
-          <span class="sub" style="display:block; margin-bottom:10px;">Colaboradores com 2 ou mais registros, ordenado por quantidade</span>
-          <div class="table-wrap tabela-demandas-wrap" style="max-height:480px;">
-            <table class="tabela-demandas">
-              <thead><tr><th>Colaborador</th><th>Loja</th><th>Setor</th><th>Função</th><th>Registros</th><th>Dias de afastamento</th></tr></thead>
-              <tbody id="tbl-saude-reincidencia"></tbody>
-            </table>
+        <div class="insp-sub" id="saude-sub-tabelas">
+          <div class="card" style="margin-bottom:20px;">
+            <h3>Detalhamento por loja</h3>
+            <div class="filters" style="margin-top:0;">
+              <div class="f-group"><label>Filtrar regional</label><select id="sd-lojas-regional" onchange="renderSaudeTabelaLojas()"><option value="">Todas</option></select></div>
+            </div>
+            <div class="table-wrap tabela-demandas-wrap" style="max-height:420px;">
+              <table class="tabela-demandas">
+                <thead><tr><th>Loja</th><th>Regional</th><th>Registros</th><th>Dias de afastamento</th><th>Colaboradores únicos</th></tr></thead>
+                <tbody id="tbl-saude-lojas"></tbody>
+              </table>
+            </div>
           </div>
-        </div>
 
-        <div class="card">
-          <h3>Todos os registros</h3>
-          <div class="filters" style="margin-top:0;">
-            <div class="f-group" style="min-width:220px;"><label>Buscar</label><input type="text" id="sd-busca" placeholder="Colaborador, motivo, loja, CID..." oninput="renderSaudeRegistros()"></div>
-            <button class="btn-clear" onclick="document.getElementById('sd-busca').value=''; renderSaudeRegistros();">Limpar busca</button>
+          <div class="card" style="margin-bottom:20px;">
+            <h3>Ranking de colaboradores (reincidência)</h3>
+            <span class="sub" style="display:block; margin-bottom:10px;">Colaboradores com 2 ou mais registros, ordenado por quantidade</span>
+            <div class="table-wrap tabela-demandas-wrap" style="max-height:480px;">
+              <table class="tabela-demandas">
+                <thead><tr><th>Colaborador</th><th>Loja</th><th>Setor</th><th>Função</th><th>Registros</th><th>Dias de afastamento</th></tr></thead>
+                <tbody id="tbl-saude-reincidencia"></tbody>
+              </table>
+            </div>
           </div>
-          <span class="sub" id="sd-contador" style="display:block; margin-bottom:10px;"></span>
-          <div class="table-wrap tabela-demandas-wrap" style="max-height:600px;">
-            <table class="tabela-demandas">
-              <thead>
-                <tr>
-                  <th class="col-sticky" style="min-width:110px; max-width:110px;" onclick="ordenarSaudeRegistros('data_atestado')">Data</th>
-                  <th onclick="ordenarSaudeRegistros('loja')">Loja</th>
-                  <th onclick="ordenarSaudeRegistros('regional')">Regional</th>
-                  <th onclick="ordenarSaudeRegistros('nome')">Colaborador</th>
-                  <th onclick="ordenarSaudeRegistros('setor')">Setor</th>
-                  <th onclick="ordenarSaudeRegistros('funcao')">Função</th>
-                  <th onclick="ordenarSaudeRegistros('tipo_atestado')">Tipo</th>
-                  <th onclick="ordenarSaudeRegistros('motivo')">Motivo</th>
-                  <th onclick="ordenarSaudeRegistros('cid')">CID</th>
-                  <th onclick="ordenarSaudeRegistros('afastamento_inicio')">Início afastamento</th>
-                  <th onclick="ordenarSaudeRegistros('afastamento_fim')">Fim afastamento</th>
-                  <th onclick="ordenarSaudeRegistros('duracao_dias')">Dias</th>
-                </tr>
-              </thead>
-              <tbody id="tbl-saude-registros"></tbody>
-            </table>
+
+          <div class="card">
+            <h3>Todos os registros</h3>
+            <div class="filters" style="margin-top:0;">
+              <div class="f-group" style="min-width:220px;"><label>Buscar</label><input type="text" id="sd-busca" placeholder="Colaborador, motivo, loja, CID..." oninput="renderSaudeRegistros()"></div>
+              <button class="btn-clear" onclick="document.getElementById('sd-busca').value=''; renderSaudeRegistros();">Limpar busca</button>
+            </div>
+            <span class="sub" id="sd-contador" style="display:block; margin-bottom:10px;"></span>
+            <div class="table-wrap tabela-demandas-wrap" style="max-height:600px;">
+              <table class="tabela-demandas">
+                <thead>
+                  <tr>
+                    <th class="col-sticky" style="min-width:110px; max-width:110px;" onclick="ordenarSaudeRegistros('data_atestado')">Data</th>
+                    <th onclick="ordenarSaudeRegistros('loja')">Loja</th>
+                    <th onclick="ordenarSaudeRegistros('regional')">Regional</th>
+                    <th onclick="ordenarSaudeRegistros('nome')">Colaborador</th>
+                    <th onclick="ordenarSaudeRegistros('setor')">Setor</th>
+                    <th onclick="ordenarSaudeRegistros('funcao')">Função</th>
+                    <th onclick="ordenarSaudeRegistros('tipo_atestado')">Tipo</th>
+                    <th onclick="ordenarSaudeRegistros('motivo')">Motivo</th>
+                    <th onclick="ordenarSaudeRegistros('cid')">CID</th>
+                    <th onclick="ordenarSaudeRegistros('afastamento_inicio')">Início afastamento</th>
+                    <th onclick="ordenarSaudeRegistros('afastamento_fim')">Fim afastamento</th>
+                    <th onclick="ordenarSaudeRegistros('duracao_dias')">Dias</th>
+                  </tr>
+                </thead>
+                <tbody id="tbl-saude-registros"></tbody>
+              </table>
+            </div>
           </div>
         </div>
       </section>
@@ -2630,25 +2632,25 @@
   </div>
 </div>
 
-<script src="js/01-nucleo.js?v=21"></script>
-<script src="js/02-dashboard-acidentes.js?v=21"></script>
-<script src="js/03-inspecoes-checklist.js?v=21"></script>
-<script src="js/04-demandas.js?v=21"></script>
-<script src="js/05-reunioes-dailys.js?v=21"></script>
-<script src="js/06-gestao-config.js?v=21"></script>
-<script src="js/07-notificacoes.js?v=21"></script>
-<script src="js/08-saude.js?v=21"></script>
-<script src="js/09-ficha-epi.js?v=21"></script>
-<script src="js/10-absenteismo.js?v=21"></script>
-<script src="js/11-agenda.js?v=21"></script>
-<script src="js/12-inicio.js?v=21"></script>
-<script src="js/13-calendario.js?v=21"></script>
-<script src="js/14-convites-ausencias.js?v=21"></script>
-<script src="js/15-usuarios.js?v=21"></script>
-<script src="js/16-vistoria.js?v=21"></script>
-<script src="js/17-vistoria-publica.js?v=21"></script>
-<script src="js/18-entrega-epi.js?v=21"></script>
-<script src="js/99-inicializacao.js?v=21"></script>
+<script src="js/01-nucleo.js?v=22"></script>
+<script src="js/02-dashboard-acidentes.js?v=22"></script>
+<script src="js/03-inspecoes-checklist.js?v=22"></script>
+<script src="js/04-demandas.js?v=22"></script>
+<script src="js/05-reunioes-dailys.js?v=22"></script>
+<script src="js/06-gestao-config.js?v=22"></script>
+<script src="js/07-notificacoes.js?v=22"></script>
+<script src="js/08-saude.js?v=22"></script>
+<script src="js/09-ficha-epi.js?v=22"></script>
+<script src="js/10-absenteismo.js?v=22"></script>
+<script src="js/11-agenda.js?v=22"></script>
+<script src="js/12-inicio.js?v=22"></script>
+<script src="js/13-calendario.js?v=22"></script>
+<script src="js/14-convites-ausencias.js?v=22"></script>
+<script src="js/15-usuarios.js?v=22"></script>
+<script src="js/16-vistoria.js?v=22"></script>
+<script src="js/17-vistoria-publica.js?v=22"></script>
+<script src="js/18-entrega-epi.js?v=22"></script>
+<script src="js/99-inicializacao.js?v=22"></script>
 <script>
   // Registra o Service Worker (só a "casca" do app fica em cache; nenhum dado do Supabase)
   if("serviceWorker" in navigator){
