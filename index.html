@@ -29,19 +29,19 @@
 <script src="lib/jszip.js"></script>
 <script src="lib/pptxgenjs.js"></script>
 
-<link rel="stylesheet" href="css/08-base.css?v=22">
-<link rel="stylesheet" href="css/09-agenda-unificada.css?v=22">
-<link rel="stylesheet" href="css/10-visual-ios.css?v=22">
-<link rel="stylesheet" href="css/11-icones.css?v=22">
-<link rel="stylesheet" href="css/12-sons.css?v=22">
+<link rel="stylesheet" href="css/08-base.css?v=23">
+<link rel="stylesheet" href="css/09-agenda-unificada.css?v=23">
+<link rel="stylesheet" href="css/10-visual-ios.css?v=23">
+<link rel="stylesheet" href="css/11-icones.css?v=23">
+<link rel="stylesheet" href="css/12-sons.css?v=23">
 <script src="lib/qrcode.js"></script>
-<link rel="stylesheet" href="css/14-vistorial.css?v=22">
-<link rel="stylesheet" href="css/15-extras-1.css?v=22">
-<link rel="stylesheet" href="css/16-extras-2.css?v=22">
-<link rel="stylesheet" href="css/17-inicio-v2.css?v=22">
-<link rel="stylesheet" href="css/18-modais-v2.css?v=22">
-<link rel="stylesheet" href="css/19-modais-v2b.css?v=22">
-<link rel="stylesheet" href="css/20-mobile.css?v=22">
+<link rel="stylesheet" href="css/14-vistorial.css?v=23">
+<link rel="stylesheet" href="css/15-extras-1.css?v=23">
+<link rel="stylesheet" href="css/16-extras-2.css?v=23">
+<link rel="stylesheet" href="css/17-inicio-v2.css?v=23">
+<link rel="stylesheet" href="css/18-modais-v2.css?v=23">
+<link rel="stylesheet" href="css/19-modais-v2b.css?v=23">
+<link rel="stylesheet" href="css/20-mobile.css?v=23">
 </head>
 <body>
 
@@ -1007,7 +1007,7 @@
       <section class="view" id="view-saude">
         <div class="topbar">
           <div><h2>Saúde</h2></div>
-          <div id="sd-import-wrap" style="display:none; align-items:center; gap:10px;">
+          <div id="sd-import-wrap" style="display:flex; align-items:center; gap:10px;">
             <span class="sub" id="sd-import-status" style="display:none;"></span>
             <input type="file" id="sd-import-file" accept=".xlsx,.xls" style="display:none;" onchange="importarBackupAtestados()">
             <button type="button" class="btn-icon-minimal" title="Importar base de atestados (.xlsx)" onclick="document.getElementById('sd-import-file').click()">↑</button>
@@ -1047,6 +1047,8 @@
             <div class="kpi k5"><div class="lbl">Duração média</div><div class="val" id="sd-kpi-media">0</div><span class="foot">Dias por registro, até 180 dias</span></div>
             <div class="kpi k3"><div class="lbl">Atestados médicos</div><div class="val" id="sd-kpi-pct-medico">0%</div><span class="foot">Sobre o total de registros</span></div>
             <div class="kpi k6"><div class="lbl">Afastamentos prolongados</div><div class="val" id="sd-kpi-prolongados">0</div><span class="foot">Acima de 180 dias seguidos</span></div>
+            <div class="kpi k1"><div class="lbl">Colaboradores reincidentes</div><div class="val" id="sd-kpi-reincidentes">0</div><span class="foot">2 ou mais registros no período</span></div>
+            <div class="kpi k2"><div class="lbl">% de reincidência</div><div class="val" id="sd-kpi-pct-reincidencia">0%</div><span class="foot">Sobre colaboradores únicos</span></div>
           </div>
 
           <div class="card tall" style="margin-bottom:20px;">
@@ -1099,11 +1101,6 @@
               <h3>Convênio</h3>
               <canvas id="chart-saude-convenio"></canvas>
             </div>
-          </div>
-
-          <div class="kpi-row">
-            <div class="kpi k1"><div class="lbl">Colaboradores reincidentes</div><div class="val" id="sd-kpi-reincidentes">0</div><span class="foot">2 ou mais registros no período</span></div>
-            <div class="kpi k2"><div class="lbl">% de reincidência</div><div class="val" id="sd-kpi-pct-reincidencia">0%</div><span class="foot">Sobre colaboradores únicos</span></div>
           </div>
         </div>
 
@@ -2632,25 +2629,25 @@
   </div>
 </div>
 
-<script src="js/01-nucleo.js?v=22"></script>
-<script src="js/02-dashboard-acidentes.js?v=22"></script>
-<script src="js/03-inspecoes-checklist.js?v=22"></script>
-<script src="js/04-demandas.js?v=22"></script>
-<script src="js/05-reunioes-dailys.js?v=22"></script>
-<script src="js/06-gestao-config.js?v=22"></script>
-<script src="js/07-notificacoes.js?v=22"></script>
-<script src="js/08-saude.js?v=22"></script>
-<script src="js/09-ficha-epi.js?v=22"></script>
-<script src="js/10-absenteismo.js?v=22"></script>
-<script src="js/11-agenda.js?v=22"></script>
-<script src="js/12-inicio.js?v=22"></script>
-<script src="js/13-calendario.js?v=22"></script>
-<script src="js/14-convites-ausencias.js?v=22"></script>
-<script src="js/15-usuarios.js?v=22"></script>
-<script src="js/16-vistoria.js?v=22"></script>
-<script src="js/17-vistoria-publica.js?v=22"></script>
-<script src="js/18-entrega-epi.js?v=22"></script>
-<script src="js/99-inicializacao.js?v=22"></script>
+<script src="js/01-nucleo.js?v=23"></script>
+<script src="js/02-dashboard-acidentes.js?v=23"></script>
+<script src="js/03-inspecoes-checklist.js?v=23"></script>
+<script src="js/04-demandas.js?v=23"></script>
+<script src="js/05-reunioes-dailys.js?v=23"></script>
+<script src="js/06-gestao-config.js?v=23"></script>
+<script src="js/07-notificacoes.js?v=23"></script>
+<script src="js/08-saude.js?v=23"></script>
+<script src="js/09-ficha-epi.js?v=23"></script>
+<script src="js/10-absenteismo.js?v=23"></script>
+<script src="js/11-agenda.js?v=23"></script>
+<script src="js/12-inicio.js?v=23"></script>
+<script src="js/13-calendario.js?v=23"></script>
+<script src="js/14-convites-ausencias.js?v=23"></script>
+<script src="js/15-usuarios.js?v=23"></script>
+<script src="js/16-vistoria.js?v=23"></script>
+<script src="js/17-vistoria-publica.js?v=23"></script>
+<script src="js/18-entrega-epi.js?v=23"></script>
+<script src="js/99-inicializacao.js?v=23"></script>
 <script>
   // Registra o Service Worker (só a "casca" do app fica em cache; nenhum dado do Supabase)
   if("serviceWorker" in navigator){

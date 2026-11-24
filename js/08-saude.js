@@ -13,8 +13,6 @@ const SAUDE_DIAS_CAP = 180;
 
 // Inicializa: init saude
 function initSaude(){
-  const wrapImportar = document.getElementById("sd-import-wrap");
-  if(wrapImportar) wrapImportar.style.display = "flex";
   popularFiltrosSaude();
   renderSaudeAtual();
   renderSaudeTabelaLojas();
