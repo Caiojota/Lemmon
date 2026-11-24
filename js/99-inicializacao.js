@@ -76,6 +76,10 @@ document.addEventListener("DOMContentLoaded", async ()=>{
   const { data } = await sb.auth.getSession();
   if(data && data.session && data.session.user){
     await entrarNaPlataforma(data.session.user.id);
+  } else {
+    // sem sessão: não tem o que carregar — some a tela de carregamento e
+    // deixa a tela de login (que já está por baixo) aparecer
+    esconderTelaCarregamento();
   }
 });
 

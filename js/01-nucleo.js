@@ -757,6 +757,7 @@ async function entrarNaPlataforma(userId){
     errBox.textContent = "Usuário sem acesso à plataforma. Fale com um administrador.";
     errBox.style.display = "block";
     await sb.auth.signOut();
+    esconderTelaCarregamento();
     return;
   }
   currentUser = mapProfileFromDb(perfil);
@@ -769,10 +770,26 @@ async function entrarNaPlataforma(userId){
   else { avatarEl.textContent = currentUser.nome.charAt(0).toUpperCase(); }
 
   mostrarToast("Carregando dados da plataforma...");
-  await carregarDadosDoSupabase();
-  montarMenu();
-  irParaView("inicio");
-  iniciarAtualizacaoAutomatica();
+  try{
+    await carregarDadosDoSupabase();
+    montarMenu();
+    irParaView("inicio");
+    iniciarAtualizacaoAutomatica();
+  }catch(e){
+    // não deixa a tela de carregamento presa pra sempre numa falha de rede —
+    // some ela mesmo assim; o app fica visível (ainda que incompleto) e dá
+    // pra tentar de novo com um F5
+    mostrarToast("Não foi possível carregar todos os dados. Atualize a página para tentar de novo.");
+  }
+  esconderTelaCarregamento();
+}
+
+// Some suavemente (fade) com a tela de carregamento inicial. Idempotente —
+// chamar de novo (ex.: login manual, que também passa por entrarNaPlataforma)
+// não tem efeito nenhum, já que ela já está escondida nesse ponto.
+function esconderTelaCarregamento(){
+  const tela = document.getElementById("tela-carregamento");
+  if(tela) tela.classList.add("escondido");
 }
 
 // Função do módulo: do logout
