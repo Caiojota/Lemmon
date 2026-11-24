@@ -235,6 +235,16 @@ function renderSaudeVisaoGeral(){
   const medicos = dados.filter(a=>/m[eé]dic/i.test(a.tipoAtestado||""));
   document.getElementById("sd-kpi-pct-medico").textContent = dados.length ? Math.round(medicos.length/dados.length*100)+"%" : "0%";
 
+  // tipo de atestado mais frequente
+  const porTipoKpi = {};
+  dados.forEach(a=>{ const t = a.tipoAtestado; if(t) porTipoKpi[t] = (porTipoKpi[t]||0)+1; });
+  const tipoTop = Object.entries(porTipoKpi).sort((a,b)=>b[1]-a[1])[0];
+  document.getElementById("sd-kpi-tipo-frequente").textContent = tipoTop ? tipoTop[0] : "—";
+
+  // lojas distintas com ocorrência
+  const lojasDistintas = new Set(dados.map(a=>a.loja).filter(Boolean));
+  document.getElementById("sd-kpi-lojas-distintas").textContent = lojasDistintas.size;
+
   // evolução mensal
   const nomesMes = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
   const rotuloMes = m=>{ const [ano,mes]=m.split("-"); return nomesMes[Number(mes)-1]+"/"+ano.slice(2); };
@@ -247,6 +257,16 @@ function renderSaudeVisaoGeral(){
     options:{plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true, ticks:{precision:0}}}}
   });
 
+  // atestados por dia — volume diário no período filtrado
+  const porDia = {};
+  comData.forEach(a=>{ porDia[a.dataAtestado] = (porDia[a.dataAtestado]||0)+1; });
+  const diasOrdenados = Object.keys(porDia).sort();
+  criarChart("saudePorDia", "chart-saude-por-dia", {
+    type:"bar",
+    data:{ labels:diasOrdenados.map(formataData), datasets:[{label:"Registros", data:diasOrdenados.map(d=>porDia[d]), backgroundColor:"#00733f", borderRadius:3}]},
+    options:{plugins:{legend:{display:false}}, scales:{x:{ticks:{maxTicksLimit:16}}, y:{beginAtZero:true, ticks:{precision:0}}}}
+  });
+
   const porUnidade = {};
   dados.forEach(a=>{ if(a.loja){ porUnidade[a.loja] = (porUnidade[a.loja]||0)+1; } });
   const topUnidades = Object.entries(porUnidade).sort((a,b)=>b[1]-a[1]).slice(0,12);
@@ -256,13 +276,80 @@ function renderSaudeVisaoGeral(){
     options:{indexAxis:"y", plugins:{legend:{display:false}}, scales:{x:{beginAtZero:true, ticks:{precision:0}}}}
   });
 
-  const porRegional = {};
-  dados.forEach(a=>{ const r = a.regional||"Não mapeado"; porRegional[r] = (porRegional[r]||0)+1; });
-  criarChart("saudeRegional", "chart-saude-regional", {
-    type:"doughnut",
-    data:{ labels:Object.keys(porRegional), datasets:[{data:Object.values(porRegional), backgroundColor:["#00733f","#faa61a","#a15a33","#a35e8e","#24a076","#f06650","#54412f","#9f8167","#54be95"], borderWidth:2, borderColor:"#fffdfa"}]},
-    options:{plugins:{legend:{position:"bottom", labels:{font:{size:10}}}}}
+  renderSaudeHeatmap(porDia);
+
+  // ranking por setor / função
+  const porSetor = {};
+  dados.forEach(a=>{ if(a.setor) porSetor[a.setor] = (porSetor[a.setor]||0)+1; });
+  const topSetores = Object.entries(porSetor).sort((a,b)=>b[1]-a[1]).slice(0,12);
+  criarChart("saudeSetor", "chart-saude-setor", {
+    type:"bar",
+    data:{ labels:topSetores.map(s=>s[0]), datasets:[{label:"Registros", data:topSetores.map(s=>s[1]), backgroundColor:"#a15a33", borderRadius:6}]},
+    options:{indexAxis:"y", plugins:{legend:{display:false}}, scales:{x:{beginAtZero:true, ticks:{precision:0}}}}
   });
+
+  const porFuncao = {};
+  dados.forEach(a=>{ if(a.funcao) porFuncao[a.funcao] = (porFuncao[a.funcao]||0)+1; });
+  const topFuncoes = Object.entries(porFuncao).sort((a,b)=>b[1]-a[1]).slice(0,12);
+  criarChart("saudeFuncao", "chart-saude-funcao", {
+    type:"bar",
+    data:{ labels:topFuncoes.map(f=>f[0]), datasets:[{label:"Registros", data:topFuncoes.map(f=>f[1]), backgroundColor:"#9f8167", borderRadius:6}]},
+    options:{indexAxis:"y", plugins:{legend:{display:false}}, scales:{x:{beginAtZero:true, ticks:{precision:0}}}}
+  });
+
+  // comparativo mês a mês (um traço/série por ano) e comparativo anual
+  const paleta = ["#00733f","#faa61a","#a35e8e","#ee3135","#54412f"];
+  const anos = [...new Set(mesesOrdenados.map(m=>m.slice(0,4)))].sort();
+  criarChart("saudeComparativoMensal", "chart-saude-comparativo-mensal", {
+    type:"bar",
+    data:{ labels:nomesMes, datasets:anos.map((ano,i)=>({
+      label:ano,
+      data:nomesMes.map((_,mi)=>{ const chave = ano+"-"+String(mi+1).padStart(2,"0"); return mesGrupos[chave] ? mesGrupos[chave].length : 0; }),
+      backgroundColor:paleta[i%paleta.length], borderRadius:4
+    }))},
+    options:{scales:{y:{beginAtZero:true, ticks:{precision:0}}}}
+  });
+
+  const porAno = {};
+  comData.forEach(a=>{ const ano = a.dataAtestado.slice(0,4); porAno[ano] = (porAno[ano]||0)+1; });
+  const anosOrdenados = Object.keys(porAno).sort();
+  criarChart("saudeComparativoAnual", "chart-saude-comparativo-anual", {
+    type:"bar",
+    data:{ labels:anosOrdenados, datasets:[{label:"Registros", data:anosOrdenados.map(a=>porAno[a]), backgroundColor:"#00733f", borderRadius:8}]},
+    options:{plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true, ticks:{precision:0}}}}
+  });
+}
+
+// Mapa de calor de ausências: um grid "estilo contribuições" (semanas em
+// colunas, dias da semana em linhas), sem Chart.js — é só HTML/CSS mesmo.
+function renderSaudeHeatmap(porDia){
+  const el = document.getElementById("saude-heatmap");
+  if(!el) return;
+  const dias = Object.keys(porDia).sort();
+  if(!dias.length){ el.innerHTML = '<span class="sub">Sem dados para os filtros selecionados.</span>'; return; }
+
+  const max = Math.max(...Object.values(porDia));
+  const nivel = v=>{
+    if(!v) return 0;
+    if(max<=1) return v>0 ? 4 : 0;
+    const r = v/max;
+    if(r>0.75) return 4; if(r>0.5) return 3; if(r>0.25) return 2; return 1;
+  };
+
+  // preenche todo o intervalo de datas (inclusive os dias sem registro), do
+  // primeiro domingo antes da primeira data até a última data
+  const primeira = new Date(dias[0]+"T00:00:00");
+  const ultima = new Date(dias[dias.length-1]+"T00:00:00");
+  const inicio = new Date(primeira); inicio.setDate(inicio.getDate() - inicio.getDay());
+
+  let html = "";
+  for(let d = new Date(inicio); d<=ultima; d.setDate(d.getDate()+1)){
+    const chave = d.toISOString().slice(0,10);
+    const v = porDia[chave]||0;
+    const n = chave < dias[0] ? "" : nivel(v);
+    html += `<div class="hm-dia" data-nivel="${n}" title="${formataData(chave)}: ${v} registro(s)"></div>`;
+  }
+  el.innerHTML = html;
 }
 
 /* ---- LOJAS & REGIONAIS ---- */
@@ -314,6 +401,13 @@ function renderSaudeLojasRegionais(){
 // Tabela "Detalhamento por loja" — fica na sub-área Tabelas, por isso não
 // depende dos filtros globais da tela de Saúde (usa toda a base + seu
 // próprio filtro de regional).
+let ordenacaoSaudeLojas = {campo:"qtd", dir:-1};
+function ordenarSaudeTabelaLojas(campo){
+  if(ordenacaoSaudeLojas.campo===campo) ordenacaoSaudeLojas.dir *= -1;
+  else ordenacaoSaudeLojas = {campo, dir: (campo==="qtd"||campo==="dias"||campo==="colaboradores") ? -1 : 1};
+  renderSaudeTabelaLojas();
+}
+
 function renderSaudeTabelaLojas(){
   const tbody = document.getElementById("tbl-saude-lojas");
   if(!tbody) return;
@@ -327,7 +421,18 @@ function renderSaudeTabelaLojas(){
   });
   let linhas = Object.entries(lojaGrupos);
   if(regionalFiltro) linhas = linhas.filter(l=>l[1].regional===regionalFiltro);
-  linhas = linhas.sort((a,b)=>b[1].qtd-a[1].qtd);
+
+  const {campo, dir} = ordenacaoSaudeLojas;
+  linhas = linhas.sort((a,b)=>{
+    let va, vb;
+    if(campo==="loja"){ va=a[0]; vb=b[0]; }
+    else if(campo==="regional"){ va=a[1].regional||""; vb=b[1].regional||""; }
+    else if(campo==="colaboradores"){ va=a[1].matriculas.size; vb=b[1].matriculas.size; }
+    else { va=a[1][campo]; vb=b[1][campo]; }
+    if(typeof va==="string") return va.localeCompare(vb)*dir;
+    return (va-vb)*dir;
+  });
+
   if(!linhas.length){
     tbody.innerHTML = `<tr><td colspan="5"><div class="lista-vazio"><b>Nenhum registro encontrado</b>Ajuste os filtros para ver os resultados.</div></td></tr>`;
   }else{
@@ -405,11 +510,24 @@ function renderSaudeReincidencia(){
   document.getElementById("sd-kpi-pct-reincidencia").textContent = colaboradores.length ? Math.round(reincidentes.length/colaboradores.length*100)+"%" : "0%";
 }
 
+let ordenacaoSaudeReincidencia = {campo:"qtd", dir:-1};
+function ordenarSaudeTabelaReincidencia(campo){
+  if(ordenacaoSaudeReincidencia.campo===campo) ordenacaoSaudeReincidencia.dir *= -1;
+  else ordenacaoSaudeReincidencia = {campo, dir: (campo==="qtd"||campo==="dias") ? -1 : 1};
+  renderSaudeTabelaReincidencia();
+}
+
 // Tabela de reincidência — fica na sub-área Tabelas, usa a base inteira
 function renderSaudeTabelaReincidencia(){
   const tbody = document.getElementById("tbl-saude-reincidencia");
   if(!tbody) return;
   const {reincidentes} = calcularReincidentesSaude(ATESTADOS);
+  const {campo, dir} = ordenacaoSaudeReincidencia;
+  reincidentes.sort((a,b)=>{
+    const va = a[campo], vb = b[campo];
+    if(typeof va==="string") return (va||"").localeCompare(vb||"")*dir;
+    return ((va||0)-(vb||0))*dir;
+  });
   if(!reincidentes.length){
     tbody.innerHTML = `<tr><td colspan="6"><div class="lista-vazio"><b>Nenhum colaborador reincidente</b>Ninguém com 2 ou mais registros na base.</div></td></tr>`;
     return;
