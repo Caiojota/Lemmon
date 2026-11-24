@@ -29,18 +29,13 @@ function mostrarSubSaude(sub){
   document.getElementById("saude-sub-"+sub).classList.add("active");
 }
 
-let saudeStatusTimeout = null;
-// Mostra uma mensagem curta e transitória ao lado do botão de importar
+// Mostra o status da importação (fica em Gestão > Bases, mesmo padrão do
+// Absenteísmo: uma linha de texto que fica visível, sem some-sozinho).
 function mostrarStatusImport(msg, cor){
   const status = document.getElementById("sd-import-status");
   if(!status) return;
-  clearTimeout(saudeStatusTimeout);
   status.style.color = cor||"var(--areia-esc)";
   status.textContent = msg;
-  status.style.display = "inline";
-  if(cor==="var(--verde-esc)"){
-    saudeStatusTimeout = setTimeout(()=>{ status.style.display = "none"; }, 4000);
-  }
 }
 
 // Função do módulo: importar backup atestados

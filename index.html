@@ -29,19 +29,19 @@
 <script src="lib/jszip.js"></script>
 <script src="lib/pptxgenjs.js"></script>
 
-<link rel="stylesheet" href="css/08-base.css?v=23">
-<link rel="stylesheet" href="css/09-agenda-unificada.css?v=23">
-<link rel="stylesheet" href="css/10-visual-ios.css?v=23">
-<link rel="stylesheet" href="css/11-icones.css?v=23">
-<link rel="stylesheet" href="css/12-sons.css?v=23">
+<link rel="stylesheet" href="css/08-base.css?v=24">
+<link rel="stylesheet" href="css/09-agenda-unificada.css?v=24">
+<link rel="stylesheet" href="css/10-visual-ios.css?v=24">
+<link rel="stylesheet" href="css/11-icones.css?v=24">
+<link rel="stylesheet" href="css/12-sons.css?v=24">
 <script src="lib/qrcode.js"></script>
-<link rel="stylesheet" href="css/14-vistorial.css?v=23">
-<link rel="stylesheet" href="css/15-extras-1.css?v=23">
-<link rel="stylesheet" href="css/16-extras-2.css?v=23">
-<link rel="stylesheet" href="css/17-inicio-v2.css?v=23">
-<link rel="stylesheet" href="css/18-modais-v2.css?v=23">
-<link rel="stylesheet" href="css/19-modais-v2b.css?v=23">
-<link rel="stylesheet" href="css/20-mobile.css?v=23">
+<link rel="stylesheet" href="css/14-vistorial.css?v=24">
+<link rel="stylesheet" href="css/15-extras-1.css?v=24">
+<link rel="stylesheet" href="css/16-extras-2.css?v=24">
+<link rel="stylesheet" href="css/17-inicio-v2.css?v=24">
+<link rel="stylesheet" href="css/18-modais-v2.css?v=24">
+<link rel="stylesheet" href="css/19-modais-v2b.css?v=24">
+<link rel="stylesheet" href="css/20-mobile.css?v=24">
 </head>
 <body>
 
@@ -1007,11 +1007,6 @@
       <section class="view" id="view-saude">
         <div class="topbar">
           <div><h2>Saúde</h2></div>
-          <div id="sd-import-wrap" style="display:flex; align-items:center; gap:10px;">
-            <span class="sub" id="sd-import-status" style="display:none;"></span>
-            <input type="file" id="sd-import-file" accept=".xlsx,.xls" style="display:none;" onchange="importarBackupAtestados()">
-            <button type="button" class="btn-icon-minimal" title="Importar base de atestados (.xlsx)" onclick="document.getElementById('sd-import-file').click()">↑</button>
-          </div>
         </div>
 
         <div class="filters">
@@ -1560,7 +1555,7 @@
             <button type="button" class="insp-tab" data-sub="absenteismo" onclick="mostrarSubGestao('absenteismo')"><span class="gs-ic"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg></span>Absenteísmo</button>
             <button type="button" class="insp-tab" data-sub="disponibilidade" onclick="mostrarSubGestao('disponibilidade')"><span class="gs-ic"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 19a8 8 0 1 1 14 0"/><path d="m12 13 3.5-4"/></svg></span>Disponibilidade</button>
             <div class="gs-grupo">Dados e controle</div>
-            <button type="button" class="insp-tab" data-sub="importar" onclick="mostrarSubGestao('importar')"><span class="gs-ic"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4m0 0L7.5 8.5M12 4l4.5 4.5"/><path d="M4 15v3.5A1.5 1.5 0 0 0 5.5 20h13a1.5 1.5 0 0 0 1.5-1.5V15"/></svg></span>Importar Dados</button>
+            <button type="button" class="insp-tab" data-sub="importar" onclick="mostrarSubGestao('importar')"><span class="gs-ic"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4m0 0L7.5 8.5M12 4l4.5 4.5"/><path d="M4 15v3.5A1.5 1.5 0 0 0 5.5 20h13a1.5 1.5 0 0 0 1.5-1.5V15"/></svg></span>Bases</button>
             <button type="button" class="insp-tab" data-sub="auditoria" onclick="mostrarSubGestao('auditoria')"><span class="gs-ic"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="10.5" cy="10.5" r="6"/><path d="m15 15 5 5"/></svg></span>Auditoria</button>
           </aside>
           <div class="gs-conteudo">
@@ -1654,7 +1649,18 @@
         <div class="insp-sub" id="gestao-sub-importar">
           <div class="gs-cab">
             <span class="gs-cab-ic"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4m0 0L7.5 8.5M12 4l4.5 4.5"/><path d="M4 15v3.5A1.5 1.5 0 0 0 5.5 20h13a1.5 1.5 0 0 0 1.5-1.5V15"/></svg></span>
-            <div class="gs-cab-txt"><h3>Importar Dados</h3><p>Importe bases de dados existentes para a plataforma. Cada seção abaixo tem seu próprio modelo de planilha.</p></div>
+            <div class="gs-cab-txt"><h3>Bases</h3><p>Importe bases de dados existentes para a plataforma. Cada seção abaixo é de um módulo diferente, com seu próprio modelo de planilha.</p></div>
+          </div>
+
+          <div class="section-title"><span>Saúde / Atestados</span><div class="ln"></div></div>
+          <div class="card" style="margin-bottom:18px;">
+            <h3>Importar base de atestados</h3>
+            <span class="sub">Aceita tanto a aba "Atestados" (painel completo) quanto a aba "BASE BOT" + "REGIONAIS" (levantamento semanal). A leitura acontece aqui no seu navegador, sem limite de linhas.</span>
+            <div style="display:flex; gap:10px; align-items:center; margin-top:10px; flex-wrap:wrap;">
+              <input type="file" id="sd-import-file" accept=".xlsx,.xls">
+              <button type="button" class="btn-primary inline" onclick="importarBackupAtestados()">Importar arquivo</button>
+            </div>
+            <span class="sub" id="sd-import-status" style="display:block; margin-top:10px; font-weight:600;"></span>
           </div>
 
           <div class="section-title"><span>Acidentes e Incidentes</span><div class="ln"></div></div>
@@ -2629,25 +2635,25 @@
   </div>
 </div>
 
-<script src="js/01-nucleo.js?v=23"></script>
-<script src="js/02-dashboard-acidentes.js?v=23"></script>
-<script src="js/03-inspecoes-checklist.js?v=23"></script>
-<script src="js/04-demandas.js?v=23"></script>
-<script src="js/05-reunioes-dailys.js?v=23"></script>
-<script src="js/06-gestao-config.js?v=23"></script>
-<script src="js/07-notificacoes.js?v=23"></script>
-<script src="js/08-saude.js?v=23"></script>
-<script src="js/09-ficha-epi.js?v=23"></script>
-<script src="js/10-absenteismo.js?v=23"></script>
-<script src="js/11-agenda.js?v=23"></script>
-<script src="js/12-inicio.js?v=23"></script>
-<script src="js/13-calendario.js?v=23"></script>
-<script src="js/14-convites-ausencias.js?v=23"></script>
-<script src="js/15-usuarios.js?v=23"></script>
-<script src="js/16-vistoria.js?v=23"></script>
-<script src="js/17-vistoria-publica.js?v=23"></script>
-<script src="js/18-entrega-epi.js?v=23"></script>
-<script src="js/99-inicializacao.js?v=23"></script>
+<script src="js/01-nucleo.js?v=24"></script>
+<script src="js/02-dashboard-acidentes.js?v=24"></script>
+<script src="js/03-inspecoes-checklist.js?v=24"></script>
+<script src="js/04-demandas.js?v=24"></script>
+<script src="js/05-reunioes-dailys.js?v=24"></script>
+<script src="js/06-gestao-config.js?v=24"></script>
+<script src="js/07-notificacoes.js?v=24"></script>
+<script src="js/08-saude.js?v=24"></script>
+<script src="js/09-ficha-epi.js?v=24"></script>
+<script src="js/10-absenteismo.js?v=24"></script>
+<script src="js/11-agenda.js?v=24"></script>
+<script src="js/12-inicio.js?v=24"></script>
+<script src="js/13-calendario.js?v=24"></script>
+<script src="js/14-convites-ausencias.js?v=24"></script>
+<script src="js/15-usuarios.js?v=24"></script>
+<script src="js/16-vistoria.js?v=24"></script>
+<script src="js/17-vistoria-publica.js?v=24"></script>
+<script src="js/18-entrega-epi.js?v=24"></script>
+<script src="js/99-inicializacao.js?v=24"></script>
 <script>
   // Registra o Service Worker (só a "casca" do app fica em cache; nenhum dado do Supabase)
   if("serviceWorker" in navigator){
