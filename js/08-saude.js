@@ -13,20 +13,32 @@ const SAUDE_DIAS_CAP = 180;
 
 // Inicializa: init saude
 function initSaude(){
-  const cardImportar = document.getElementById("sd-card-importar");
-  if(cardImportar) cardImportar.style.display = ehAdminOuCoordenador() ? "block" : "none";
+  const wrapImportar = document.getElementById("sd-import-wrap");
+  if(wrapImportar) wrapImportar.style.display = ehAdminOuCoordenador() ? "flex" : "none";
   popularFiltrosSaude();
   renderSaudeAtual();
+}
+
+let saudeStatusTimeout = null;
+// Mostra uma mensagem curta e transitória ao lado do botão de importar
+function mostrarStatusImport(msg, cor){
+  const status = document.getElementById("sd-import-status");
+  if(!status) return;
+  clearTimeout(saudeStatusTimeout);
+  status.style.color = cor||"var(--areia-esc)";
+  status.textContent = msg;
+  status.style.display = "inline";
+  if(cor==="var(--verde-esc)"){
+    saudeStatusTimeout = setTimeout(()=>{ status.style.display = "none"; }, 4000);
+  }
 }
 
 // Função do módulo: importar backup atestados
 async function importarBackupAtestados(){
   const input = document.getElementById("sd-import-file");
-  const status = document.getElementById("sd-import-status");
   const file = input.files[0];
-  if(!file){ status.style.color="var(--vermelho)"; status.textContent = "Selecione um arquivo primeiro."; return; }
-  status.style.color = "var(--areia-esc)";
-  status.textContent = "Lendo o arquivo...";
+  if(!file){ mostrarStatusImport("Selecione um arquivo primeiro.", "var(--vermelho)"); return; }
+  mostrarStatusImport("Lendo o arquivo...");
   try{
     const buf = await file.arrayBuffer();
     const wb = XLSX.read(buf, {type:"array", cellDates:true});
@@ -61,25 +73,17 @@ async function importarBackupAtestados(){
     }
 
     if(!registros.length){
-      status.style.color = "var(--vermelho)";
-      status.textContent = 'Não encontrei nenhuma aba reconhecida ("Atestados" ou "BASE BOT") nesse arquivo.';
+      mostrarStatusImport('Não encontrei nenhuma aba reconhecida ("Atestados" ou "BASE BOT") nesse arquivo.', "var(--vermelho)");
       return;
-    }
-
-    if(document.getElementById("sd-import-substituir").checked){
-      status.textContent = "Limpando a base atual...";
-      const { error: delError } = await sb.from("atestados").delete().neq("id", 0);
-      if(delError){ status.style.color="var(--vermelho)"; status.textContent = "Erro ao limpar a base: "+delError.message; return; }
-      ATESTADOS = [];
     }
 
     const LOTE = 500;
     let inseridos = 0;
     for(let i=0; i<registros.length; i+=LOTE){
       const lote = registros.slice(i, i+LOTE);
-      status.textContent = "Importando... "+Math.min(i+LOTE, registros.length)+" de "+registros.length;
+      mostrarStatusImport("Importando... "+Math.min(i+LOTE, registros.length)+" de "+registros.length);
       const { data, error } = await sb.from("atestados").insert(lote).select();
-      if(error){ status.style.color="var(--vermelho)"; status.textContent = "Erro ao importar (parou em "+inseridos+" registros): "+error.message; return; }
+      if(error){ mostrarStatusImport("Erro ao importar (parou em "+inseridos+" registros): "+error.message, "var(--vermelho)"); return; }
       (data||[]).forEach(a=>{
         ATESTADOS.push({
           id:a.id, matricula:a.matricula, nome:a.nome, loja:a.loja, regional:a.regional,
@@ -91,15 +95,13 @@ async function importarBackupAtestados(){
       inseridos += lote.length;
     }
 
-    status.style.color = "var(--verde-esc)";
-    status.textContent = inseridos+" registro(s) importado(s) com sucesso!";
+    mostrarStatusImport(inseridos+" registro(s) importado(s) com sucesso!", "var(--verde-esc)");
     input.value = "";
     popularFiltrosSaude();
     renderSaudeAtual();
     renderSaudeRegistros();
   }catch(e){
-    status.style.color = "var(--vermelho)";
-    status.textContent = "Erro ao processar o arquivo: "+e.message;
+    mostrarStatusImport("Erro ao processar o arquivo: "+e.message, "var(--vermelho)");
   }
 }
 

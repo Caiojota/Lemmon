@@ -309,6 +309,9 @@ button.userbox[aria-expanded="true"] .user-caret{transform:rotate(180deg);}
 .chk-dropdown-acoes button{background:none; border:none; font-size:11px; font-weight:700; color:var(--verde-esc); cursor:pointer; padding:2px 4px;}
 .chk-dropdown-acoes button:hover{text-decoration:underline;}
 
+.btn-icon-minimal{width:34px; height:34px; border-radius:50%; border:1.5px solid var(--areia-cla); background:var(--branco); color:var(--verde-esc); font-size:16px; font-weight:700; line-height:1; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:background .15s, border-color .15s;}
+.btn-icon-minimal:hover{background:var(--creme); border-color:var(--verde-viv);}
+
 /* ---- grid de gráficos ---- */
 .grid-2{display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px;}
 .grid-3{display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px; margin-bottom:16px;}

@@ -183,7 +183,7 @@ function abrirDetalheChart(key){
       const pct = Math.round((qtd/total)*1000)/10;
       const temRegistros = meta.grupos && meta.grupos[lbl] && meta.grupos[lbl].length;
       return `<tr ${temRegistros?`style="cursor:pointer;" onclick="mostrarRegistrosDetalheChart('${escHtml(String(lbl)).replace(/'/g,"&#39;")}')"`:""}>
-        <td>${escHtml(String(lbl))}${temRegistros?' <span class="sub">(clique para ver os acidentes)</span>':""}</td>
+        <td>${escHtml(String(lbl))}${temRegistros?' <span class="sub">(clique para ver os registros)</span>':""}</td>
         <td>${qtd}</td>
         <td>${pct}%</td>
       </tr>`;
@@ -200,7 +200,7 @@ function mostrarRegistrosDetalheChart(label){
   const meta = CHART_META[chartDetalheChaveAtual];
   if(!meta || !meta.grupos) return;
   const registros = (meta.grupos[label]||[]).slice().sort((a,b)=> a.data<b.data?1:-1);
-  document.getElementById("chart-detalhe-categoria-titulo").textContent = label+" — "+registros.length+" acidente(s)";
+  document.getElementById("chart-detalhe-categoria-titulo").textContent = label+" — "+registros.length+" registro(s)";
   const tbody = document.getElementById("chart-detalhe-registros-tbody");
   tbody.innerHTML = registros.map(a=>`
     <tr>
