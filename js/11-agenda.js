@@ -952,7 +952,7 @@ function renderIndicadoresAgenda(){
 
   const tbody = document.getElementById("tbl-agenda-todas-visitas");
   if(!visitas.length){
-    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--areia-esc);padding:16px;">Nenhuma visita para os filtros selecionados.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;color:var(--areia-esc);padding:16px;">Nenhuma visita para os filtros selecionados.</td></tr>';
     return;
   }
   tbody.innerHTML = visitas.map(v=>{
@@ -966,8 +966,22 @@ function renderIndicadoresAgenda(){
       <td>${celulaPresencaAgenda(v, v.checkin)}</td>
       <td>${celulaPresencaAgenda(v, v.checkout)}</td>
       <td>${temRelatorio ? `<span class="tag-status concluido">Feito</span> <button type="button" class="small-btn" onclick="verDetalheInspecao(${temRelatorio.id})">Ver</button>` : '<span class="tag-status notificado">Não feito</span>'}</td>
+      <td>${celulaRelatorioVistorialAgenda(v)}</td>
     </tr>`;
   }).join("");
+}
+
+// Coluna "Relatório vistorial" da tabela de visitas: mostra se o relatório
+// vistorial (o que bloqueia o check-out — ver vistBloqueiaCheckout) já foi
+// emitido, se essa exigência foi dispensada manualmente, ou, se a visita
+// ainda não tem check-out, dá ao gestor o botão pra liberar.
+function celulaRelatorioVistorialAgenda(v){
+  if(typeof calEhLocalTrabalho==="function" && calEhLocalTrabalho(v.unidade)) return '<span class="sub">— (local de trabalho)</span>';
+  const rel = (typeof VIST_REL!=="undefined" ? VIST_REL : []).find(r=>r.agendaId===v.id);
+  if(rel && rel.status==="Finalizado") return '<span class="tag-status concluido">Emitido</span>';
+  if(v.dispensaRelatorio) return '<span class="tag-status concluido" title="Liberado em '+(v.dispensaRelatorioEm?formatarDataBR(v.dispensaRelatorioEm.slice(0,10)):"")+'">Liberado sem relatório</span>';
+  if(v.checkout) return '<span class="sub">—</span>';
+  return `<button type="button" class="small-btn" onclick="vistLiberarCheckoutSemRelatorio(${v.id})">Liberar check-out</button>`;
 }
 
 // Função do módulo: segunda da semana

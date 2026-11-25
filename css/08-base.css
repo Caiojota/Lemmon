@@ -288,6 +288,7 @@ button.userbox[aria-expanded="true"] .user-caret{transform:rotate(180deg);}
 .topbar{display:flex; align-items:center; justify-content:space-between; margin-bottom:26px; flex-wrap:wrap; gap:12px;}
 .topbar .eyebrow{font-family:var(--f-mono); text-transform:uppercase; letter-spacing:.6px; color:var(--areia-esc); font-size:11px; display:block; margin-bottom:3px;}
 .topbar h2{font-size:23px; font-weight:800; letter-spacing:-.2px;}
+.topbar h2 + .sub{display:block; font-size:13px; color:var(--areia-esc); margin-top:4px; font-weight:400;}
 .pill{display:inline-flex; align-items:center; gap:6px; background:var(--branco); border:1px solid var(--areia-cla); padding:8px 13px; border-radius:10px; font-family:var(--f-mono); font-size:12px; font-weight:600; color:var(--marrom-esc); box-shadow:var(--sombra);}
 
 .view{display:none;}
@@ -1781,3 +1782,33 @@ html:has(#app[style*="block"]), html:has(#app[style*="block"]) body{height:100%;
 .dm-kpis#ef-kpis{margin-bottom:8px;}
 #ef-painel-catalogo{max-height:max(300px, calc(125dvh - var(--hdr) - 264px)); overflow:auto; padding:12px 16px;}
 .ef-cat-linha{padding:6px 10px !important;}
+
+/* ================= AET > MÉTODO NIOSH ================= */
+.aet-medidas-grid{grid-template-columns:repeat(5,1fr);}
+@media (max-width:1100px){ .aet-medidas-grid{grid-template-columns:repeat(2,1fr);} }
+
+.aet-resultado{border:2px solid var(--verde-esc);}
+.aet-resultado.aet-ruim{border-color:var(--vermelho);}
+.aet-resultado-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin:14px 0;}
+.aet-resultado-tile{background:var(--areia-cla); border-radius:12px; padding:16px; text-align:center;}
+.aet-resultado-tile .n{font-family:var(--f-heading); font-size:28px; font-weight:800; color:var(--marrom-esc);}
+.aet-resultado-tile .l{font-family:var(--f-mono); font-size:10.5px; text-transform:uppercase; letter-spacing:.3px; color:var(--areia-esc); margin-top:4px;}
+.aet-resultado-classificacao.bom{background:#dcf0e2;}
+.aet-resultado-classificacao.bom .n, .aet-resultado-classificacao.bom .l{color:var(--verde-esc);}
+.aet-resultado-classificacao.ruim{background:#fbe3e2;}
+.aet-resultado-classificacao.ruim .n, .aet-resultado-classificacao.ruim .l{color:var(--vermelho);}
+.aet-resultado-msg{font-size:13.5px; color:var(--marrom-esc); text-align:center; margin-top:4px;}
+
+.aet-help-nav{display:flex; gap:6px; flex-wrap:wrap; margin-bottom:16px; position:sticky; top:0; background:var(--branco); padding-bottom:8px; z-index:2;}
+.aet-help-nav button{background:var(--areia-cla); border:none; border-radius:8px; padding:7px 14px; font-size:12.5px; font-weight:700; color:var(--marrom-esc); cursor:pointer;}
+.aet-help-nav button:hover, .aet-help-nav button.ativo{background:var(--verde-esc); color:#fff;}
+.aet-help-body{max-height:62vh; overflow-y:auto;}
+.aet-help-sec{padding-bottom:28px; margin-bottom:24px; border-bottom:1px solid var(--areia-cla);}
+.aet-help-sec:last-child{border-bottom:none;}
+.aet-help-sec h4{font-size:15.5px; margin-bottom:10px; color:var(--marrom-esc);}
+.aet-help-sec p{font-size:13.5px; line-height:1.55; color:var(--marrom-esc); margin-bottom:10px;}
+.aet-diagrama{width:100%; max-width:260px; display:block; margin:10px 0;}
+.aet-formula{font-family:var(--f-mono); font-size:13px; background:var(--areia-cla); padding:12px 14px; border-radius:8px; display:inline-block;}
+.aet-tabela-ref{font-size:11.5px; border-collapse:collapse; margin-top:8px;}
+.aet-tabela-ref th, .aet-tabela-ref td{border:1px solid var(--areia-cla); padding:4px 8px; text-align:center;}
+.aet-tabela-ref th{background:var(--areia-cla); font-weight:700;}

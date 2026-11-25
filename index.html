@@ -29,19 +29,19 @@
 <script src="lib/jszip.js"></script>
 <script src="lib/pptxgenjs.js"></script>
 
-<link rel="stylesheet" href="css/08-base.css?v=31">
-<link rel="stylesheet" href="css/09-agenda-unificada.css?v=31">
-<link rel="stylesheet" href="css/10-visual-ios.css?v=31">
-<link rel="stylesheet" href="css/11-icones.css?v=31">
-<link rel="stylesheet" href="css/12-sons.css?v=31">
+<link rel="stylesheet" href="css/08-base.css?v=33">
+<link rel="stylesheet" href="css/09-agenda-unificada.css?v=33">
+<link rel="stylesheet" href="css/10-visual-ios.css?v=33">
+<link rel="stylesheet" href="css/11-icones.css?v=33">
+<link rel="stylesheet" href="css/12-sons.css?v=33">
 <script src="lib/qrcode.js"></script>
-<link rel="stylesheet" href="css/14-vistorial.css?v=31">
-<link rel="stylesheet" href="css/15-extras-1.css?v=31">
-<link rel="stylesheet" href="css/16-extras-2.css?v=31">
-<link rel="stylesheet" href="css/17-inicio-v2.css?v=31">
-<link rel="stylesheet" href="css/18-modais-v2.css?v=31">
-<link rel="stylesheet" href="css/19-modais-v2b.css?v=31">
-<link rel="stylesheet" href="css/20-mobile.css?v=31">
+<link rel="stylesheet" href="css/14-vistorial.css?v=33">
+<link rel="stylesheet" href="css/15-extras-1.css?v=33">
+<link rel="stylesheet" href="css/16-extras-2.css?v=33">
+<link rel="stylesheet" href="css/17-inicio-v2.css?v=33">
+<link rel="stylesheet" href="css/18-modais-v2.css?v=33">
+<link rel="stylesheet" href="css/19-modais-v2b.css?v=33">
+<link rel="stylesheet" href="css/20-mobile.css?v=33">
 </head>
 <body>
 
@@ -168,6 +168,7 @@
       <a href="#" class="nav-item" data-view="reunioes"><span class="ic"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M16 11a3 3 0 1 0-3-3 3 3 0 0 0 3 3Zm-8 0a3 3 0 1 0-3-3 3 3 0 0 0 3 3Zm0 2c-2.3 0-7 1.2-7 3.5V19h14v-2.5C15 14.2 10.3 13 8 13Zm8 0c-.3 0-.6 0-1 .1 1.2.8 2 1.9 2 3.4V19h6v-2.5c0-2.3-4.7-3.5-7-3.5Z"/></svg></span> Reuniões</a>
       <a href="#" class="nav-item" data-view="tarefas"><span class="ic"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3 8-8M20 12v6a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h9"/></svg></span> Tarefas</a>
       <a href="#" class="nav-item" data-view="dashboards"><span class="ic"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg></span> Dashboards</a>
+      <a href="#" class="nav-item" data-view="aet"><span class="ic"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5ZM12 7v6m0 0-4 7m4-7 4 7M7 9l-2 2m14-2 2 2"/></svg></span> AET</a>
     </nav>
 
     <!-- CONTEÚDO -->
@@ -800,7 +801,7 @@
               <span class="sub" style="display:block; margin-bottom:10px;">Geolocalização de check-in/check-out e cruzamento com relatórios de inspeção.</span>
               <div class="table-wrap">
                 <table>
-                  <thead><tr><th>Data</th><th>Período</th><th>Profissional</th><th>Unidade</th><th>Motivo</th><th>Check-in</th><th>Check-out</th><th>Relatório de inspeção</th></tr></thead>
+                  <thead><tr><th>Data</th><th>Período</th><th>Profissional</th><th>Unidade</th><th>Motivo</th><th>Check-in</th><th>Check-out</th><th>Relatório de inspeção</th><th>Relatório vistorial</th></tr></thead>
                   <tbody id="tbl-agenda-todas-visitas"></tbody>
                 </table>
               </div>
@@ -1020,6 +1021,257 @@
           </div>
         </div>
       </section>
+
+      <!-- ============ AET > MÉTODO NIOSH ============ -->
+      <div id="aet-niosh-root">
+        <div class="topbar">
+          <div><h2>Método NIOSH</h2><span class="sub">Equação de levantamento de carga do NIOSH — calcula o peso máximo recomendado e o risco da tarefa.</span></div>
+          <button type="button" class="btn-secondary" onclick="aetAbrirAjuda()">Como usar / O que significa cada campo</button>
+        </div>
+
+        <div class="form-card">
+          <h3 style="margin-bottom:16px;">Identificação</h3>
+          <div class="form-grid">
+            <div class="field"><label>Nome do colaborador</label><input type="text" id="an-nome" placeholder="Nome completo"></div>
+            <div class="field"><label>Empresa</label><input type="text" id="an-empresa" list="aet-dl-empresas" placeholder="ex.: Americanas S.A."></div>
+            <div class="field"><label>Unidade</label><select id="an-unidade"><option value="">Selecione...</option></select></div>
+            <div class="field"><label>Setor</label><select id="an-setor"><option value="">Selecione...</option></select></div>
+            <div class="field"><label>Função</label><select id="an-funcao"><option value="">Selecione...</option></select></div>
+            <div class="field full"><label>Peça / objeto levantado</label><input type="text" id="an-peca" placeholder="ex.: Caixa de hortifruti, saco de ração, engradado..."></div>
+          </div>
+          <datalist id="aet-dl-empresas"></datalist>
+        </div>
+
+        <div class="form-card">
+          <h3 style="margin-bottom:4px;">Medições do posto de trabalho</h3>
+          <span class="sub" style="display:block; margin-bottom:16px;">Tire essas medidas no momento em que o colaborador pega e larga a carga. Em dúvida de como medir, use "Como usar" acima.</span>
+          <div class="form-grid aet-medidas-grid">
+            <div class="field"><label>H — Distância horizontal (cm)</label><input type="number" id="an-h" min="0" step="0.1" placeholder="ex.: 30"></div>
+            <div class="field"><label>V — Distância vertical (cm)</label><input type="number" id="an-v" min="0" step="0.1" placeholder="ex.: 75"></div>
+            <div class="field"><label>D — Deslocamento vertical (cm)</label><input type="number" id="an-d" min="0" step="0.1" placeholder="ex.: 40"></div>
+            <div class="field"><label>A — Ângulo de torção do tronco (°)</label><input type="number" id="an-a" min="0" max="135" step="1" placeholder="0 a 135"></div>
+            <div class="field"><label>P — Peso da carga (kg)</label><input type="number" id="an-p" min="0" step="0.1" placeholder="ex.: 12"></div>
+          </div>
+        </div>
+
+        <div class="form-card">
+          <h3 style="margin-bottom:16px;">Frequência, duração e qualidade da pega</h3>
+          <div class="form-grid">
+            <div class="field"><label>Frequência (levantamentos por minuto)</label><input type="number" id="an-freq" min="0" step="0.1" placeholder="ex.: 2"></div>
+            <div class="field"><label>Duração do trabalho</label>
+              <select id="an-duracao">
+                <option value="1">Até 1 hora</option>
+                <option value="2">Até 2 horas</option>
+                <option value="8" selected>Até 8 horas</option>
+              </select>
+            </div>
+            <div class="field"><label>Qualidade da pega</label>
+              <select id="an-pega">
+                <option value="Boa">Boa</option>
+                <option value="Razoável" selected>Razoável</option>
+                <option value="Pobre">Pobre</option>
+              </select>
+            </div>
+          </div>
+          <span class="sub">Não precisa saber os fatores "F" e "QP" de cabeça — o sistema calcula sozinho a partir dessas respostas.</span>
+        </div>
+
+        <div class="insp-actions">
+          <button type="button" class="btn-primary inline" onclick="aetCalcularNiosh()">Calcular</button>
+          <button type="button" class="btn-secondary" onclick="aetSalvarNiosh()">Salvar avaliação</button>
+          <button type="button" class="btn-secondary" onclick="aetLimparNiosh()">Limpar campos</button>
+        </div>
+
+        <div class="card aet-resultado" id="an-resultado" style="display:none;">
+          <h3>Resultado</h3>
+          <div class="aet-resultado-grid">
+            <div class="aet-resultado-tile">
+              <div class="n" id="an-out-lpr">—</div>
+              <div class="l">LPR — Limite de Peso Recomendado (kg)</div>
+            </div>
+            <div class="aet-resultado-tile">
+              <div class="n" id="an-out-il">—</div>
+              <div class="l">IL — Índice de Levantamento</div>
+            </div>
+            <div class="aet-resultado-tile aet-resultado-classificacao" id="an-out-classificacao-wrap">
+              <div class="n" id="an-out-emoji">—</div>
+              <div class="l" id="an-out-classificacao">—</div>
+            </div>
+          </div>
+          <p class="aet-resultado-msg" id="an-out-msg"></p>
+        </div>
+
+        <div class="section-title"><span>Histórico de avaliações</span><div class="ln"></div></div>
+        <div class="card">
+          <div class="filters" style="margin-bottom:14px;">
+            <div class="f-group"><label>Unidade</label><select id="an-hist-unidade" onchange="aetRenderHistorico()"><option value="">Todas</option></select></div>
+            <div class="f-group"><label>Buscar por nome</label><input type="text" id="an-hist-busca" placeholder="Nome do colaborador" oninput="aetRenderHistorico()"></div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Data</th><th>Colaborador</th><th>Unidade</th><th>Peça</th><th>P (kg)</th><th>LPR (kg)</th><th>IL</th><th>Classificação</th><th></th></tr></thead>
+              <tbody id="tbl-aet-niosh"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal de ajuda do Método NIOSH -->
+      <div class="modal-bg" id="modal-aet-ajuda" onclick="if(event.target===this) aetFecharAjuda()">
+        <div class="modal wide">
+          <h3 style="display:flex; align-items:center; justify-content:space-between; gap:10px;">Como usar o Método NIOSH <button type="button" class="small-btn" onclick="aetFecharAjuda()">Fechar</button></h3>
+          <div class="aet-help-nav">
+            <button type="button" onclick="aetIrParaAjuda('ah-intro')">Visão geral</button>
+            <button type="button" onclick="aetIrParaAjuda('ah-h')">H</button>
+            <button type="button" onclick="aetIrParaAjuda('ah-v')">V</button>
+            <button type="button" onclick="aetIrParaAjuda('ah-d')">D</button>
+            <button type="button" onclick="aetIrParaAjuda('ah-a')">A</button>
+            <button type="button" onclick="aetIrParaAjuda('ah-f')">F</button>
+            <button type="button" onclick="aetIrParaAjuda('ah-qp')">QP</button>
+            <button type="button" onclick="aetIrParaAjuda('ah-p')">P</button>
+            <button type="button" onclick="aetIrParaAjuda('ah-lpr')">LPR</button>
+            <button type="button" onclick="aetIrParaAjuda('ah-il')">IL</button>
+          </div>
+          <div class="aet-help-body" id="aet-help-body">
+            <div class="aet-help-sec" id="ah-intro">
+              <h4>Visão geral</h4>
+              <p>O NIOSH (órgão de saúde e segurança do trabalho dos EUA) criou uma fórmula que diz qual o peso máximo que uma pessoa pode levantar com segurança, numa certa postura e ritmo de trabalho — o <b>LPR (Limite de Peso Recomendado)</b>.</p>
+              <p>Pra usar: meça no posto de trabalho os valores de <b>H, V, D, A</b>, observe a <b>frequência</b>, a <b>duração</b> da tarefa e a <b>qualidade da pega</b>, e informe o <b>peso (P)</b> da carga. O sistema calcula o LPR e o <b>IL (Índice de Levantamento)</b> automaticamente.</p>
+              <p>Clique nas abas acima para entender cada campo em detalhe, com desenho explicativo de onde medir.</p>
+            </div>
+
+            <div class="aet-help-sec" id="ah-h">
+              <h4>H — Distância horizontal (cm)</h4>
+              <p>Distância horizontal entre o ponto médio dos tornozelos e o ponto médio das mãos, segurando a carga.</p>
+              <svg class="aet-diagrama" viewBox="0 0 220 160" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="70" cy="22" r="12" fill="none" stroke="#5a4632" stroke-width="2.2"/>
+                <path d="M70 34 L70 80 M70 50 L48 70 M70 50 L96 66 M70 80 L55 130 M70 80 L85 130" fill="none" stroke="#5a4632" stroke-width="2.2" stroke-linecap="round"/>
+                <rect x="88" y="58" width="34" height="22" fill="none" stroke="#00733f" stroke-width="2.2"/>
+                <line x1="55" y1="145" x2="105" y2="145" stroke="#a15a33" stroke-width="1.5" stroke-dasharray="3 3"/>
+                <line x1="55" y1="140" x2="55" y2="150" stroke="#a15a33" stroke-width="1.5"/>
+                <line x1="105" y1="140" x2="105" y2="150" stroke="#a15a33" stroke-width="1.5"/>
+                <text x="80" y="158" font-size="11" fill="#a15a33" text-anchor="middle" font-weight="700">H</text>
+              </svg>
+              <p>Valores abaixo de 25 cm contam como 25 (fator 1 na fórmula). Acima de 63 cm, o método considera o levantamento inviável com segurança (fator 0, LPR = 0 kg) — nesse caso, a tarefa precisa ser redesenhada antes de mais nada.</p>
+            </div>
+
+            <div class="aet-help-sec" id="ah-v">
+              <h4>V — Distância vertical (cm)</h4>
+              <p>Altura das mãos em relação ao chão, no momento em que a carga é pega (ou largada).</p>
+              <svg class="aet-diagrama" viewBox="0 0 220 160" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="70" cy="22" r="12" fill="none" stroke="#5a4632" stroke-width="2.2"/>
+                <path d="M70 34 L70 80 M70 50 L50 66 M70 50 L92 62" fill="none" stroke="#5a4632" stroke-width="2.2" stroke-linecap="round"/>
+                <path d="M70 80 L55 140 M70 80 L85 140" fill="none" stroke="#5a4632" stroke-width="2.2" stroke-linecap="round"/>
+                <rect x="78" y="48" width="30" height="20" fill="none" stroke="#00733f" stroke-width="2.2"/>
+                <line x1="150" y1="58" x2="150" y2="140" stroke="#a15a33" stroke-width="1.5" stroke-dasharray="3 3"/>
+                <line x1="145" y1="58" x2="155" y2="58" stroke="#a15a33" stroke-width="1.5"/>
+                <line x1="145" y1="140" x2="155" y2="140" stroke="#a15a33" stroke-width="1.5"/>
+                <text x="162" y="100" font-size="11" fill="#a15a33" font-weight="700">V</text>
+                <line x1="30" y1="140" x2="190" y2="140" stroke="#ccc" stroke-width="1.5"/>
+              </svg>
+              <p>Acima de 175 cm, o método considera o levantamento inviável (fator 0, LPR = 0 kg) — é mais alto do que praticamente qualquer pessoa alcança numa postura segura.</p>
+            </div>
+
+            <div class="aet-help-sec" id="ah-d">
+              <h4>D — Deslocamento vertical (cm)</h4>
+              <p>Distância que a carga percorre na vertical entre o início e o fim do levantamento (diferença entre o "V" de onde pega e o "V" de onde larga).</p>
+              <svg class="aet-diagrama" viewBox="0 0 260 150" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="55" cy="40" r="11" fill="none" stroke="#5a4632" stroke-width="2"/>
+                <path d="M55 51 L50 85 M55 65 L38 75 M55 65 L70 78 M50 85 L40 125 M50 85 L62 125" fill="none" stroke="#5a4632" stroke-width="2" stroke-linecap="round"/>
+                <rect x="40" y="110" width="26" height="16" fill="none" stroke="#00733f" stroke-width="2"/>
+                <circle cx="205" cy="22" r="11" fill="none" stroke="#5a4632" stroke-width="2"/>
+                <path d="M205 33 L205 70 M205 45 L188 58 M205 45 L222 55 M205 70 L195 125 M205 70 L215 125" fill="none" stroke="#5a4632" stroke-width="2" stroke-linecap="round"/>
+                <rect x="190" y="48" width="26" height="16" fill="none" stroke="#00733f" stroke-width="2"/>
+                <line x1="110" y1="118" x2="110" y2="56" stroke="#a15a33" stroke-width="1.5" stroke-dasharray="3 3"/>
+                <line x1="104" y1="118" x2="116" y2="118" stroke="#a15a33" stroke-width="1.5"/>
+                <line x1="104" y1="56" x2="116" y2="56" stroke="#a15a33" stroke-width="1.5"/>
+                <text x="122" y="90" font-size="11" fill="#a15a33" font-weight="700">D</text>
+                <text x="45" y="145" font-size="10.5" fill="#5a4632">Início</text>
+                <text x="185" y="145" font-size="10.5" fill="#5a4632">Fim</text>
+              </svg>
+              <p>Valores abaixo de 25 cm contam como 25 (fator 1). Acima de 175 cm, o método considera o levantamento inviável (fator 0, LPR = 0 kg).</p>
+            </div>
+
+            <div class="aet-help-sec" id="ah-a">
+              <h4>A — Ângulo de torção do tronco (°)</h4>
+              <p>O quanto o tronco gira para pegar ou largar a carga, comparando a direção da carga com a direção dos pés/ombros. 0° é de frente para a carga; 90° é virado totalmente de lado.</p>
+              <svg class="aet-diagrama" viewBox="0 0 220 110" xmlns="http://www.w3.org/2000/svg">
+                <line x1="20" y1="90" x2="110" y2="90" stroke="#981b22" stroke-width="2.4"/>
+                <line x1="20" y1="90" x2="85" y2="45" stroke="#2b5fae" stroke-width="2.4"/>
+                <path d="M46 90 A26 26 0 0 0 58 66" fill="none" stroke="#5a4632" stroke-width="1.6"/>
+                <text x="60" y="80" font-size="11" fill="#5a4632" font-weight="700">A</text>
+                <circle cx="20" cy="18" r="9" fill="#faa61a"/>
+                <text x="130" y="55" font-size="10" fill="#981b22">— Eixo da carga</text>
+                <text x="130" y="72" font-size="10" fill="#2b5fae">— Eixo do tronco</text>
+              </svg>
+              <p>Use valores entre 0° e 135°. Acima de 135°, o método considera o levantamento inviável (fator 0, LPR = 0 kg) — a tarefa precisa ser reorganizada pra reduzir a torção (ex.: reposicionar a carga ou o colaborador).</p>
+            </div>
+
+            <div class="aet-help-sec" id="ah-f">
+              <h4>F — Fator Frequência</h4>
+              <p>Calculado automaticamente a partir de três respostas simples: quantas vezes por minuto o colaborador levanta a carga, por quanto tempo essa tarefa se repete ao longo do turno, e o valor de "V" informado (abaixo ou acima de 75 cm). Quanto mais frequente e mais longa a tarefa, menor o peso recomendado.</p>
+              <table class="aet-tabela-ref">
+                <thead><tr><th rowspan="2">Levantamentos/min</th><th colspan="2">Até 1 hora</th><th colspan="2">Até 2 horas</th><th colspan="2">Até 8 horas</th></tr>
+                <tr><th>V&lt;75</th><th>V≥75</th><th>V&lt;75</th><th>V≥75</th><th>V&lt;75</th><th>V≥75</th></tr></thead>
+                <tbody>
+                  <tr><td>0,2</td><td>1,00</td><td>1,00</td><td>0,95</td><td>0,95</td><td>0,85</td><td>0,85</td></tr>
+                  <tr><td>0,5</td><td>0,97</td><td>0,97</td><td>0,92</td><td>0,92</td><td>0,81</td><td>0,81</td></tr>
+                  <tr><td>1</td><td>0,94</td><td>0,94</td><td>0,88</td><td>0,88</td><td>0,75</td><td>0,75</td></tr>
+                  <tr><td>2</td><td>0,91</td><td>0,91</td><td>0,84</td><td>0,84</td><td>0,65</td><td>0,65</td></tr>
+                  <tr><td>3</td><td>0,88</td><td>0,88</td><td>0,79</td><td>0,79</td><td>0,55</td><td>0,55</td></tr>
+                  <tr><td>4</td><td>0,84</td><td>0,84</td><td>0,72</td><td>0,72</td><td>0,45</td><td>0,45</td></tr>
+                  <tr><td>5</td><td>0,80</td><td>0,80</td><td>0,60</td><td>0,60</td><td>0,35</td><td>0,35</td></tr>
+                  <tr><td>6</td><td>0,75</td><td>0,75</td><td>0,50</td><td>0,50</td><td>0,27</td><td>0,27</td></tr>
+                  <tr><td>7</td><td>0,70</td><td>0,70</td><td>0,42</td><td>0,42</td><td>0,22</td><td>0,22</td></tr>
+                  <tr><td>8</td><td>0,60</td><td>0,60</td><td>0,35</td><td>0,35</td><td>0,18</td><td>0,18</td></tr>
+                  <tr><td>9</td><td>0,52</td><td>0,52</td><td>0,30</td><td>0,30</td><td>0,00</td><td>0,15</td></tr>
+                  <tr><td>10</td><td>0,45</td><td>0,45</td><td>0,26</td><td>0,26</td><td>0,00</td><td>0,13</td></tr>
+                  <tr><td>11</td><td>0,41</td><td>0,41</td><td>0,23</td><td>0,23</td><td>0,00</td><td>0,00</td></tr>
+                  <tr><td>12</td><td>0,37</td><td>0,37</td><td>0,00</td><td>0,21</td><td>0,00</td><td>0,00</td></tr>
+                  <tr><td>13</td><td>0,00</td><td>0,34</td><td>0,00</td><td>0,00</td><td>0,00</td><td>0,00</td></tr>
+                  <tr><td>14</td><td>0,00</td><td>0,31</td><td>0,00</td><td>0,00</td><td>0,00</td><td>0,00</td></tr>
+                  <tr><td>15</td><td>0,00</td><td>0,28</td><td>0,00</td><td>0,00</td><td>0,00</td><td>0,00</td></tr>
+                  <tr><td>Maior que 15</td><td>0,00</td><td>0,00</td><td>0,00</td><td>0,00</td><td>0,00</td><td>0,00</td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div class="aet-help-sec" id="ah-qp">
+              <h4>QP — Qualidade da pega</h4>
+              <p>Também calculada automaticamente, a partir de como suas mãos se encaixam na carga e do valor de "V":</p>
+              <table class="aet-tabela-ref">
+                <thead><tr><th>Pega</th><th>V&lt;75</th><th>V≥75</th></tr></thead>
+                <tbody>
+                  <tr><td><b>Boa</b></td><td>1,00</td><td>1,00</td></tr>
+                  <tr><td><b>Razoável</b></td><td>0,95</td><td>1,00</td></tr>
+                  <tr><td><b>Pobre</b></td><td>0,90</td><td>0,90</td></tr>
+                </tbody>
+              </table>
+              <p style="margin-top:12px;"><b>Pega boa:</b> alça ou encaixe para os dedos, ou caixa/container com bom local pra segurar.<br>
+              <b>Pega razoável:</b> alça ou encaixe, mas os dedos ficam no máximo a 90°.<br>
+              <b>Pega pobre:</b> caixa volumosa, escorregadia ou sem lugar pra segurar; sem alça nem encaixe.</p>
+            </div>
+
+            <div class="aet-help-sec" id="ah-p">
+              <h4>P — Peso da carga (kg)</h4>
+              <p>Massa real da carga que o colaborador levanta, em quilogramas. O ideal é que "P" fique menor ou igual ao LPR calculado.</p>
+            </div>
+
+            <div class="aet-help-sec" id="ah-lpr">
+              <h4>LPR — Limite de Peso Recomendado</h4>
+              <p>É o peso máximo, em kg, que a tarefa permite levantar com segurança, dada a postura e o ritmo de trabalho avaliados. Fórmula:</p>
+              <p class="aet-formula">LPR = 23 × (25/H) × [1 − 0,003×|V−75|] × [0,82 + (4,5/D)] × [1 − 0,0032×A] × F × QP</p>
+            </div>
+
+            <div class="aet-help-sec" id="ah-il">
+              <h4>IL — Índice de Levantamento</h4>
+              <p class="aet-formula">IL = P / LPR</p>
+              <p>😊 <b>IL ≤ 1 — Bom:</b> risco baixo de dor lombar.<br>
+              😟 <b>IL &gt; 1 — Ruim:</b> risco elevado; quanto mais acima de 1, maior o risco. O ideal é redesenhar a tarefa pra trazer o IL de volta pra 1 ou menos.</p>
+            </div>
+          </div>
+        </div>
+      </div>
 
       <!-- ============ SAÚDE ============ -->
       <section class="view" id="view-saude">
@@ -1599,6 +1851,15 @@
         <div id="dashboards-paineis"></div>
       </section>
 
+      <!-- ============ AET (ANÁLISE ERGONÔMICA DO TRABALHO) ============ -->
+      <section class="view" id="view-aet">
+        <div class="topbar">
+          <div><h2>AET</h2></div>
+        </div>
+        <div class="insp-subnav" id="aet-tabs"></div>
+        <div id="aet-paineis"></div>
+      </section>
+
       <section class="view" id="view-gestao">
         <div class="topbar">
           <div><h2>Gestão</h2></div>
@@ -2080,6 +2341,7 @@
           <label><input type="checkbox" value="fichaEpi" class="us-mod"> Ficha de EPI (em Tarefas)</label>
           <label><input type="checkbox" value="auditoriaEpi" class="us-mod"> Auditoria EPI</label>
           <label><input type="checkbox" value="gestao" class="us-mod"> Gestão (Usuários, Unidades, Estrutura, Auditoria)</label>
+          <label><input type="checkbox" value="aet" class="us-mod"> AET — Análise Ergonômica do Trabalho (Método NIOSH)</label>
         </div>
       </div>
       <div class="field">
@@ -2699,25 +2961,26 @@
   </div>
 </div>
 
-<script src="js/01-nucleo.js?v=31"></script>
-<script src="js/02-dashboard-acidentes.js?v=31"></script>
-<script src="js/03-inspecoes-checklist.js?v=31"></script>
-<script src="js/04-demandas.js?v=31"></script>
-<script src="js/05-reunioes-dailys.js?v=31"></script>
-<script src="js/06-gestao-config.js?v=31"></script>
-<script src="js/07-notificacoes.js?v=31"></script>
-<script src="js/08-saude.js?v=31"></script>
-<script src="js/09-ficha-epi.js?v=31"></script>
-<script src="js/10-absenteismo.js?v=31"></script>
-<script src="js/11-agenda.js?v=31"></script>
-<script src="js/12-inicio.js?v=31"></script>
-<script src="js/13-calendario.js?v=31"></script>
-<script src="js/14-convites-ausencias.js?v=31"></script>
-<script src="js/15-usuarios.js?v=31"></script>
-<script src="js/16-vistoria.js?v=31"></script>
-<script src="js/17-vistoria-publica.js?v=31"></script>
-<script src="js/18-entrega-epi.js?v=31"></script>
-<script src="js/99-inicializacao.js?v=31"></script>
+<script src="js/01-nucleo.js?v=33"></script>
+<script src="js/02-dashboard-acidentes.js?v=33"></script>
+<script src="js/03-inspecoes-checklist.js?v=33"></script>
+<script src="js/04-demandas.js?v=33"></script>
+<script src="js/05-reunioes-dailys.js?v=33"></script>
+<script src="js/06-gestao-config.js?v=33"></script>
+<script src="js/07-notificacoes.js?v=33"></script>
+<script src="js/08-saude.js?v=33"></script>
+<script src="js/09-ficha-epi.js?v=33"></script>
+<script src="js/10-absenteismo.js?v=33"></script>
+<script src="js/11-agenda.js?v=33"></script>
+<script src="js/12-inicio.js?v=33"></script>
+<script src="js/13-calendario.js?v=33"></script>
+<script src="js/14-convites-ausencias.js?v=33"></script>
+<script src="js/15-usuarios.js?v=33"></script>
+<script src="js/16-vistoria.js?v=33"></script>
+<script src="js/17-vistoria-publica.js?v=33"></script>
+<script src="js/18-entrega-epi.js?v=33"></script>
+<script src="js/19-aet-niosh.js?v=33"></script>
+<script src="js/99-inicializacao.js?v=33"></script>
 <script>
   // Registra o Service Worker (só a "casca" do app fica em cache; nenhum dado do Supabase)
   if("serviceWorker" in navigator){

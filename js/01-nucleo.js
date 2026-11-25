@@ -142,7 +142,9 @@ function mapAgendaFromDb(r){
   return {
     id:r.id, usuarioId:r.usuario_id, usuarioNome:r.usuario_nome, usuarioPerfil:r.usuario_perfil,
     unidade:r.unidade, data:r.data, periodo:r.periodo, motivo:r.motivo, status:r.status,
-    checkin:r.checkin, checkout:r.checkout, oculto:r.oculto===true, descricao:r.descricao||""
+    checkin:r.checkin, checkout:r.checkout, oculto:r.oculto===true, descricao:r.descricao||"",
+    dispensaRelatorio:r.dispensa_relatorio===true, dispensaRelatorioPor:r.dispensa_relatorio_por||null,
+    dispensaRelatorioEm:r.dispensa_relatorio_em||null
   };
 }
 

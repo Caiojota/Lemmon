@@ -1399,6 +1399,7 @@ async function vistBaixarSemFotos(){
 /* ---------- check-out só depois do relatório finalizado ---------- */
 async function vistBloqueiaCheckout(visitaId){
   const vv = AGENDA.find(x=>x.id===visitaId); if(vv && calEhLocalTrabalho(vv.unidade)) return false;
+  if(vv && vv.dispensaRelatorio) return false; // liberado manualmente por um gestor — ver vistLiberarCheckoutSemRelatorio()
   const { data, error } = await sb.from("vist_relatorios").select("id,status").eq("agenda_id", visitaId);
   if(error) return false;           // se não der para consultar, não trava o usuário
   const rels = data||[];
@@ -1407,6 +1408,29 @@ async function vistBloqueiaCheckout(visitaId){
   if(rasc){ if(confirm("Este check-out só é liberado depois de finalizar o relatório vistorial da visita.\n\nAbrir o relatório agora?")){ irParaView("inspecoes"); setTimeout(()=>vistAbrir(rasc.id), 250); } }
   else { if(confirm("Este check-out só é liberado depois de emitir o relatório vistorial da visita.\n\nIniciar o relatório agora?")){ irParaView("inspecoes"); setTimeout(()=>vistNovo(), 400); } }
   return true;
+}
+
+// Função do módulo: gestor libera o check-out de uma visita específica sem
+// exigir o relatório vistorial (ex.: imprevisto, visita cancelada no local,
+// problema técnico). Fica registrado quem liberou e quando.
+async function vistLiberarCheckoutSemRelatorio(visitaId){
+  const v = AGENDA.find(x=>x.id===visitaId);
+  if(!v) return;
+  if(v.dispensaRelatorio){ mostrarToast("Esse check-out já estava liberado."); return; }
+  const quem = v.usuarioNome||"esse colaborador";
+  if(!confirm(`Liberar o check-out de ${quem} (${v.unidade}, ${formatarDataBR(v.data)}) sem exigir o relatório vistorial?\n\nUse só em casos excepcionais — fica registrado quem liberou.`)) return;
+  const agora = new Date().toISOString();
+  const { error } = await sb.from("agenda").update({
+    dispensa_relatorio: true,
+    dispensa_relatorio_por: currentUser ? currentUser.id : null,
+    dispensa_relatorio_em: agora
+  }).eq("id", visitaId);
+  if(error){ alert("Não foi possível liberar o check-out: "+error.message); return; }
+  v.dispensaRelatorio = true;
+  v.dispensaRelatorioPor = currentUser ? currentUser.id : null;
+  v.dispensaRelatorioEm = agora;
+  mostrarToast("Check-out liberado sem relatório pra essa visita.");
+  if(typeof renderIndicadoresAgenda==="function") renderIndicadoresAgenda();
 }
 
 // Função do módulo: vist carregar acoes

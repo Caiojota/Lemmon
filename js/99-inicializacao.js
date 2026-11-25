@@ -97,6 +97,9 @@ const CONTEINERES = {
     {id:"absenteismo", rotulo:"Absenteísmo", perm:"absenteismo", no:"view-absenteismo",           abrir:()=>initAbsenteismo()},
     {id:"saude",       rotulo:"Saúde",       perm:"saude",       no:"view-saude",                 abrir:()=>initSaude()},
     {id:"acidentesLista", rotulo:"Todos os Acidentes", perm:"lancamento", oculto:true, no:"acidentes-sub-todos", abrir:()=>mostrarSubAcidentes("todos")},
+  ]},
+  aet: {paineis:[
+    {id:"niosh", rotulo:"Método NIOSH", perm:"aet", no:"aet-niosh-root", abrir:()=>initAetNiosh()},
   ]}
 };
 
@@ -107,7 +110,7 @@ const VIEW_PARA_PAINEL = {
   dashAcidentes:["dashboards","acidentes"], dashAgenda:["dashboards","agenda"], dashDemandas:["dashboards","demandas"]
 };
 
-const painelAtivo = {tarefas:null, dashboards:null};
+const painelAtivo = {tarefas:null, dashboards:null, aet:null};
 
 /* ---- menu suspenso dos grupos (Tarefas, Dashboards): abre ao passar o mouse ou clicar ---- */
 let NAV_DROP_VIEW = null, navDropTimer = null;
