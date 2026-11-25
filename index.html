@@ -29,19 +29,19 @@
 <script src="lib/jszip.js"></script>
 <script src="lib/pptxgenjs.js"></script>
 
-<link rel="stylesheet" href="css/08-base.css?v=33">
-<link rel="stylesheet" href="css/09-agenda-unificada.css?v=33">
-<link rel="stylesheet" href="css/10-visual-ios.css?v=33">
-<link rel="stylesheet" href="css/11-icones.css?v=33">
-<link rel="stylesheet" href="css/12-sons.css?v=33">
+<link rel="stylesheet" href="css/08-base.css?v=34">
+<link rel="stylesheet" href="css/09-agenda-unificada.css?v=34">
+<link rel="stylesheet" href="css/10-visual-ios.css?v=34">
+<link rel="stylesheet" href="css/11-icones.css?v=34">
+<link rel="stylesheet" href="css/12-sons.css?v=34">
 <script src="lib/qrcode.js"></script>
-<link rel="stylesheet" href="css/14-vistorial.css?v=33">
-<link rel="stylesheet" href="css/15-extras-1.css?v=33">
-<link rel="stylesheet" href="css/16-extras-2.css?v=33">
-<link rel="stylesheet" href="css/17-inicio-v2.css?v=33">
-<link rel="stylesheet" href="css/18-modais-v2.css?v=33">
-<link rel="stylesheet" href="css/19-modais-v2b.css?v=33">
-<link rel="stylesheet" href="css/20-mobile.css?v=33">
+<link rel="stylesheet" href="css/14-vistorial.css?v=34">
+<link rel="stylesheet" href="css/15-extras-1.css?v=34">
+<link rel="stylesheet" href="css/16-extras-2.css?v=34">
+<link rel="stylesheet" href="css/17-inicio-v2.css?v=34">
+<link rel="stylesheet" href="css/18-modais-v2.css?v=34">
+<link rel="stylesheet" href="css/19-modais-v2b.css?v=34">
+<link rel="stylesheet" href="css/20-mobile.css?v=34">
 </head>
 <body>
 
@@ -169,6 +169,8 @@
       <a href="#" class="nav-item" data-view="tarefas"><span class="ic"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3 8-8M20 12v6a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h9"/></svg></span> Tarefas</a>
       <a href="#" class="nav-item" data-view="dashboards"><span class="ic"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg></span> Dashboards</a>
       <a href="#" class="nav-item" data-view="aet"><span class="ic"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5ZM12 7v6m0 0-4 7m4-7 4 7M7 9l-2 2m14-2 2 2"/></svg></span> AET</a>
+      <a href="#" class="nav-item" data-view="multas"><span class="ic"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v10M9.5 9.2c0-1.2 1.1-2.2 2.5-2.2s2.5.8 2.5 1.9c0 2.6-5 1.3-5 3.9 0 1.1 1.1 1.9 2.5 1.9s2.5-1 2.5-2.2"/></svg></span> Multas NR</a>
+      <a href="#" class="nav-item" data-view="nrexplicada"><span class="ic"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4.5A1.5 1.5 0 0 1 6.5 3H18a1 1 0 0 1 1 1v15a1 1 0 0 1-1 1H6.5A1.5 1.5 0 0 1 5 18.5v-14Z"/><path d="M8 8h8M8 11.5h8M8 15h5"/></svg></span> NR Explicada</a>
     </nav>
 
     <!-- CONTEÚDO -->
@@ -1273,6 +1275,71 @@
         </div>
       </div>
 
+      <!-- ============ MULTAS NR ============ -->
+      <div id="multas-calc-root">
+        <div class="topbar">
+          <div><h2>Calculadora de Multas por NR</h2><span class="sub">Estima o valor de uma multa trabalhista por descumprimento de Norma Regulamentadora, a partir do item infringido e do porte da empresa.</span></div>
+        </div>
+
+        <div class="mn-disclaimer"><span>⚠️</span><span><b>Atenção:</b> os valores por faixa de empregados e grau são uma ESTIMATIVA calculada a partir dos tetos e pisos oficiais confirmados (Portaria MTE nº 1.131/2025), não uma tabela oficial publicada item por item. O valor real do auto de infração é definido pelo próprio auditor fiscal do trabalho. Use como referência, não como garantia — em caso de dúvida, consulte um especialista.</span></div>
+
+        <div class="form-card">
+          <div class="form-grid">
+            <div class="field"><label>Norma Regulamentadora (NR)</label><select id="mn-nr" onchange="mnAoTrocarNr()"><option value="">Selecione...</option></select></div>
+            <div class="field full"><label>Item infringido</label><select id="mn-item" onchange="mnAoTrocarItem()"><option value="">Selecione a NR primeiro...</option></select><span class="dica-campo" id="mn-item-obs"></span></div>
+            <div class="field"><label>Nº de empregados da empresa</label><input type="number" id="mn-empregados" min="1" step="1" placeholder="ex.: 85"></div>
+            <div class="field"><label>Grau da infração (1 a 4)</label>
+              <select id="mn-grau">
+                <option value="1">Grau 1 (mais leve)</option>
+                <option value="2">Grau 2</option>
+                <option value="3" selected>Grau 3</option>
+                <option value="4">Grau 4 (mais grave)</option>
+              </select>
+            </div>
+            <div class="field"><label>Tipo de infração</label>
+              <select id="mn-tipo">
+                <option value="S" selected>S — Segurança do Trabalho</option>
+                <option value="M">M — Medicina do Trabalho</option>
+              </select>
+            </div>
+            <div class="field"><label>Reincidência / embaraço à fiscalização / fraude</label>
+              <select id="mn-reincidencia">
+                <option value="nao" selected>Não</option>
+                <option value="sim">Sim</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="insp-actions">
+          <button type="button" class="btn-primary inline" onclick="mnCalcular()">Calcular multa</button>
+          <button type="button" class="btn-secondary" onclick="mnVerExplicacaoItem()">Ver explicação desse item</button>
+        </div>
+
+        <div class="card mn-resultado" id="mn-resultado" style="display:none;">
+          <h3>Valor estimado</h3>
+          <div class="mn-valor" id="mn-valor">—</div>
+          <ul class="mn-detalhes" id="mn-detalhes-lista"></ul>
+          <p class="mn-base-legal" id="mn-base-legal"></p>
+        </div>
+      </div>
+
+      <!-- ============ NR EXPLICADA ============ -->
+      <div id="nrexplicada-consulta-root">
+        <div class="topbar">
+          <div><h2>Consulta de NRs</h2><span class="sub">Cada Norma Regulamentadora, item por item, explicada em linguagem simples.</span></div>
+        </div>
+        <div class="nre-layout">
+          <div class="nre-lista">
+            <input type="text" id="nre-busca" placeholder="Buscar por número, título ou item..." oninput="nreRenderLista()">
+            <div id="nre-lista-itens"></div>
+          </div>
+          <div class="nre-detalhe" id="nre-detalhe">
+            <div class="nre-vazio">Selecione uma NR ao lado pra ver os itens explicados.</div>
+          </div>
+        </div>
+      </div>
+
       <!-- ============ SAÚDE ============ -->
       <section class="view" id="view-saude">
         <div class="topbar">
@@ -1860,6 +1927,22 @@
         <div id="aet-paineis"></div>
       </section>
 
+      <section class="view" id="view-multas">
+        <div class="topbar">
+          <div><h2>Multas NR</h2></div>
+        </div>
+        <div class="insp-subnav" id="multas-tabs"></div>
+        <div id="multas-paineis"></div>
+      </section>
+
+      <section class="view" id="view-nrexplicada">
+        <div class="topbar">
+          <div><h2>NR Explicada</h2></div>
+        </div>
+        <div class="insp-subnav" id="nrexplicada-tabs"></div>
+        <div id="nrexplicada-paineis"></div>
+      </section>
+
       <section class="view" id="view-gestao">
         <div class="topbar">
           <div><h2>Gestão</h2></div>
@@ -2342,6 +2425,8 @@
           <label><input type="checkbox" value="auditoriaEpi" class="us-mod"> Auditoria EPI</label>
           <label><input type="checkbox" value="gestao" class="us-mod"> Gestão (Usuários, Unidades, Estrutura, Auditoria)</label>
           <label><input type="checkbox" value="aet" class="us-mod"> AET — Análise Ergonômica do Trabalho (Método NIOSH)</label>
+          <label><input type="checkbox" value="multas" class="us-mod"> Multas NR (calculadora)</label>
+          <label><input type="checkbox" value="nrexplicada" class="us-mod"> NR Explicada (consulta)</label>
         </div>
       </div>
       <div class="field">
@@ -2961,26 +3046,29 @@
   </div>
 </div>
 
-<script src="js/01-nucleo.js?v=33"></script>
-<script src="js/02-dashboard-acidentes.js?v=33"></script>
-<script src="js/03-inspecoes-checklist.js?v=33"></script>
-<script src="js/04-demandas.js?v=33"></script>
-<script src="js/05-reunioes-dailys.js?v=33"></script>
-<script src="js/06-gestao-config.js?v=33"></script>
-<script src="js/07-notificacoes.js?v=33"></script>
-<script src="js/08-saude.js?v=33"></script>
-<script src="js/09-ficha-epi.js?v=33"></script>
-<script src="js/10-absenteismo.js?v=33"></script>
-<script src="js/11-agenda.js?v=33"></script>
-<script src="js/12-inicio.js?v=33"></script>
-<script src="js/13-calendario.js?v=33"></script>
-<script src="js/14-convites-ausencias.js?v=33"></script>
-<script src="js/15-usuarios.js?v=33"></script>
-<script src="js/16-vistoria.js?v=33"></script>
-<script src="js/17-vistoria-publica.js?v=33"></script>
-<script src="js/18-entrega-epi.js?v=33"></script>
-<script src="js/19-aet-niosh.js?v=33"></script>
-<script src="js/99-inicializacao.js?v=33"></script>
+<script src="js/01-nucleo.js?v=34"></script>
+<script src="js/02-dashboard-acidentes.js?v=34"></script>
+<script src="js/03-inspecoes-checklist.js?v=34"></script>
+<script src="js/04-demandas.js?v=34"></script>
+<script src="js/05-reunioes-dailys.js?v=34"></script>
+<script src="js/06-gestao-config.js?v=34"></script>
+<script src="js/07-notificacoes.js?v=34"></script>
+<script src="js/08-saude.js?v=34"></script>
+<script src="js/09-ficha-epi.js?v=34"></script>
+<script src="js/10-absenteismo.js?v=34"></script>
+<script src="js/11-agenda.js?v=34"></script>
+<script src="js/12-inicio.js?v=34"></script>
+<script src="js/13-calendario.js?v=34"></script>
+<script src="js/14-convites-ausencias.js?v=34"></script>
+<script src="js/15-usuarios.js?v=34"></script>
+<script src="js/16-vistoria.js?v=34"></script>
+<script src="js/17-vistoria-publica.js?v=34"></script>
+<script src="js/18-entrega-epi.js?v=34"></script>
+<script src="js/19-aet-niosh.js?v=34"></script>
+<script src="js/20-nr-dados.js?v=34"></script>
+<script src="js/21-multas-nr.js?v=34"></script>
+<script src="js/22-nr-explicada.js?v=34"></script>
+<script src="js/99-inicializacao.js?v=34"></script>
 <script>
   // Registra o Service Worker (só a "casca" do app fica em cache; nenhum dado do Supabase)
   if("serviceWorker" in navigator){

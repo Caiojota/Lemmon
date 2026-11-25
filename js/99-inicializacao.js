@@ -100,6 +100,12 @@ const CONTEINERES = {
   ]},
   aet: {paineis:[
     {id:"niosh", rotulo:"Método NIOSH", perm:"aet", no:"aet-niosh-root", abrir:()=>initAetNiosh()},
+  ]},
+  multas: {paineis:[
+    {id:"calc", rotulo:"Calculadora", perm:"multas", no:"multas-calc-root", abrir:()=>initMultasNr()},
+  ]},
+  nrexplicada: {paineis:[
+    {id:"consulta", rotulo:"Consulta", perm:"nrexplicada", no:"nrexplicada-consulta-root", abrir:()=>initNrExplicada()},
   ]}
 };
 
@@ -110,7 +116,7 @@ const VIEW_PARA_PAINEL = {
   dashAcidentes:["dashboards","acidentes"], dashAgenda:["dashboards","agenda"], dashDemandas:["dashboards","demandas"]
 };
 
-const painelAtivo = {tarefas:null, dashboards:null, aet:null};
+const painelAtivo = {tarefas:null, dashboards:null, aet:null, multas:null, nrexplicada:null};
 
 /* ---- menu suspenso dos grupos (Tarefas, Dashboards): abre ao passar o mouse ou clicar ---- */
 let NAV_DROP_VIEW = null, navDropTimer = null;
